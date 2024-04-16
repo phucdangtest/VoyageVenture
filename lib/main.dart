@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:voyageventure/AddressConverter/my_converter.dart';
 import 'package:voyageventure/MyHomeScreen/my_home_screen.dart';
-
-void main() {
-  runApp(const MyApp());
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:voyageventure/MySearchBar/my_search_bar.dart';
+void main() async {
+  await dotenv.load();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -16,11 +18,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
-
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: LatLngToAddressConverter(),
+      home: MySearchBar(),
     );
   }
 }

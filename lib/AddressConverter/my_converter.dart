@@ -30,11 +30,16 @@ class _LatLngToAddressConverterState extends State<LatLngToAddressConverter> {
               // This makes the Container take up all available horizontal space
               child: FilledButton(
                 onPressed: () async {
+                  List<Location> locations = await locationFromAddress(
+                      "Vietnam, HoChi Minh City, District 1, Nguyen Hue Street");
+
+
                   List<Placemark> placemarks =
                       await placemarkFromCoordinates(9.3829827,105.7859591);
                   setState(() {
                     place =
-                        '${placemarks[0].name}, ${placemarks[0].street}, ${placemarks[0].subLocality}, ${placemarks[0].locality}, ${placemarks[0].administrativeArea}, ${placemarks[0].country}, ${placemarks[0].postalCode}';
+                        '${placemarks[0].name}, ${placemarks[0].street}, ${placemarks[0].subLocality}, ${placemarks[0].locality}, ${placemarks[0].administrativeArea}, ${placemarks[0].country}, ${placemarks[0].postalCode},'
+                            ' " \n" , "Location", ${locations[0].latitude}, ${locations[0].longitude}';
                   });
                 },
                 child: const Text("Convert to Address"),
