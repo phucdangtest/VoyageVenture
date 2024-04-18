@@ -1,18 +1,18 @@
-class placeSearch {
+class PlaceSearch_ {
   final String? id;
   final String? formattedAddress;
   final Location? location;
   final DisplayName? displayName;
 
-  placeSearch({
+  PlaceSearch_({
     this.id,
     this.formattedAddress,
     this.location,
     this.displayName,
   });
 
-  factory placeSearch.fromJson(Map<String, dynamic> json) {
-    return placeSearch(
+  factory PlaceSearch_.fromJson(Map<String, dynamic> json) {
+    return PlaceSearch_(
       id: json['id'] as String?,
       formattedAddress: json['formattedAddress'] as String?,
       location: json['location'] != null

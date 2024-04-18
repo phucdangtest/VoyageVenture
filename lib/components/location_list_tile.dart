@@ -3,8 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../constants.dart';
 
-class LocationListTile extends StatelessWidget {
-  const LocationListTile({
+class LocationListTile_ extends StatelessWidget {
+  const LocationListTile_({
     Key? key,
     required this.location,
     required this.press,

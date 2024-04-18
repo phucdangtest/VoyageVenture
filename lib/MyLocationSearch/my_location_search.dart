@@ -3,13 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_places_flutter_api/google_places_flutter_api.dart';
 import 'package:voyageventure/components/location_list_tile.dart';
 import 'package:voyageventure/components/network_utils.dart';
 import 'package:voyageventure/constants.dart';
+import 'package:voyageventure/models/place_autocomplete_response.dart';
 import 'package:voyageventure/models/place_search_response.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 
 class SearchLocationScreen extends StatefulWidget {
@@ -20,31 +23,48 @@ class SearchLocationScreen extends StatefulWidget {
 }
 
 class _SearchLocationScreenState extends State<SearchLocationScreen> {
-  List<placeSearch> placePredictions = [];
+  List<PlaceAutocomplete_> placeAutoList = [];
+  List<PlaceSearch_> placeSearchList = [];
 
-  void placeAutocompleteOld(String querry) async {
-    print("Autocomplete: $querry");
-    Uri uri =
-        Uri.https('maps.googleapis.com', '/maps/api/place/autocomplete/json', {
-      'input': querry,
-      'key': dotenv.env['MAPS_API_KEY1']!,
+  void placeAutocomplete(String query) async {
+    print("Autocomplete: $query");
+    var url = Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
+    var headers = {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': dotenv.env['MAPS_API_KEY1']!,
+    };
+    var body = jsonEncode({
+      'input': query,
+      'locationBias': {
+        'circle': {
+          'center': {
+            'latitude': 12.5199614,
+            'longitude': 107.5400949
+          },
+          'radius': 500.0
+        }
+      }
     });
-    print("Querry: " + uri.toString());
-    logWithTab("Querry: " + uri.toString(), tag: "SearchLocationScreen");
-    String? response = await NetworkUtils.fetchUrl(uri);
-    if (response != null) {
-      placeSeachResponse result =
-          placeSeachResponse.parseAutocompleteResult(response);
-      if (result.places != null) {
+    var response = await http.post(url, headers: headers, body: body);
+    if (response.statusCode == 200) {
+      logWithTab("Response autocomplete: ${response.body}", tag: "SearchLocationScreen");
+      PlaceAutocompleteResponse_ result =
+      PlaceAutocompleteResponse_.parseAutocompleteResult(response.body);
+      if (result.suggestions != null) {
         setState(() {
-          placePredictions = result.places!;
+          placeAutoList = result.suggestions!;
         });
       }
+      else {
+        logWithTab("No predictions found", tag: "SearchLocationScreen");
+      }
+    } else {
+      print('Request failed with status: ${response.statusCode}.');
     }
   }
 
-  void placeAutocompleteNew(String query) async {
-    print("Autocomplete: $query");
+  void placeSearch(String query) async {
+    print("Search: $query");
     var url = Uri.parse('https://places.googleapis.com/v1/places:searchText');
     var headers = {
       'Content-Type': 'application/json',
@@ -57,12 +77,12 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
     });
     var response = await http.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
-      logWithTab("Response: ${response.body}", tag: "SearchLocationScreen");
-      placeSeachResponse result =
-          placeSeachResponse.parseAutocompleteResult(response.body);
+      logWithTab("Response place search: ${response.body}", tag: "SearchLocationScreen");
+      PlaceSearchResponse_ result =
+          PlaceSearchResponse_.parsePlaceSearchResult(response.body);
       if (result.places != null) {
         setState(() {
-          placePredictions = result.places!;
+          placeSearchList = result.places!;
         });
       }
     } else {
@@ -109,7 +129,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
               child: TextFormField(
                 onChanged: (value) {
                   logWithTab("Place: $value", tag: "SearchLocationScreen");
-                  placeAutocompleteNew(value);
+                  placeSearch(value);
                 },
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
@@ -135,7 +155,8 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
             child: ElevatedButton.icon(
               onPressed: () {
                 logWithTab("Button clicked: ", tag: "SearchLocationScreen");
-                placeAutocompleteNew("Nha tho");
+                //placeSearch("Nha tho");
+                placeAutocomplete("Nha tho");
               },
               icon: SvgPicture.asset(
                 "assets/icons/location.svg",
@@ -160,11 +181,12 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: placePredictions.length,
+              itemCount: placeAutoList.length,
               itemBuilder: (context, index) {
-                return LocationListTile(
+                return LocationListTile_(
                   press: () {},
-                  location: placePredictions[index].displayName?.text ?? "",
+                  //location: placeAutoList[index].displayName?.text ?? "",
+                  location: placeAutoList[index].text!.text.toString(),
                 );
               },
             ),
