@@ -1,0 +1,246 @@
+
+{
+  "places": [
+    {
+      "id": "ChIJ4bEZDRHsbzERSfkn2GIJtGo",
+      "formattedAddress": "114 L�� Trung Ki��n, Ph�����ng 2, Tuy H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.0875475,
+        "longitude": 109.2983682
+      },
+      "displayName": {
+        "text": "Tuy H��a Catholic Church",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJWftJr-vubzER42ydrw8_dzY",
+      "formattedAddress": "28W6+F5H, Nguy���n V��n Linh, Ph�� L��m, Tuy H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.0461761,
+        "longitude": 109.31048310000001
+      },
+      "displayName": {
+        "text": "Nh�� th��� Gi��o x��� Ph�� L��m",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJW87sU5HtbzERdJWZEyqgwAI",
+      "formattedAddress": "21/7 Nguy���n T���t Th��nh, Ph�����ng 2, Tuy H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.088215499999999,
+        "longitude": 109.29401310000002
+      },
+      "displayName": {
+        "text": "Tu vi���n Th��nh Phaol��",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJPSNk7ECXbzERg8XJ41LJsKk",
+      "formattedAddress": "Unnamed Road, 86CG+X36, An Th���ch, Tuy An, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.322400799999999,
+        "longitude": 109.2251532
+      },
+      "displayName": {
+        "text": "Nh�� Th��� Gi��o X��� X��m L��ng",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJcxov7hPsbzERRgdH_-uZEt0",
+      "formattedAddress": "65 Nguy���n Hu���, Ph�����ng 2, Tuy H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.089682999999999,
+        "longitude": 109.3002212
+      },
+      "displayName": {
+        "text": "Nh�� th��� Tin l��nh Tuy H��a",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJt3WQZRHsbzER-TChIyfY5lc",
+      "formattedAddress": "37QX+7HX, Nguy���n Hu���, Ph�����ng 2, Tuy H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.088233899999999,
+        "longitude": 109.2989717
+      },
+      "displayName": {
+        "text": "Trung T��m M���c V��� T���ng H���p Anr�� Ph�� Y��n",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJRw9GMPvrbzERgK3tl7SNvLc",
+      "formattedAddress": "46PX+JM, An Ph��, Tuy H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.136609799999999,
+        "longitude": 109.2491416
+      },
+      "displayName": {
+        "text": "Ngh��a Trang C��ng Gi��o Th��� V���c",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJ7WU0cQuXbzERL_1_GHzmSPc",
+      "formattedAddress": "Th��n M���ng L��ng, Tuy An, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.334123499999999,
+        "longitude": 109.2257772
+      },
+      "displayName": {
+        "text": "Nh�� Th��� M���ng L��ng",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJQyBWi_aXbzERDwe4K-8Buvk",
+      "formattedAddress": "Unnamed Road, 86GP+6FJ, An Th���ch, Tuy An, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.3255909,
+        "longitude": 109.2361265
+      },
+      "displayName": {
+        "text": "Nh�� th��� Gi��o h��� H���i T��n",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJ5zG4-GzqbzERcVj1xEERoUI",
+      "formattedAddress": "4633+Q7F, H��a Quang Nam, Ph�� H��a District, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.104444899999999,
+        "longitude": 109.2031631
+      },
+      "displayName": {
+        "text": "Nh�� Th��� Gi��o X��� H��c G��o",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJ60Se0MR0bzER3qfvkSAHn_Y",
+      "formattedAddress": "H6G3+W72 h, QL1, Xu��n B��nh, S��ng C���u, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.5772748,
+        "longitude": 109.2031521
+      },
+      "displayName": {
+        "text": "Nh�� th��� Gi��o x��� G�� Du���i",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJpR8fENu3bzERn1_IpxUdoRE",
+      "formattedAddress": "5XV8+W8G, S��n H���i, S��n H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.1948242,
+        "longitude": 108.96581640000001
+      },
+      "displayName": {
+        "text": "Tra Ke Church",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJ_w92PAvvbzERcwghpRLaURc",
+      "formattedAddress": "284G+2RM, QL1, Ho�� Vinh, ����ng H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.0050983,
+        "longitude": 109.327041
+      },
+      "displayName": {
+        "text": "Nh�� Th��� Gi��o X��� ����ng M���",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJeX0IZqSXbzERbnv54Z9I4FU",
+      "formattedAddress": "�������ng T��m M���i Ph��c Th���t, th��n H�� Y���n, x�� An Th���ch, 867G+HW5, An Th���ch, Tuy An, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.3138858,
+        "longitude": 109.227351
+      },
+      "displayName": {
+        "text": "Cho Moi Church",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJEwxpK6vPbzERrLa9DuDMwzE",
+      "formattedAddress": "3X22+P44, C���ng S��n, S��n H��a District, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.051763999999999,
+        "longitude": 108.95031929999999
+      },
+      "displayName": {
+        "text": "Nh�� Th��� Gi��o X��� T���nh S��n",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJm28_CjvdbzERBDN5KPxyV7U",
+      "formattedAddress": "X5J4+G6H, QL29, Ho�� Ph��, T��y H��a, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 12.9813221,
+        "longitude": 109.1556002
+      },
+      "displayName": {
+        "text": "Nh�� Th��� Gi��o X��� Hoa Ch��u",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJx5VipVC7bzERoYKq6iFKc4Q",
+      "formattedAddress": "83WR+PG4, �������ng t���nh 647, Xu��n Quang 3, �����ng Xu��n, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.3467738,
+        "longitude": 109.09133349999999
+      },
+      "displayName": {
+        "text": "Nh�� th��� Gi��o h��� Su���i R��",
+        "languageCode": "vi"
+      }
+    },
+    {
+      "id": "ChIJI8LqKCqXbzERa8iQ0pXqqbY",
+      "formattedAddress": "865Q+RHH, H�� Y���n, An Th���ch, Tuy An, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.3095558,
+        "longitude": 109.23897339999999
+      },
+      "displayName": {
+        "text": "D��ng MTG Qui Nh��n - C���ng �����ng Th��nh Giuse H�� Y���n",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJKfFPLBafbzER9reTHKieWmY",
+      "formattedAddress": "F639+PWQ, S��ng C���u, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.454335599999999,
+        "longitude": 109.21987349999999
+      },
+      "displayName": {
+        "text": "Song Cau Church",
+        "languageCode": "en"
+      }
+    },
+    {
+      "id": "ChIJrw7OXd3FbzERwkR3Ki3KhJ0",
+      "formattedAddress": "32MC+GQ8, S��n Nguy��n, S��n H��a District, Ph�� Y��n, Vietnam",
+      "location": {
+        "latitude": 13.0837931,
+        "longitude": 109.021966
+      },
+      "displayName": {
+        "text": "Nh�� th��� S��n Nguy��n",
+        "languageCode": "en"
+      }
+    }
+  ]
+}
+

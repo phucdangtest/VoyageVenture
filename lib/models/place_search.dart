@@ -11,6 +11,12 @@ class PlaceSearch_ {
     this.displayName,
   });
 
+  @override
+  String toString()
+  {
+    return 'PlaceSearch_ { id: $id, formattedAddress: $formattedAddress, location: ${location?.toString()}, displayName: $displayName }';
+  }
+
   factory PlaceSearch_.fromJson(Map<String, dynamic> json) {
     return PlaceSearch_(
       id: json['id'] as String?,
@@ -37,6 +43,11 @@ class Location {
       longitude: json['longitude'] as double?,
     );
   }
+
+  @override
+  String toString() {
+    return 'Location { latitude: $latitude, longitude: $longitude }';
+  }
 }
 
 class DisplayName {
@@ -50,5 +61,10 @@ class DisplayName {
       text: json['text'] as String?,
       languageCode: json['languageCode'] as String?,
     );
+  }
+
+  @override
+  String toString() {
+    return 'DisplayName { text: $text, languageCode: $languageCode }';
   }
 }

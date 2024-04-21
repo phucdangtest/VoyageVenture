@@ -52,25 +52,33 @@
 
 import 'package:flutter_google_maps_webservices/places.dart';
 
-class StructuredFormatting_ {
+class StructuredFormat_ {
   final Text_? mainText;
   final Text_? secondaryText;
 
-  StructuredFormatting_({this.mainText, this.secondaryText});
+  StructuredFormat_({this.mainText, this.secondaryText});
 
-  factory StructuredFormatting_.fromJson(Map<String, dynamic> json) {
-    return StructuredFormatting_(
+  factory StructuredFormat_.fromJson(Map<String, dynamic> json) {
+    return StructuredFormat_(
       mainText: json['mainText'] != null ? Text_.fromJson(json['mainText']) : null,
       secondaryText: json['secondaryText'] != null ? Text_.fromJson(json['secondaryText']) : null,
     );
   }
+
+  @override
+  String toString()
+  {
+    return 'StructuredFormat_ { mainText: ${mainText?.toString()}, secondaryText: ${secondaryText?.toString()} }';
+  }
+
+
 }
 
 class PlaceAutocomplete_ {
   final String? place;
   final String? placeId;
   final Text_? text;
-  final StructuredFormatting_? structuredFormat;
+  final StructuredFormat_? structuredFormat;
   final List<String>? types;
 
   PlaceAutocomplete_({
@@ -81,13 +89,18 @@ class PlaceAutocomplete_ {
     this.types,
   });
 
+  @override
+  String toString() {
+   return 'PlaceAutocomplete_ {place: $place, placeId: $placeId, text: ${text?.toString()}, structuredFormat: ${structuredFormat?.toString()}, types: $types}';
+  }
+
   factory PlaceAutocomplete_.fromJson(Map<String, dynamic> json) {
     return PlaceAutocomplete_(
       place: json['place'] as String?,
       placeId: json['placeId'] as String?,
       text: json['text'] != null ? Text_.fromJson(json['text']) : null,
       structuredFormat: json['structuredFormat'] != null
-          ? StructuredFormatting_.fromJson(json['structuredFormat'])
+          ? StructuredFormat_.fromJson(json['structuredFormat'])
           : null,
       types: json['types'] != null
           ? List<String>.from(json['types'])
@@ -111,6 +124,10 @@ class Text_ {
           .toList()
           : null,
     );
+  }
+  @override
+  String toString() {
+    return text ?? '';
   }
 }
 

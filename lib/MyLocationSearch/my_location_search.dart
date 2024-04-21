@@ -16,7 +16,7 @@ import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 
 class SearchLocationScreen extends StatefulWidget {
-  const SearchLocationScreen({Key? key}) : super(key: key);
+  const SearchLocationScreen({super.key});
 
   @override
   State<SearchLocationScreen> createState() => _SearchLocationScreenState();
@@ -25,6 +25,7 @@ class SearchLocationScreen extends StatefulWidget {
 class _SearchLocationScreenState extends State<SearchLocationScreen> {
   List<PlaceAutocomplete_> placeAutoList = [];
   List<PlaceSearch_> placeSearchList = [];
+  bool placeFound = true;
 
   void placeAutocomplete(String query) async {
     print("Autocomplete: $query");
@@ -37,29 +38,30 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
       'input': query,
       'locationBias': {
         'circle': {
-          'center': {
-            'latitude': 12.5199614,
-            'longitude': 107.5400949
-          },
+          'center': {'latitude': 12.5199614, 'longitude': 107.5400949},
           'radius': 500.0
         }
       }
     });
     var response = await http.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
-      logWithTab("Response autocomplete: ${response.body}", tag: "SearchLocationScreen");
       PlaceAutocompleteResponse_ result =
-      PlaceAutocompleteResponse_.parseAutocompleteResult(response.body);
+          PlaceAutocompleteResponse_.parseAutocompleteResult(response.body);
       if (result.suggestions != null) {
         setState(() {
           placeAutoList = result.suggestions!;
+          logWithTab("Autocomplete: ${result.toString()}",
+              tag: "SearchLocationScreen");
+          placeFound = true;
         });
-      }
-      else {
+      } else {
         logWithTab("No predictions found", tag: "SearchLocationScreen");
+        placeFound = false;
       }
     } else {
       print('Request failed with status: ${response.statusCode}.');
+      logWithTab("Request failed with status: ${response.statusCode}.",
+          tag: "SearchLocationScreen");
     }
   }
 
@@ -77,16 +79,23 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
     });
     var response = await http.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
-      logWithTab("Response place search: ${response.body}", tag: "SearchLocationScreen");
       PlaceSearchResponse_ result =
           PlaceSearchResponse_.parsePlaceSearchResult(response.body);
       if (result.places != null) {
         setState(() {
           placeSearchList = result.places!;
+          logWithTab("Search: ${result.toString()}",
+              tag: "SearchLocationScreen");
+          placeFound = true;
         });
+      } else {
+        logWithTab("No places found", tag: "SearchLocationScreen");
+        placeFound = false;
       }
     } else {
       print('Request failed with status: ${response.statusCode}.');
+      logWithTab("Request failed with status: ${response.statusCode}.",
+          tag: "SearchLocationScreen");
     }
   }
 
@@ -129,7 +138,8 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
               child: TextFormField(
                 onChanged: (value) {
                   logWithTab("Place: $value", tag: "SearchLocationScreen");
-                  placeSearch(value);
+                  placeAutocomplete(value);
+                  //placeSearch(value);
                 },
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
@@ -156,7 +166,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
               onPressed: () {
                 logWithTab("Button clicked: ", tag: "SearchLocationScreen");
                 //placeSearch("Nha tho");
-                placeAutocomplete("Nha tho");
+                placeSearch("Nha tho");
               },
               icon: SvgPicture.asset(
                 "assets/icons/location.svg",
@@ -180,16 +190,30 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
             color: secondaryColor5LightTheme,
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: placeAutoList.length,
-              itemBuilder: (context, index) {
-                return LocationListTile_(
-                  press: () {},
-                  //location: placeAutoList[index].displayName?.text ?? "",
-                  location: placeAutoList[index].text!.text.toString(),
-                );
-              },
-            ),
+            child: placeFound
+                ? ListView.builder(
+                    itemCount: placeAutoList.length,
+                    itemBuilder: (context, index) {
+                      return LocationListTile_(
+                        press: () {
+                          logWithTab(
+                              "Location clicked: ${placeSearchList[index].toString()}",
+                              tag: "SearchLocationScreen");
+                        },
+                        placeName: placeAutoList[index]
+                                .structuredFormat
+                                ?.mainText
+                                ?.text ??
+                            "",
+                        location: placeAutoList[index]
+                                .structuredFormat
+                                ?.secondaryText
+                                ?.text ??
+                            "",
+                      );
+                    },
+                  )
+                : const Center(child: Text('No place found')),
           ),
           // LocationListTile(
           //   press: () {},

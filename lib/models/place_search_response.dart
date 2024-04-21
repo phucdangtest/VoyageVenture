@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:voyageventure/models/place_search.dart';
+import 'package:voyageventure/utils.dart';
 
 class PlaceSearchResponse_ {
   final String? status;
@@ -19,10 +20,18 @@ class PlaceSearchResponse_ {
     );
   }
 
+  String getShortPlaces() {
+    return places?.map((place) => (place.displayName?.text) ?? '').join('\n') ?? '';
+  }
 
   static PlaceSearchResponse_ parsePlaceSearchResult(
       String responseBody) {
     final parsed = json.decode(responseBody).cast<String, dynamic>();
     return PlaceSearchResponse_.fromJson(parsed);
   }
+  @override
+  String toString(){
+    return 'PlaceSearchResponse_ { status: $status, places:\n${getShortPlaces()} }';
+  }
+
 }

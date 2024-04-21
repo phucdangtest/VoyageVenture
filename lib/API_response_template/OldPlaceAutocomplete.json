@@ -1,0 +1,273 @@
+
+{
+  "predictions": [
+    {
+      "description": "Church of St. Anthony, Phan Văn Trường, Cầu Ông Lãnh, District 1, Ho Chi Minh City, Vietnam",
+      "matched_substrings": [
+        {
+          "length": 6,
+          "offset": 0
+        }
+      ],
+      "place_id": "ChIJYUf9nxUvdTERLWbp5NRzDOA",
+      "reference": "ChIJYUf9nxUvdTERLWbp5NRzDOA",
+      "structured_formatting": {
+        "main_text": "Church of St. Anthony",
+        "main_text_matched_substrings": [
+          {
+            "length": 6,
+            "offset": 0
+          }
+        ],
+        "secondary_text": "Phan Văn Trường, Cầu Ông Lãnh, District 1, Ho Chi Minh City, Vietnam"
+      },
+      "terms": [
+        {
+          "offset": 0,
+          "value": "Church of St. Anthony"
+        },
+        {
+          "offset": 23,
+          "value": "Phan Văn Trường"
+        },
+        {
+          "offset": 40,
+          "value": "Cầu Ông Lãnh"
+        },
+        {
+          "offset": 54,
+          "value": "District 1"
+        },
+        {
+          "offset": 66,
+          "value": "Ho Chi Minh City"
+        },
+        {
+          "offset": 84,
+          "value": "Vietnam"
+        }
+      ],
+      "types": [
+        "church",
+        "place_of_worship",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    {
+      "description": "Church of St. Jeanne D' Arc, Đường Hùng Vương, Phường 9 (Quận 5), District 5, Ho Chi Minh City, Vietnam",
+      "matched_substrings": [
+        {
+          "length": 6,
+          "offset": 0
+        }
+      ],
+      "place_id": "ChIJG_phjR4vdTERSgOYX93F2KY",
+      "reference": "ChIJG_phjR4vdTERSgOYX93F2KY",
+      "structured_formatting": {
+        "main_text": "Church of St. Jeanne D' Arc",
+        "main_text_matched_substrings": [
+          {
+            "length": 6,
+            "offset": 0
+          }
+        ],
+        "secondary_text": "Đường Hùng Vương, Phường 9 (Quận 5), District 5, Ho Chi Minh City, Vietnam"
+      },
+      "terms": [
+        {
+          "offset": 0,
+          "value": "Church of St. Jeanne D' Arc"
+        },
+        {
+          "offset": 29,
+          "value": "Đường Hùng Vương"
+        },
+        {
+          "offset": 47,
+          "value": "Phường 9 (Quận 5)"
+        },
+        {
+          "offset": 66,
+          "value": "District 5"
+        },
+        {
+          "offset": 78,
+          "value": "Ho Chi Minh City"
+        },
+        {
+          "offset": 96,
+          "value": "Vietnam"
+        }
+      ],
+      "types": [
+        "tourist_attraction",
+        "church",
+        "place_of_worship",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    {
+      "description": "Church of the Ben Hai, Dương Quảng Hàm, Phường 5, Gò Vấp, Ho Chi Minh City, Vietnam",
+      "matched_substrings": [
+        {
+          "length": 6,
+          "offset": 0
+        }
+      ],
+      "place_id": "ChIJD43CwPModTER00IamaiGCso",
+      "reference": "ChIJD43CwPModTER00IamaiGCso",
+      "structured_formatting": {
+        "main_text": "Church of the Ben Hai",
+        "main_text_matched_substrings": [
+          {
+            "length": 6,
+            "offset": 0
+          }
+        ],
+        "secondary_text": "Dương Quảng Hàm, Phường 5, Gò Vấp, Ho Chi Minh City, Vietnam"
+      },
+      "terms": [
+        {
+          "offset": 0,
+          "value": "Church of the Ben Hai"
+        },
+        {
+          "offset": 23,
+          "value": "Dương Quảng Hàm"
+        },
+        {
+          "offset": 40,
+          "value": "Phường 5"
+        },
+        {
+          "offset": 50,
+          "value": "Gò Vấp"
+        },
+        {
+          "offset": 58,
+          "value": "Ho Chi Minh City"
+        },
+        {
+          "offset": 76,
+          "value": "Vietnam"
+        }
+      ],
+      "types": [
+        "tourist_attraction",
+        "church",
+        "place_of_worship",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    {
+      "description": "Church of the Epiphany, Đường số 5, Linh Trung, Thủ Đức, Ho Chi Minh City, Vietnam",
+      "matched_substrings": [
+        {
+          "length": 6,
+          "offset": 0
+        }
+      ],
+      "place_id": "ChIJz8LoWpsndTERH0FdOIRnc6A",
+      "reference": "ChIJz8LoWpsndTERH0FdOIRnc6A",
+      "structured_formatting": {
+        "main_text": "Church of the Epiphany",
+        "main_text_matched_substrings": [
+          {
+            "length": 6,
+            "offset": 0
+          }
+        ],
+        "secondary_text": "Đường số 5, Linh Trung, Thủ Đức, Ho Chi Minh City, Vietnam"
+      },
+      "terms": [
+        {
+          "offset": 0,
+          "value": "Church of the Epiphany"
+        },
+        {
+          "offset": 24,
+          "value": "Đường số 5"
+        },
+        {
+          "offset": 36,
+          "value": "Linh Trung"
+        },
+        {
+          "offset": 48,
+          "value": "Thủ Đức"
+        },
+        {
+          "offset": 57,
+          "value": "Ho Chi Minh City"
+        },
+        {
+          "offset": 75,
+          "value": "Vietnam"
+        }
+      ],
+      "types": [
+        "church",
+        "place_of_worship",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    {
+      "description": "Church Bethel Indonesia, Vietnam, Tú Xương, Võ Thị Sáu, District 3, Ho Chi Minh City, Vietnam",
+      "matched_substrings": [
+        {
+          "length": 6,
+          "offset": 0
+        }
+      ],
+      "place_id": "ChIJ--FJrGkvdTER3ewyKBevhOs",
+      "reference": "ChIJ--FJrGkvdTER3ewyKBevhOs",
+      "structured_formatting": {
+        "main_text": "Church Bethel Indonesia, Vietnam",
+        "main_text_matched_substrings": [
+          {
+            "length": 6,
+            "offset": 0
+          }
+        ],
+        "secondary_text": "Tú Xương, Võ Thị Sáu, District 3, Ho Chi Minh City, Vietnam"
+      },
+      "terms": [
+        {
+          "offset": 0,
+          "value": "Church Bethel Indonesia, Vietnam"
+        },
+        {
+          "offset": 34,
+          "value": "Tú Xương"
+        },
+        {
+          "offset": 44,
+          "value": "Võ Thị Sáu"
+        },
+        {
+          "offset": 56,
+          "value": "District 3"
+        },
+        {
+          "offset": 68,
+          "value": "Ho Chi Minh City"
+        },
+        {
+          "offset": 86,
+          "value": "Vietnam"
+        }
+      ],
+      "types": [
+        "church",
+        "place_of_worship",
+        "point_of_interest",
+        "establishment"
+      ]
+    }
+  ],
+  "status": "OK"
+}

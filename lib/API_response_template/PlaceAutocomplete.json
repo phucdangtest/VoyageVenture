@@ -1,0 +1,173 @@
+
+{
+  "suggestions": [
+    {
+      "placePrediction": {
+        "place": "places/ChIJO2W6kDETcTERSsw0agDhJzg",
+        "placeId": "ChIJO2W6kDETcTERSsw0agDhJzg",
+        "text": {
+          "text": "Nh�� Th��� ���� L���t, �������ng Tr���n Ph��, Ph�����ng 4, Th��nh ph��� ���� L���t, Lam Dong, Vietnam",
+          "matches": [
+            {
+              "endOffset": 14
+            }
+          ]
+        },
+        "structuredFormat": {
+          "mainText": {
+            "text": "Nh�� Th��� ���� L���t",
+            "matches": [
+              {
+                "endOffset": 14
+              }
+            ]
+          },
+          "secondaryText": {
+            "text": "�������ng Tr���n Ph��, Ph�����ng 4, Th��nh ph��� ���� L���t, Lam Dong, Vietnam"
+          }
+        },
+        "types": [
+          "place_of_worship",
+          "church",
+          "tourist_attraction",
+          "point_of_interest",
+          "establishment"
+        ]
+      }
+    },
+    {
+      "placePrediction": {
+        "place": "places/ChIJAxlWnN0TcTERBezVAAs1Vlo",
+        "placeId": "ChIJAxlWnN0TcTERBezVAAs1Vlo",
+        "text": {
+          "text": "Nh�� Th��� Gi��o X��� Tr���i H���m, Ph�����ng 10, Th��nh ph��� ���� L���t, Lam Dong, Vietnam",
+          "matches": [
+            {
+              "endOffset": 7
+            }
+          ]
+        },
+        "structuredFormat": {
+          "mainText": {
+            "text": "Nh�� Th��� Gi��o X��� Tr���i H���m",
+            "matches": [
+              {
+                "endOffset": 7
+              }
+            ]
+          },
+          "secondaryText": {
+            "text": "Ph�����ng 10, Th��nh ph��� ���� L���t, Lam Dong, Vietnam"
+          }
+        },
+        "types": [
+          "point_of_interest",
+          "church",
+          "establishment",
+          "place_of_worship"
+        ]
+      }
+    },
+    {
+      "placePrediction": {
+        "place": "places/ChIJ94S-Y9UScTER509fieB9s5I",
+        "placeId": "ChIJ94S-Y9UScTER509fieB9s5I",
+        "text": {
+          "text": "Nh�� th��� Domaine de Marie, Ng�� Quy���n, Ph�����ng 6, Th��nh ph��� ���� L���t, Lam Dong, Vietnam",
+          "matches": [
+            {
+              "endOffset": 7
+            }
+          ]
+        },
+        "structuredFormat": {
+          "mainText": {
+            "text": "Nh�� th��� Domaine de Marie",
+            "matches": [
+              {
+                "endOffset": 7
+              }
+            ]
+          },
+          "secondaryText": {
+            "text": "Ng�� Quy���n, Ph�����ng 6, Th��nh ph��� ���� L���t, Lam Dong, Vietnam"
+          }
+        },
+        "types": [
+          "tourist_attraction",
+          "church",
+          "place_of_worship",
+          "point_of_interest",
+          "establishment"
+        ]
+      }
+    },
+    {
+      "placePrediction": {
+        "place": "places/ChIJodSuekltcTERiZI9fbKvq_c",
+        "placeId": "ChIJodSuekltcTERiZI9fbKvq_c",
+        "text": {
+          "text": "Nh�� Th��� Gi��o X��� T��ng L��m, X�� Vi���t Ngh��� T��nh, Ph�����ng 7, Th��nh ph��� ���� L���t, Lam Dong, Vietnam",
+          "matches": [
+            {
+              "endOffset": 7
+            }
+          ]
+        },
+        "structuredFormat": {
+          "mainText": {
+            "text": "Nh�� Th��� Gi��o X��� T��ng L��m",
+            "matches": [
+              {
+                "endOffset": 7
+              }
+            ]
+          },
+          "secondaryText": {
+            "text": "X�� Vi���t Ngh��� T��nh, Ph�����ng 7, Th��nh ph��� ���� L���t, Lam Dong, Vietnam"
+          }
+        },
+        "types": [
+          "point_of_interest",
+          "church",
+          "establishment",
+          "place_of_worship"
+        ]
+      }
+    },
+    {
+      "placePrediction": {
+        "place": "places/ChIJk9Zh4gRscTERgGSOSaUN1cI",
+        "placeId": "ChIJk9Zh4gRscTERgGSOSaUN1cI",
+        "text": {
+          "text": "Nh�� Th��� Gi��o X��� T�� Nung, T�� Nung, Th��nh ph��� ���� L���t, Lam Dong, Vietnam",
+          "matches": [
+            {
+              "endOffset": 7
+            }
+          ]
+        },
+        "structuredFormat": {
+          "mainText": {
+            "text": "Nh�� Th��� Gi��o X��� T�� Nung",
+            "matches": [
+              {
+                "endOffset": 7
+              }
+            ]
+          },
+          "secondaryText": {
+            "text": "T�� Nung, Th��nh ph��� ���� L���t, Lam Dong, Vietnam"
+          }
+        },
+        "types": [
+          "point_of_interest",
+          "church",
+          "establishment",
+          "place_of_worship"
+        ]
+      }
+    }
+  ]
+}
+

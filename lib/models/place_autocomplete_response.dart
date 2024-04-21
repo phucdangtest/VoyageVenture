@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:http/http.dart';
 import 'package:voyageventure/models/place_autocomplete.dart';
+import 'package:voyageventure/utils.dart';
 
 class PlaceAutocompleteResponse_ {
   final List<PlaceAutocomplete_>? suggestions;
@@ -21,5 +23,14 @@ class PlaceAutocompleteResponse_ {
       String responseBody) {
     final parsed = json.decode(responseBody).cast<String, dynamic>();
     return PlaceAutocompleteResponse_.fromJson(parsed);
+  }
+
+  String getShortPlaces() {
+    return suggestions?.map((suggestion) => suggestion.structuredFormat?.mainText ?? '').join('\n') ?? '';
+  }
+
+  @override
+  String toString(){
+    return 'PlaceAutocompleteResponse_ { suggestions:\n${getShortPlaces()} }';
   }
 }
