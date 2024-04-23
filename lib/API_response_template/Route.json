@@ -1,0 +1,653 @@
+{
+  "routes": [
+    {
+      "legs": [
+        {
+          "distanceMeters": 24490,
+          "duration": "2593s",
+          "staticDuration": "2979s",
+          "polyline": {
+            "encodedPolyline": "mr~`A{_~iSOSxAwCr@b@t@XB?x@J~EVfAFpFVN@NB`FRd@sCl@kCVaAJi@T_AFo@NwBR}A\\{B?K@[J_@Nc@Ja@X_Ad@qBBIRu@i@Kk@IIAu@KmBQ_AGI?}EUuCMFwBHaADg@BYBs@FgBBa@Bo@Bk@Do@rAFdCJtCJ\\?fBDl@@b@@B}@_EN]?sAE{@E[C{DOq@EyCMwCOaCG]Ac@Mk@EwAGeFU[A[CA?MAG?k@CuAIKIEOCk@?e@@S?I@MBk@?W@UFaBBe@F}ALcDLkDDsADu@L}DLsD?oAAUGk@YuAOg@KWUg@uAeDs@mBSeAMqAEiA@[FgBXuC@WNqA?q@F?RE^QJIDK@AJ]?C?Y?CKYW[OIEA_@C[c@{A{EuBwFs@cBeFaKuCyFi@mAO_@Wk@cAcC_BwEQi@w@oCoAeFMo@aBiJu@kEk@iDOs@CSqCoPoCaPUqAsBoL]oBQeACOGQe@iCo@cEs@_F[gB_@wBUkAmDuSOk@Q_AIe@EWc@yBc@{ByAiISeAEQq@uEm@_EO_AuAgHo@eCm@qBaAaCy@kBcBsCEEk@w@?A?AGMOEQa@_AoAcEoFeDkE{HcKa@c@oEgGcFwGiEuFyBoCuAsBAO?AMIC?mBgEc@kAuAoE_@yA_@qB}AqJy@cFqA}Hg@uCGa@Ic@YyA[gAs@iBWk@e@}@POOUc@m@g@o@{@_AaAy@eAq@wAw@qB{@wAg@c@CUBgBq@kAc@s@W_CcA_Aa@s@WEEuGiDg@WyKmFe@UgDaBwCwAsBcAIEy@_@mAo@SKUOq@[gA_@}@Qo@Iw@E}AC}@C]?eAAiE?oCA_@@aBGi@Eu@Ms@QiAi@QMmCyBUUAAg@a@wAmAiCyBYUq@q@_@i@qA_BSU]e@i@_AaAsBoAiDe@kAwBgFc@sAyBoFo@sA[i@q@cAi@k@WS_BoA_Bs@]Qw@e@}@g@oAe@gASICg@EmAA_BEE?i@CUCo@Mq@W_C{AQOSI}@q@UGIG_@Qg@Sy@[MMKMo@Ke@Ko@S_@MgEqAeBi@o@Oa@OaA[]Ii@Qg@Gk@CaCIWCq@CaAQa@Ma@OOI_@QsAgAm@g@oAiAcAy@]WKIKIMIOKGEQS}AkAWSg@_@k@e@WUOKi@c@aBsAOM_DeC]WsBaBIGIIa@_@IG{BkB]YSOIMw@_AKOa@k@_BcCgAaBy@oAyA}Be@u@S]OYIM?Ak@iAQc@c@kAGQW{@[iAIWSw@Kg@[uB?AEKGa@Ie@G[EYWwAG_@ESOaAQ_AGe@W_BO{@WwAKs@Ig@G]QaAScBEeA?a@?_@BaA?wA@i@?IAi@Cq@Ea@MeAOy@CGAK_@gAMWmAiCmAeCqAqC[k@y@}@q@k@u@m@WMq@YaBe@a@IFQj@_DBK?CVeABMDOZoA`@gA`@gAf@oAd@kAb@kALi@Nw@D_@@S@MBe@LiAJ}@D]H{@BSXgCHw@RqArDWpAIb@Cp@GhAKXCRCbAKb@G`@EJClASbC_@ZGdASNEzCi@hASlAUdAUx@QNEhBc@bAU`@M`@M`A[p@QLEz@WbBk@lCy@j@SlA]lBk@zAg@tCu@zBc@PGGSmAaAcBaAaK{FyBmAlAyBjAsBNYtBhA|A|@l@\\XN"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 10.8114273,
+              "longitude": 106.6548579
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 10.8797997,
+              "longitude": 106.8052268
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 14,
+              "staticDuration": "2s",
+              "polyline": {
+                "encodedPolyline": "mr~`A{_~iSOS"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8114273,
+                  "longitude": 106.6548579
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.811506699999999,
+                  "longitude": 106.6549596
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Đi về hướng Đông Bắc\nĐường bị giới hạn sử dụng"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "14 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 97,
+              "staticDuration": "34s",
+              "polyline": {
+                "encodedPolyline": "}r~`Ao`~iSxAwC"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.811506699999999,
+                  "longitude": 106.6549596
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8110614,
+                  "longitude": 106.65571879999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải\nĐường bị giới hạn sử dụng"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,1 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 548,
+              "staticDuration": "98s",
+              "polyline": {
+                "encodedPolyline": "cp~`Age~iSr@b@t@XB?x@J~EVfAFpFVN@NB`FR"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8110614,
+                  "longitude": 106.65571879999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.806239999999999,
+                  "longitude": 106.6549373
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải\nĐường bị giới hạn sử dụng"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,5 km"
+                },
+                "staticDuration": {
+                  "text": "2 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 702,
+              "staticDuration": "133s",
+              "polyline": {
+                "encodedPolyline": "_r}`Ak`~iSd@sCl@kCVaAJi@T_AFo@NwBR}A\\{B?K@[J_@Nc@Ja@X_Ad@qBBIRu@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.806239999999999,
+                  "longitude": 106.6549373
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8045093,
+                  "longitude": 106.6610929
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Rẽ trái vào Phan Thúc Duyện\nĐường bị giới hạn sử dụng từng phần"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,7 km"
+                },
+                "staticDuration": {
+                  "text": "2 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 397,
+              "staticDuration": "79s",
+              "polyline": {
+                "encodedPolyline": "eg}`Ayf_jSi@Kk@IIAu@KmBQ_AGI?}EUuCM"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8045093,
+                  "longitude": 106.6610929
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8080437,
+                  "longitude": 106.66157899999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Rẽ trái vào Thăng Long\nĐi qua WinMart+ (ở phía bên phải)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,4 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 319,
+              "staticDuration": "79s",
+              "polyline": {
+                "encodedPolyline": "g}}`A{i_jSFwBHaADg@BYBs@FgBBa@Bo@Bk@Do@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8080437,
+                  "longitude": 106.66157899999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8077524,
+                  "longitude": 106.66448679999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "NAME_CHANGE",
+                "instructions": "Từ Thăng Long, rẽ phải để đến Hậu Giang"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,3 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 326,
+              "staticDuration": "45s",
+              "polyline": {
+                "encodedPolyline": "m{}`Aa|_jSrAFdCJtCJ\\?fBDl@@b@@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8077524,
+                  "longitude": 106.66448679999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.804832699999999,
+                  "longitude": 106.66428130000001
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải sau OK Mart (ở bên phải)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,3 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 646,
+              "staticDuration": "83s",
+              "polyline": {
+                "encodedPolyline": "ei}`Awz_jSB}@_EN]?sAE{@E[C{DOq@EyCMwCOaCG]A"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.804832699999999,
+                  "longitude": 106.66428130000001
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.810296200000002,
+                  "longitude": 106.664897
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "UTURN_LEFT",
+                "instructions": "Vòng ngược lại tại Huỳnh Lan Khanh\nĐi tiếp tục theo Trường Sơn\nĐi qua Thế Giới Cà Phê Trung Nguyên Legend (ở phía bên phải)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,6 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 360,
+              "staticDuration": "68s",
+              "polyline": {
+                "encodedPolyline": "kk~`As~_jSc@Mk@EwAGeFU[A[CA?MAG?k@CuAIKIEO"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.810296200000002,
+                  "longitude": 106.664897
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8134341,
+                  "longitude": 106.6653879
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_SLIGHT_RIGHT",
+                "instructions": "Chếch sang bên phải để vào Trường Sơn"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,4 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1437,
+              "staticDuration": "222s",
+              "polyline": {
+                "encodedPolyline": "}~~`Aua`jSCk@?e@@S?I@MBk@?W@UFaBBe@F}ALcDLkDDsADu@L}DLsD?oAAUGk@YuAOg@KWUg@uAeDs@mBSeAMqAEiA@[FgBXuC@WNqA?q@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8134341,
+                  "longitude": 106.6653879
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.814010699999999,
+                  "longitude": 106.67822299999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Đi bên phải để đi tiếp Đ. Hồng Hà"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "1,4 km"
+                },
+                "staticDuration": {
+                  "text": "4 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 7963,
+              "staticDuration": "816s",
+              "polyline": {
+                "encodedPolyline": "qb_aA{qbjSF?RE^QJIDK@AJ]?C?Y?CKYW[OIEA_@C[c@{A{EuBwFs@cBeFaKuCyFi@mAO_@Wk@cAcC_BwEQi@w@oCoAeFMo@aBiJu@kEk@iDOs@CSqCoPoCaPUqAsBoL]oBQeACOGQe@iCo@cEs@_F[gB_@wBUkAmDuSOk@Q_AIe@EWc@yBc@{ByAiISeAEQq@uEm@_EO_AuAgHo@eCm@qBaAaCy@kBcBsCEEk@w@?A?AGMOEQa@_AoAcEoFeDkE{HcKa@c@oEgGcFwGiEuFyBoCuAsBAO?AMIC?mBgEc@kAuAoE_@yA_@qB}AqJy@cFqA}Hg@uCGa@Ic@YyA[gAs@iBWk@e@}@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.814010699999999,
+                  "longitude": 106.67822299999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.841130999999999,
+                  "longitude": 106.7438731
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "ROUNDABOUT_RIGHT",
+                "instructions": "Tại Bùng Binh Nguyễn Thái Sơn, đi theo lối ra thứ 3 vào Phạm Văn Đồng\nĐi qua Coffee May (ở bên phải cách 5,9 km)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "8,0 km"
+                },
+                "staticDuration": {
+                  "text": "14 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 4467,
+              "staticDuration": "522s",
+              "polyline": {
+                "encodedPolyline": "aldaAelojSPOOUc@m@g@o@{@_AaAy@eAq@wAw@qB{@wAg@c@CUBgBq@kAc@s@W_CcA_Aa@s@WEEuGiDg@WyKmFe@UgDaBwCwAsBcAIEy@_@mAo@SKUOq@[gA_@}@Qo@Iw@E}AC}@C]?eAAiE?oCA_@@aBGi@Eu@Ms@QiAi@QMmCyBUUAAg@a@wAmAiCyBYUq@q@_@i@qA_BSU]e@i@_AaAsBoAiDe@kAwBgFc@sAyBoFo@sA[i@q@cAi@k@WS_BoA_Bs@]Qw@e@}@g@oAe@gASICg@EmAA_BEE?i@CUCo@Mq@W_C{AQOSI}@q@UGIG_@Qg@Sy@["
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.841130999999999,
+                  "longitude": 106.7438731
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.873087199999999,
+                  "longitude": 106.7649745
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "STRAIGHT",
+                "instructions": "Tiếp tục đi thẳng để vào Phạm Văn Đồng\nĐi qua hiệu thuốc (ở bên phải cách 4,3 km)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "4,5 km"
+                },
+                "staticDuration": {
+                  "text": "9 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 3975,
+              "staticDuration": "430s",
+              "polyline": {
+                "encodedPolyline": "ysjaAapsjSMMKMo@Ke@Ko@S_@MgEqAeBi@o@Oa@OaA[]Ii@Qg@Gk@CaCIWCq@CaAQa@Ma@OOI_@QsAgAm@g@oAiAcAy@]WKIKIMIOKGEQS}AkAWSg@_@k@e@WUOKi@c@aBsAOM_DeC]WsBaBIGIIa@_@IG{BkB]YSOIMw@_AKOa@k@_BcCgAaBy@oAyA}Be@u@S]OYIM?Ak@iAQc@c@kAGQW{@[iAIWSw@Kg@[uB?AEKGa@Ie@G[EYWwAG_@ESOaAQ_AGe@W_BO{@WwAKs@Ig@G]QaAScBEeA?a@?_@BaA?wA@i@?IAi@Cq@Ea@MeAOy@CGAK_@gAMWmAiCmAeCqAqC[k@y@}@q@k@u@m@WMq@YaBe@a@I"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.873087199999999,
+                  "longitude": 106.7649745
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8942499,
+                  "longitude": 106.7910084
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "NAME_CHANGE",
+                "instructions": "Tiếp tục vào Quốc lộ 1K/Xa lộ Hà Nội\nPhí cầu đường\nĐi qua Cửa Hàng Dụng Cụ Câu Cá Ngọc Thu (ở phía bên phải)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "4,0 km"
+                },
+                "staticDuration": {
+                  "text": "7 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 847,
+              "staticDuration": "86s",
+              "polyline": {
+                "encodedPolyline": "axnaAyrxjSFQj@_DBK?CVeABMDOZoA`@gA`@gAf@oAd@kAb@kALi@Nw@D_@@S@MBe@LiAJ}@D]H{@BSXgCHw@RqA"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8942499,
+                  "longitude": 106.7910084
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8920181,
+                  "longitude": 106.7983697
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải vào Đ. Thống Nhất"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,8 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1552,
+              "staticDuration": "150s",
+              "polyline": {
+                "encodedPolyline": "cjnaAy`zjSrDWpAIb@Cp@GhAKXCRCbAKb@G`@EJClASbC_@ZGdASNEzCi@hASlAUdAUx@QNEhBc@bAU`@M`@M`A[p@QLEz@WbBk@lCy@j@SlA]lBk@zAg@tCu@zBc@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8920181,
+                  "longitude": 106.7983697
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8786869,
+                  "longitude": 106.80237400000001
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải vào Đ. Lê Quý Đôn"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "1,6 km"
+                },
+                "staticDuration": {
+                  "text": "3 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 481,
+              "staticDuration": "52s",
+              "polyline": {
+                "encodedPolyline": "yvkaAyyzjSPGGSmAaAcBaAaK{FyBmA"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8786869,
+                  "longitude": 106.80237400000001
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8820672,
+                  "longitude": 106.8048235
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Rẽ trái vào Thomas Edison"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,5 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 172,
+              "staticDuration": "36s",
+              "polyline": {
+                "encodedPolyline": "}klaAci{jSlAyBjAsBNY"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8820672,
+                  "longitude": 106.8048235
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8812186,
+                  "longitude": 106.8061441
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,2 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 187,
+              "staticDuration": "44s",
+              "polyline": {
+                "encodedPolyline": "sflaAkq{jStBhA|A|@l@\\XN"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8812186,
+                  "longitude": 106.8061441
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8797997,
+                  "longitude": 106.8052268
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,2 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "24,5 km"
+            },
+            "duration": {
+              "text": "43 phút"
+            },
+            "staticDuration": {
+              "text": "50 phút"
+            }
+          }
+        }
+      ],
+      "distanceMeters": 24490,
+      "duration": "2593s",
+      "staticDuration": "2980s",
+      "polyline": {
+        "encodedPolyline": "mr~`A{_~iSOSxAwCr@b@t@XB?x@J~EVfAFpFVN@NB`FRd@sCl@kCVaAJi@T_AFo@NwBR}A\\{B?K@[J_@Nc@Ja@X_Ad@qBBIRu@i@Kk@IIAu@KmBQ_AGI?}EUuCMFwBHaADg@BYBs@FgBBa@Bo@Bk@Do@rAFdCJtCJ\\?fBDl@@b@@B}@_EN]?sAE{@E[C{DOq@EyCMwCOaCG]Ac@Mk@EwAGeFU[A[CA?MAG?k@CuAIKIEOCk@?e@@S?I@MBk@?W@UFaBBe@F}ALcDLkDDsADu@L}DLsD?oAAUGk@YuAOg@KWUg@uAeDs@mBSeAMqAEiA@[FgBXuC@WNqA?q@F?RE^QJIDK@AJ]?C?Y?CKYW[OIEA_@C[c@{A{EuBwFs@cBeFaKuCyFi@mAO_@Wk@cAcC_BwEQi@w@oCoAeFMo@aBiJu@kEk@iDOs@CSqCoPoCaPUqAsBoL]oBQeACOGQe@iCo@cEs@_F[gB_@wBUkAmDuSOk@Q_AIe@EWc@yBc@{ByAiISeAEQq@uEm@_EO_AuAgHo@eCm@qBaAaCy@kBcBsCEEk@w@?A?AGMOEQa@_AoAcEoFeDkE{HcKa@c@oEgGcFwGiEuFyBoCuAsBAO?AMIC?mBgEc@kAuAoE_@yA_@qB}AqJy@cFqA}Hg@uCGa@Ic@YyA[gAs@iBWk@e@}@POOUc@m@g@o@{@_AaAy@eAq@wAw@qB{@wAg@c@CUBgBq@kAc@s@W_CcA_Aa@s@WEEuGiDg@WyKmFe@UgDaBwCwAsBcAIEy@_@mAo@SKUOq@[gA_@}@Qo@Iw@E}AC}@C]?eAAiE?oCA_@@aBGi@Eu@Ms@QiAi@QMmCyBUUAAg@a@wAmAiCyBYUq@q@_@i@qA_BSU]e@i@_AaAsBoAiDe@kAwBgFc@sAyBoFo@sA[i@q@cAi@k@WS_BoA_Bs@]Qw@e@}@g@oAe@gASICg@EmAA_BEE?i@CUCo@Mq@W_C{AQOSI}@q@UGIG_@Qg@Sy@[MMKMo@Ke@Ko@S_@MgEqAeBi@o@Oa@OaA[]Ii@Qg@Gk@CaCIWCq@CaAQa@Ma@OOI_@QsAgAm@g@oAiAcAy@]WKIKIMIOKGEQS}AkAWSg@_@k@e@WUOKi@c@aBsAOM_DeC]WsBaBIGIIa@_@IG{BkB]YSOIMw@_AKOa@k@_BcCgAaBy@oAyA}Be@u@S]OYIM?Ak@iAQc@c@kAGQW{@[iAIWSw@Kg@[uB?AEKGa@Ie@G[EYWwAG_@ESOaAQ_AGe@W_BO{@WwAKs@Ig@G]QaAScBEeA?a@?_@BaA?wA@i@?IAi@Cq@Ea@MeAOy@CGAK_@gAMWmAiCmAeCqAqC[k@y@}@q@k@u@m@WMq@YaBe@a@IFQj@_DBK?CVeABMDOZoA`@gA`@gAf@oAd@kAb@kALi@Nw@D_@@S@MBe@LiAJ}@D]H{@BSXgCHw@RqArDWpAIb@Cp@GhAKXCRCbAKb@G`@EJClASbC_@ZGdASNEzCi@hASlAUdAUx@QNEhBc@bAU`@M`@M`A[p@QLEz@WbBk@lCy@j@SlA]lBk@zAg@tCu@zBc@PGGSmAaAcBaAaK{FyBmAlAyBjAsBNYtBhA|A|@l@\\XN"
+      },
+      "description": "Phạm Văn Đồng",
+      "warnings": [
+        "Tuyến này có thu phí.",
+        "Tuyến đường này bị giới hạn sử dụng hoặc là đường riêng."
+      ],
+      "viewport": {
+        "low": {
+          "latitude": 10.8045093,
+          "longitude": 106.6548579
+        },
+        "high": {
+          "latitude": 10.8942499,
+          "longitude": 106.8061441
+        }
+      },
+      "localizedValues": {
+        "distance": {
+          "text": "24,5 km"
+        },
+        "duration": {
+          "text": "43 phút"
+        },
+        "staticDuration": {
+          "text": "50 phút"
+        }
+      },
+      "routeToken": "Cp4FCqoEChAPzCuIFnc9EGYTFXZwmr3BEqwBYbFxBmM9kj_iOFDj-WH9ZhBl4FcGPBXw11CoVxTHa6IQWYvy-z65wfupHZmQUVDsY6LXNWOjrcnhAuLVncOw2pQ6XCetmX-MxRUZuRGSjI8YS3Uap3dPrY_J4dWkHP5Yyu9JadTKz4g6xYUpGhPj0zO1AvzG6mNgCqLi_cq9KSJDs6mEH_N5eBNwv6PjmTi9_M5d-rO7fbSp6_vJ1F5BR27l5X3qqVO_jw4PEBrqAYyutOIMfoFMqAWgAdMO40UQ72O6kwJNxiv-P7cBoQ2dByKyFu8LwQH3wgPGjAK6Afkd2yMG3_HW1qoGGiQZtNgBkCzcAskBqG4k5QGgCi62C6VGJ8UZ2iC0AfVTvyoipwP9AgbWwwGaigHfAs06vFuWAdN69hom7n_TNkeZAXpYmAXdAm2HAhJGuL8C49UBMYsL-AZcpgaxA3m5aYReWLeHAZItJ_MVtwYj9uMHw6oMNbf2CZyoBi_bB0IQ0pQBpDErhTW9PKAB2k7M2gInuq4BuCuFAnLnARanTLgPCmEIFqMQ20sIMtMBGCIGq6pSlaoAOgEIQj4-U8MDaYQFHLQFJKQCaZ8EH7ACLYMLEJMBV6kTqhMXCxPfCbgBC9QBnQhByyDMIDuzBkm5C3nlAc8BfC-UAUoQLChWP1q6zz6CnZo9usWxPlICEwt4AaoBFmhvc21acUdrRHVmVnI3d1AyZVM1S0EQBBpWClQKGAoNCgIIAREAAAAAAIBmQBGOl24S44y8QBIaCAAQAxAGEBMQEhgCQgwKBhCTs5qxBhoCCAUiGgoWaG9zbVpwSGtET2ZWcjd3UDJlUzVLQXABKAEiFQAK1xL50dq7AIq-MjlQkdFrWuCdlg",
+      "routeLabels": [
+        "DEFAULT_ROUTE"
+      ]
+    }
+  ]
+}
