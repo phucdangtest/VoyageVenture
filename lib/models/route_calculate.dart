@@ -1,17 +1,31 @@
-
-
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:voyageventure/models/road_calculate_response.dart';
 import '../utils.dart';
 
-Future<List<LatLng>?> computeRoutes(LatLng from, LatLng to) async {
+Future<List<LatLng>?> computeRoutes({
+  required LatLng from,
+  required LatLng to,
+  String? departureTime,
+  bool computeAlternativeRoutes = false,
+  bool avoidTolls = false,
+  bool avoidHighways = false,
+  bool avoidFerries = false,
+  String travelMode = "DRIVE",
+  String routingPreference = "TRAFFIC_AWARE",
+  String languageCode = "VI",
+  String units = "Metric",
+}) async {
+  logWithTab('computeRoutes', tag: 'computeRoutes');
+
+  departureTime ??= DateTime.now().add(const Duration(minutes: 5)).toUtc().toIso8601String();
   final response = await http.post(
     Uri.parse('https://routes.googleapis.com/directions/v2:computeRoutes'),
     headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
+      'Content-Type': 'application/json',
       'X-Goog-Api-Key': dotenv.env['MAPS_API_KEY1']!,
       //'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline',
       'X-Goog-FieldMask': '*',
@@ -33,30 +47,37 @@ Future<List<LatLng>?> computeRoutes(LatLng from, LatLng to) async {
           },
         },
       },
-      'travelMode': 'DRIVE',
-      'routingPreference': 'TRAFFIC_AWARE',
-      'departureTime': DateTime.now().add(const Duration(hours: 1)).toUtc().toIso8601String(),
-      'computeAlternativeRoutes': false,
+      'travelMode': travelMode,
+      'routingPreference': routingPreference,
+      'departureTime': departureTime,
+      'computeAlternativeRoutes': computeAlternativeRoutes,
       'routeModifiers': {
-        'avoidTolls': false,
-        'avoidHighways': false,
-        'avoidFerries': false,
+        'avoidTolls': avoidTolls,
+        'avoidHighways': avoidHighways,
+        'avoidFerries': avoidFerries,
       },
-      'languageCode': 'VI',
-      'units': 'Metric',
+      'languageCode': languageCode,
+      'units': units,
     }),
   );
-  logWithTab(response.body.toString(), tag: 'computeRoutes');
-  if (response.statusCode == 200) {
-    Map<String, dynamic> values = jsonDecode(response.body);
-    String encodedPolyline = values['routes'][0]['polyline']['encodedPolyline'];
-    List<LatLng> polylinePoints = decodePolyline(encodedPolyline);
 
+  logWithTab(response.body.toString(), tag: 'computeRoutes');
+
+  if (response.statusCode == 200) {
+    //Map<String, dynamic> values = jsonDecode(response.body);
+    //String encodedPolyline = values['routes'][0]['polyline']['encodedPolyline'];
+    final parsed = json.decode(response.body).cast<String, dynamic>();
+    RouteResponse_ routeResponse = RouteResponse_.fromJson(parsed);
+    Route_ route = routeResponse.routes[0];
+    List<LatLng> polylinePoints =
+        decodePolyline(route.legs[0].polyline.encodedPolyline);
+    logWithTab(route.toString(), tag: 'computeRoutes');
     return polylinePoints;
   }
   print("Error: ${response.body}");
   return null;
 }
+
 List<LatLng> decodePolyline(String encoded) {
   List<LatLng> points = <LatLng>[];
   int index = 0, len = encoded.length;

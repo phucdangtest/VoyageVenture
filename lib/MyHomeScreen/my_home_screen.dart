@@ -23,10 +23,12 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
 
   final Completer<GoogleMapController> _controller = Completer();
 
+  Future<List<LatLng>?> polylinePoints = Future.value(null);
   static const CameraPosition _initialCameraPosition = CameraPosition(
     target: LatLng(10.7981542, 106.6614047),
     zoom: 12,
   );
+
   static const LatLng _airPort = LatLng(10.8114795,106.6548157);
   static const LatLng _dormitory = LatLng(10.8798036,106.8052206);
   Polyline? route;
@@ -45,21 +47,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    Future<List<LatLng>?> polylinePoints = computeRoutes(_airPort, LatLng(10.7354664,106.615809));
-    polylinePoints.then((value) {
-      setState(() {
-        if (value != null) {
-          route = Polyline(
-            polylineId: const PolylineId('route'),
-            color: Colors.blue,
-            points: value,
-            width: 5,
-          );
-        }
-      });
-    });
       //myMarker.addAll(markerList);
   }
 
@@ -108,7 +96,20 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-            (CameraUpdate.newCameraPosition(_initialCameraPosition ));
+          polylinePoints = computeRoutes(from: _airPort,to: _dormitory);
+          polylinePoints.then((value) {
+            setState(() {
+              if (value != null) {
+                route = Polyline(
+                  polylineId: const PolylineId('route'),
+                  color: Colors.green,
+                  points: value,
+                  width: 5,
+                );
+              }
+            });
+          });
+            //(CameraUpdate.newCameraPosition(_initialCameraPosition ));
         },
         child: const Icon(Icons.my_location_rounded),
       )
