@@ -59,8 +59,9 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
         title: const MySearchBar(),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: GoogleMap(
+      body: Stack(
+        children: <Widget>[
+          GoogleMap(
           initialCameraPosition: _initialCameraPosition,
           mapType: MapType.normal,
           myLocationEnabled: true,
@@ -93,6 +94,51 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
             ),
           }
         ),
+          DraggableScrollableSheet(
+            initialChildSize: 0.1, // initial size of the sheet, 10% of screen height
+            minChildSize: 0.1, // minimum size of the sheet, 10% of screen height
+            maxChildSize: 1.0, // maximum size of the sheet, 100% of screen height
+            builder: (BuildContext context, ScrollController scrollController) {
+              return ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24.0),
+                  topRight: Radius.circular(24.0),
+                ),
+                child: Container(
+                  color: Colors.white,
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Container(
+                          margin: EdgeInsets.only(top: 8.0),
+                          height: 4.0,
+                          width: 40.0,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: 2,
+                          itemBuilder: (BuildContext context, int index) {
+                            return ListTile(
+                              title: Text('Item $index'),
+                              onTap: () {},
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          )
+        ],
+
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
