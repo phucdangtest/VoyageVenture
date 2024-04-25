@@ -54,10 +54,6 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const MySearchBar(),
-          centerTitle: true,
-        ),
         body: Stack(
           children: <Widget>[
             Container(
@@ -65,6 +61,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
                 color: Colors.black,
               ),
             ),
+            //Todo: Uncomment Google Map
             //   GoogleMap(
             //   initialCameraPosition: _initialCameraPosition,
             //   mapType: MapType.normal,
@@ -124,10 +121,38 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
                           decoration: BoxDecoration(
                             color: Colors.grey[300],
                             borderRadius:
-                                BorderRadius.all(Radius.circular(12.0)),
+                                BorderRadius.all(Radius.circular(15.0)),
                           ),
                         ),
                         LocationSearchScreen_(),
+                        Container(
+                          height: 100,
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF0F0F0),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(15.0)),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Column( //BST, BDNT
+                              children: [
+                                DecoratedBox(decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                                ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text('BST', style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 24.0,
+                                    ),),
+                                  ),
+                                ),
+                                ],
+                            ),
+                          )
+                        ),
                         // Text('This is a draggable sheet',
                         //     textAlign: TextAlign.center,
                         //     style: TextStyle(

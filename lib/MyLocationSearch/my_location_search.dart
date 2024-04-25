@@ -98,6 +98,10 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
           tag: "SearchLocationScreen");
     }
   }
+@override
+void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,35 +164,36 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
             thickness: 4,
             color: secondaryColor5LightTheme,
           ),
-          placeFound
-              ? ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: placeAutoList.length,
-                  itemBuilder: (context, index) {
-                    return LocationListTile_(
-                      press: () {
-                        logWithTab(
-                            "Location clicked: ${placeSearchList[index].toString()}",
-                            tag: "SearchLocationScreen");
-                      },
-                      placeName: placeAutoList[index]
-                              .structuredFormat
-                              ?.mainText
-                              ?.text ??
-                          "",
-                      location: placeAutoList[index]
-                              .structuredFormat
-                              ?.secondaryText
-                              ?.text ??
-                          "",
-                    );
-                  },
-                )
-              : const Center(child: Text('No place found')),
-          // LocationListTile(
-          //   press: () {},
-          //   location: "Banasree, Dhaka, Bangladesh",
-          // ),
+          //Todo: Uncomment this code
+          // placeFound
+          //     ? ListView.builder(
+          //         shrinkWrap: true,
+          //         itemCount: placeAutoList.length,
+          //         itemBuilder: (context, index) {
+          //           return LocationListTile_(
+          //             press: () {
+          //               logWithTab(
+          //                   "Location clicked: ${placeSearchList[index].toString()}",
+          //                   tag: "SearchLocationScreen");
+          //             },
+          //             placeName: placeAutoList[index]
+          //                     .structuredFormat
+          //                     ?.mainText
+          //                     ?.text ??
+          //                 "",
+          //             location: placeAutoList[index]
+          //                     .structuredFormat
+          //                     ?.secondaryText
+          //                     ?.text ??
+          //                 "",
+          //           );
+          //         },
+          //       )
+          //     : const Center(child: Text('No place found')),
+          LocationListTile_(
+            press: () {},
+            location: "Banasree, Dhaka, Bangladesh", placeName: 'Banasree',
+          ),
         ],
     );
   }
