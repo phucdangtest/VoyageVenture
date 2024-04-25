@@ -15,14 +15,14 @@ import 'package:http/http.dart' as http;
 import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 
-class SearchLocationScreen extends StatefulWidget {
-  const SearchLocationScreen({super.key});
+class LocationSearchScreen_ extends StatefulWidget {
+  const LocationSearchScreen_({super.key});
 
   @override
-  State<SearchLocationScreen> createState() => _SearchLocationScreenState();
+  State<LocationSearchScreen_> createState() => _LocationSearchScreen_State();
 }
 
-class _SearchLocationScreenState extends State<SearchLocationScreen> {
+class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
   List<PlaceAutocomplete_> placeAutoList = [];
   List<PlaceSearch_> placeSearchList = [];
   bool placeFound = true;
@@ -101,36 +101,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.only(left: defaultPadding),
-          child: CircleAvatar(
-            backgroundColor: secondaryColor10LightTheme,
-            child: SvgPicture.asset(
-              "assets/icons/location.svg",
-              height: 16,
-              width: 16,
-              color: secondaryColor40LightTheme,
-            ),
-          ),
-        ),
-        title: const Text(
-          "Set Delivery Location",
-          style: TextStyle(color: textColorLightTheme),
-        ),
-        actions: [
-          CircleAvatar(
-            backgroundColor: secondaryColor10LightTheme,
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.close, color: Colors.black),
-            ),
-          ),
-          const SizedBox(width: defaultPadding)
-        ],
-      ),
-      body: Column(
+    return Column(
         children: [
           Form(
             child: Padding(
@@ -189,38 +160,36 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
             thickness: 4,
             color: secondaryColor5LightTheme,
           ),
-          Expanded(
-            child: placeFound
-                ? ListView.builder(
-                    itemCount: placeAutoList.length,
-                    itemBuilder: (context, index) {
-                      return LocationListTile_(
-                        press: () {
-                          logWithTab(
-                              "Location clicked: ${placeSearchList[index].toString()}",
-                              tag: "SearchLocationScreen");
-                        },
-                        placeName: placeAutoList[index]
-                                .structuredFormat
-                                ?.mainText
-                                ?.text ??
-                            "",
-                        location: placeAutoList[index]
-                                .structuredFormat
-                                ?.secondaryText
-                                ?.text ??
-                            "",
-                      );
-                    },
-                  )
-                : const Center(child: Text('No place found')),
-          ),
+          placeFound
+              ? ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: placeAutoList.length,
+                  itemBuilder: (context, index) {
+                    return LocationListTile_(
+                      press: () {
+                        logWithTab(
+                            "Location clicked: ${placeSearchList[index].toString()}",
+                            tag: "SearchLocationScreen");
+                      },
+                      placeName: placeAutoList[index]
+                              .structuredFormat
+                              ?.mainText
+                              ?.text ??
+                          "",
+                      location: placeAutoList[index]
+                              .structuredFormat
+                              ?.secondaryText
+                              ?.text ??
+                          "",
+                    );
+                  },
+                )
+              : const Center(child: Text('No place found')),
           // LocationListTile(
           //   press: () {},
           //   location: "Banasree, Dhaka, Bangladesh",
           // ),
         ],
-      ),
     );
   }
 }
