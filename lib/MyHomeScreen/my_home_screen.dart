@@ -4,14 +4,19 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/MySearchBar/my_search_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:voyageventure/utils.dart';
+import 'package:voyageventure/components/fonts.dart';
 
 import '../MyLocationSearch/my_location_search.dart';
+import '../components/BottomSheetComponient.dart';
+import '../components/fonts.dart';
 import '../models/route_calculate.dart';
 
 class MyHomeScreen extends StatefulWidget {
@@ -96,7 +101,8 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
             //   }
             // ),
             DraggableScrollableSheet(
-              initialChildSize: 0.2,
+             // initialChildSize: 0.2,
+             initialChildSize: 0.8,
               // initial size of the sheet, 30% of screen height
               minChildSize: 0.1,
               // minimum size of the sheet, 10% of screen height
@@ -125,40 +131,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
                           ),
                         ),
                         LocationSearchScreen_(),
-                        Container(
-                          height: 100,
-                          width: double.infinity,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF0F0F0),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0)),
-                          ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Column( //BST, BDNT
-                              children: [
-                                DecoratedBox(decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                                ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text('BST', style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 24.0,
-                                    ),),
-                                  ),
-                                ),
-                                ],
-                            ),
-                          )
-                        ),
-                        // Text('This is a draggable sheet',
-                        //     textAlign: TextAlign.center,
-                        //     style: TextStyle(
-                        //       color: Colors.black,
-                        //       fontSize: 24.0,
-                        //     )),
+                        BottomSheetComponient_(),
                       ]),
                     ),
                   ),
