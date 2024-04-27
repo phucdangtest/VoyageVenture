@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_places_flutter_api/google_places_flutter_api.dart';
 import 'package:voyageventure/components/location_list_tile.dart';
+import 'package:voyageventure/components/mock_list.dart';
 import 'package:voyageventure/components/network_utils.dart';
 import 'package:voyageventure/constants.dart';
 import 'package:voyageventure/models/place_autocomplete_response.dart';
@@ -190,10 +191,7 @@ void initState() {
           //         },
           //       )
           //     : const Center(child: Text('No place found')),
-          LocationListTile_(
-            press: () {},
-            location: "Banasree, Dhaka, Bangladesh", placeName: 'Banasree',
-          ),
+          MockList_()
         ],
     );
   }
