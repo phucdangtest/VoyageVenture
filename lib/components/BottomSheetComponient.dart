@@ -5,7 +5,7 @@ import 'package:voyageventure/components/mock_list.dart';
 import 'fonts.dart';
 
 class BottomSheetComponient_ extends StatefulWidget {
-  const BottomSheetComponient_({super.key});
+  const BottomSheetComponient_({super.key, required ScrollController controller});
 
   @override
   State<BottomSheetComponient_> createState() => _BottomSheetComponient_State();
@@ -14,7 +14,6 @@ class BottomSheetComponient_ extends StatefulWidget {
 class _BottomSheetComponient_State extends State<BottomSheetComponient_> {
   bool isNullCollection = true;
   bool isNull2 = true;
-  PageController _pageController = PageController();
 
 
   @override

@@ -17,8 +17,8 @@ import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 
 class LocationSearchScreen_ extends StatefulWidget {
-  const LocationSearchScreen_({super.key});
-
+  ScrollController controller;
+  LocationSearchScreen_({Key? key, required this.controller}) : super(key: key);
   @override
   State<LocationSearchScreen_> createState() => _LocationSearchScreen_State();
 }
@@ -166,32 +166,33 @@ void initState() {
             color: secondaryColor5LightTheme,
           ),
           //Todo: Uncomment this code
-          // placeFound
-          //     ? ListView.builder(
-          //         shrinkWrap: true,
-          //         itemCount: placeAutoList.length,
-          //         itemBuilder: (context, index) {
-          //           return LocationListTile_(
-          //             press: () {
-          //               logWithTab(
-          //                   "Location clicked: ${placeSearchList[index].toString()}",
-          //                   tag: "SearchLocationScreen");
-          //             },
-          //             placeName: placeAutoList[index]
-          //                     .structuredFormat
-          //                     ?.mainText
-          //                     ?.text ??
-          //                 "",
-          //             location: placeAutoList[index]
-          //                     .structuredFormat
-          //                     ?.secondaryText
-          //                     ?.text ??
-          //                 "",
-          //           );
-          //         },
-          //       )
-          //     : const Center(child: Text('No place found')),
-          MockList_()
+          placeFound
+              ? ListView.builder(
+                  controller: widget.controller,
+                  shrinkWrap: true,
+                  itemCount: placeAutoList.length,
+                  itemBuilder: (context, index) {
+                    return LocationListTile_(
+                      press: () {
+                        logWithTab(
+                            "Location clicked: ${placeAutoList[index].toString()}",
+                            tag: "SearchLocationScreen");
+                      },
+                      placeName: placeAutoList[index]
+                              .structuredFormat
+                              ?.mainText
+                              ?.text ??
+                          "",
+                      location: placeAutoList[index]
+                              .structuredFormat
+                              ?.secondaryText
+                              ?.text ??
+                          "",
+                    );
+                  },
+                )
+              : const Center(child: Text('No place found')),
+          //MockList_()
         ],
     );
   }

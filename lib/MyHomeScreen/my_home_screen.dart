@@ -26,7 +26,7 @@ class MyHomeScreen extends StatefulWidget {
 
 class _MyHomeScreenState extends State<MyHomeScreen> {
   final Completer<GoogleMapController> _controller = Completer();
-
+  ScrollController _scrollController = ScrollController();
   Future<List<LatLng>?> polylinePoints = Future.value(null);
   static const CameraPosition _initialCameraPosition = CameraPosition(
     target: LatLng(10.7981542, 106.6614047),
@@ -130,8 +130,8 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
                                 BorderRadius.all(Radius.circular(15.0)),
                           ),
                         ),
-                        LocationSearchScreen_(),
-                        BottomSheetComponient_(),
+                        LocationSearchScreen_(controller: _scrollController),
+                        BottomSheetComponient_(controller: _scrollController),
                       ]),
                     ),
                   ),
