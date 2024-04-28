@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_places_flutter_api/google_places_flutter_api.dart';
+import 'package:voyageventure/components/fonts.dart';
 import 'package:voyageventure/components/location_list_tile.dart';
 import 'package:voyageventure/components/mock_list.dart';
 import 'package:voyageventure/components/network_utils.dart';
@@ -18,7 +21,9 @@ import '../models/place_search.dart';
 
 class LocationSearchScreen_ extends StatefulWidget {
   ScrollController controller;
+
   LocationSearchScreen_({Key? key, required this.controller}) : super(key: key);
+
   @override
   State<LocationSearchScreen_> createState() => _LocationSearchScreen_State();
 }
@@ -99,101 +104,107 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
           tag: "SearchLocationScreen");
     }
   }
-@override
-void initState() {
+
+  @override
+  void initState() {
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-        children: [
-          Form(
-            child: Padding(
-              padding: const EdgeInsets.all(defaultPadding),
-              child: TextFormField(
-                onChanged: (value) {
-                  logWithTab("Place: $value", tag: "SearchLocationScreen");
-                  placeAutocomplete(value);
-                  //placeSearch(value);
+      children: [
+        Container(
+          padding: const EdgeInsets.only(left: defaultPadding, right: defaultPadding, top: defaultPadding, bottom: 8.0),
+          child: CupertinoSearchTextField(
+            style: leagueSpartanNormal20,
+            placeholder: "Tìm địa điểm",
+            onChanged: (value) {
+              logWithTab("Place auto complete: $value",
+                  tag: "SearchLocationScreen");
+              placeAutocomplete(value);
+            },
+            onSubmitted: (value) {
+              logWithTab("Place search: $value", tag: "SearchLocationScreen");
+              placeSearch(value);
+            },
+          ),
+        ),
+        Row(
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.only(left: defaultPadding, right: 8),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  logWithTab("Button clicked: ", tag: "SearchLocationScreen");
+                  placeSearch("Nha tho");
                 },
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: "Search your location",
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: SvgPicture.asset(
-                      "assets/icons/location_pin.svg",
-                      color: secondaryColor40LightTheme,
-                    ),
+                icon: SvgPicture.asset(
+                  "assets/icons/home_add.svg",
+                  height: 16,
+                ),
+                label: Text("Thêm nhà", style: leagueSpartanNormal15),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: secondaryColor10LightTheme,
+                  foregroundColor: textColorLightTheme,
+                  elevation: 0,
+                  fixedSize: const Size(double.infinity, 40),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
                   ),
                 ),
               ),
             ),
-          ),
-          const Divider(
-            height: 4,
-            thickness: 4,
-            color: secondaryColor5LightTheme,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(defaultPadding),
-            child: ElevatedButton.icon(
+
+            ElevatedButton.icon(
               onPressed: () {
                 logWithTab("Button clicked: ", tag: "SearchLocationScreen");
-                //placeSearch("Nha tho");
                 placeSearch("Nha tho");
               },
               icon: SvgPicture.asset(
-                "assets/icons/location.svg",
+                "assets/icons/location_add.svg",
                 height: 16,
               ),
-              label: const Text("Use my Current Location"),
+              label: Text("Thêm địa điểm", style: leagueSpartanNormal15),
               style: ElevatedButton.styleFrom(
                 backgroundColor: secondaryColor10LightTheme,
                 foregroundColor: textColorLightTheme,
                 elevation: 0,
                 fixedSize: const Size(double.infinity, 40),
                 shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
                 ),
               ),
             ),
-          ),
-          const Divider(
-            height: 4,
-            thickness: 4,
-            color: secondaryColor5LightTheme,
-          ),
-          //Todo: Uncomment this code
-          placeFound
-              ? ListView.builder(
-                  controller: widget.controller,
-                  shrinkWrap: true,
-                  itemCount: placeAutoList.length,
-                  itemBuilder: (context, index) {
-                    return LocationListTile_(
-                      press: () {
-                        logWithTab(
-                            "Location clicked: ${placeAutoList[index].toString()}",
-                            tag: "SearchLocationScreen");
-                      },
-                      placeName: placeAutoList[index]
-                              .structuredFormat
-                              ?.mainText
-                              ?.text ??
-                          "",
-                      location: placeAutoList[index]
-                              .structuredFormat
-                              ?.secondaryText
-                              ?.text ??
-                          "",
-                    );
-                  },
-                )
-              : const Center(child: Text('No place found')),
-          //MockList_()
-        ],
+          ],
+        ),
+
+        placeFound
+            ? ListView.builder(
+                controller: widget.controller,
+                shrinkWrap: true,
+                itemCount: placeAutoList.length,
+                itemBuilder: (context, index) {
+                  return LocationListTile_(
+                    press: () {
+                      logWithTab(
+                          "Location clicked: ${placeAutoList[index].toString()}",
+                          tag: "SearchLocationScreen");
+                    },
+                    placeName:
+                        placeAutoList[index].structuredFormat?.mainText?.text ??
+                            "",
+                    location: placeAutoList[index]
+                            .structuredFormat
+                            ?.secondaryText
+                            ?.text ??
+                        "",
+                  );
+                },
+              )
+            : const Center(child: Text('Không tìm thấy địa điểm')),
+        //MockList_()
+      ],
     );
   }
 }

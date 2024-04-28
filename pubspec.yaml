@@ -73,6 +73,9 @@ flutter:
     - assets/icons/location_pin.svg
     - assets/icons/location.svg
     - assets/collection.jpg
+    - assets/icons/home_add.svg
+    - assets/icons/location_add.svg
+    - assets/icons/pluss.svg
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

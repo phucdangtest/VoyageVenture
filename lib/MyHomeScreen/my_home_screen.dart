@@ -11,11 +11,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/MySearchBar/my_search_bar.dart';
 import 'package:http/http.dart' as http;
+import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/components/fonts.dart';
 
 import '../MyLocationSearch/my_location_search.dart';
-import '../components/BottomSheetComponient.dart';
+import '../components/bottom_sheet_componient.dart';
 import '../components/fonts.dart';
 import '../models/route_calculate.dart';
 
@@ -61,53 +62,50 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     return Scaffold(
         body: Stack(
           children: <Widget>[
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.black,
-              ),
-            ),
-            //Todo: Uncomment Google Map
-            //   GoogleMap(
-            //   initialCameraPosition: _initialCameraPosition,
-            //   mapType: MapType.normal,
-            //   myLocationEnabled: true,
-            //   //markers: Set.from(myMarker),
-            //   onMapCreated: (GoogleMapController controller) {
-            //     _controller.complete(controller);
-            //   },
-            //     polylines: {
-            //       if (route != null) route!
-            //     },
-            //   zoomControlsEnabled: false,
-            //   markers: {
-            //     Marker(
-            //       markerId: const MarkerId('marker_1'),
-            //       position: const LatLng(10.7981542, 106.6614047),
-            //       infoWindow: const InfoWindow(
-            //         title: 'Marker 1',
-            //         snippet: '5 Star Rating',
-            //       ),
-            //       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-            //     ),
-            //     Marker(
-            //       markerId: const MarkerId('marker_2'),
-            //       position: const LatLng(10.9243059, 106.8155907),
-            //       infoWindow: const InfoWindow(
-            //         title: 'Marker 2',
-            //         snippet: '4 Star Rating',
-            //       ),
-            //       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-            //     ),
-            //   }
+            // Container(
+            //   decoration: BoxDecoration(
+            //     color: Colors.black,
+            //   ),
             // ),
+            //Todo: Uncomment Google Map
+              GoogleMap(
+              initialCameraPosition: _initialCameraPosition,
+              mapType: MapType.normal,
+              myLocationEnabled: true,
+              //markers: Set.from(myMarker),
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+                polylines: {
+                  if (route != null) route!
+                },
+              zoomControlsEnabled: false,
+              markers: {
+                Marker(
+                  markerId: const MarkerId('marker_1'),
+                  position: const LatLng(10.7981542, 106.6614047),
+                  infoWindow: const InfoWindow(
+                    title: 'Marker 1',
+                    snippet: '5 Star Rating',
+                  ),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+                ),
+                Marker(
+                  markerId: const MarkerId('marker_2'),
+                  position: const LatLng(10.9243059, 106.8155907),
+                  infoWindow: const InfoWindow(
+                    title: 'Marker 2',
+                    snippet: '4 Star Rating',
+                  ),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+                ),
+              }
+            ),
             DraggableScrollableSheet(
              // initialChildSize: 0.2,
              initialChildSize: 0.8,
-              // initial size of the sheet, 30% of screen height
               minChildSize: 0.1,
-              // minimum size of the sheet, 10% of screen height
               maxChildSize: 1.0,
-              // maximum size of the sheet, 100% of screen height
               builder:
                   (BuildContext context, ScrollController scrollController) {
                 return ClipRRect(
@@ -120,16 +118,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
                     child: SingleChildScrollView(
                       controller: scrollController,
                       child: Column(children: <Widget>[
-                        Container(
-                          margin: EdgeInsets.only(top: 8.0),
-                          height: 4.0,
-                          width: 40.0,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0)),
-                          ),
-                        ),
+                        Pill(),
                         LocationSearchScreen_(controller: _scrollController),
                         BottomSheetComponient_(controller: _scrollController),
                       ]),

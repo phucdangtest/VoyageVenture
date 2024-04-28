@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'location_list_tile.dart';
 class MockList_ extends StatefulWidget {
-  const MockList_({super.key});
+  ScrollController controller;
+  MockList_({Key? key, required this.controller}) : super(key: key);
 
   @override
   State<MockList_> createState() => _MockList_State();
@@ -10,15 +11,12 @@ class MockList_ extends StatefulWidget {
 
 class _MockList_State extends State<MockList_> {
   int itemCount = 3;
-  PageController _pageController = PageController();
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
-      controller: _pageController,
+    return ListView.builder(
+      controller: widget.controller,
+      shrinkWrap: true,
       itemCount: itemCount,
-      onPageChanged: (index) {
-        // Update the BottomSheet when the page changes
-      },
       itemBuilder: (BuildContext context, int index) {
         return LocationListTile_(
           press: () {

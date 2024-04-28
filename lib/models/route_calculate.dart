@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:voyageventure/models/road_calculate_response.dart';
+import 'package:voyageventure/models/route_calculate_response.dart';
 import '../utils.dart';
 
 Future<List<LatLng>?> computeRoutes({
