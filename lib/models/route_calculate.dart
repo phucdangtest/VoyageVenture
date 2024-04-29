@@ -19,7 +19,7 @@ Future<List<LatLng>?> computeRoutes({
   String languageCode = "VI",
   String units = "Metric",
 }) async {
-  logWithTab('computeRoutes', tag: 'computeRoutes');
+  logWithTag('computeRoutes', tag: 'computeRoutes');
 
   departureTime ??= DateTime.now().add(const Duration(minutes: 5)).toUtc().toIso8601String();
   final response = await http.post(
@@ -61,7 +61,7 @@ Future<List<LatLng>?> computeRoutes({
     }),
   );
 
-  logWithTab(response.body.toString(), tag: 'computeRoutes');
+  logWithTag(response.body.toString(), tag: 'computeRoutes');
 
   if (response.statusCode == 200) {
     //Map<String, dynamic> values = jsonDecode(response.body);
@@ -71,7 +71,7 @@ Future<List<LatLng>?> computeRoutes({
     Route_ route = routeResponse.routes[0];
     List<LatLng> polylinePoints =
         decodePolyline(route.legs[0].polyline.encodedPolyline);
-    logWithTab(route.toString(), tag: 'computeRoutes');
+    logWithTag(route.toString(), tag: 'computeRoutes');
     return polylinePoints;
   }
   print("Error: ${response.body}");

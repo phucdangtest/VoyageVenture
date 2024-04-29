@@ -56,17 +56,17 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
       if (result.suggestions != null) {
         setState(() {
           placeAutoList = result.suggestions!;
-          logWithTab("Autocomplete: ${result.toString()}",
+          logWithTag("Autocomplete: ${result.toString()}",
               tag: "SearchLocationScreen");
           placeFound = true;
         });
       } else {
-        logWithTab("No predictions found", tag: "SearchLocationScreen");
+        logWithTag("No predictions found", tag: "SearchLocationScreen");
         placeFound = false;
       }
     } else {
       print('Request failed with status: ${response.statusCode}.');
-      logWithTab("Request failed with status: ${response.statusCode}.",
+      logWithTag("Request failed with status: ${response.statusCode}.",
           tag: "SearchLocationScreen");
     }
   }
@@ -90,17 +90,17 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
       if (result.places != null) {
         setState(() {
           placeSearchList = result.places!;
-          logWithTab("Search: ${result.toString()}",
+          logWithTag("Search: ${result.toString()}",
               tag: "SearchLocationScreen");
           placeFound = true;
         });
       } else {
-        logWithTab("No places found", tag: "SearchLocationScreen");
+        logWithTag("No places found", tag: "SearchLocationScreen");
         placeFound = false;
       }
     } else {
       print('Request failed with status: ${response.statusCode}.');
-      logWithTab("Request failed with status: ${response.statusCode}.",
+      logWithTag("Request failed with status: ${response.statusCode}.",
           tag: "SearchLocationScreen");
     }
   }
@@ -120,12 +120,12 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
             style: leagueSpartanNormal20,
             placeholder: "Tìm địa điểm",
             onChanged: (value) {
-              logWithTab("Place auto complete: $value",
+              logWithTag("Place auto complete: $value",
                   tag: "SearchLocationScreen");
               placeAutocomplete(value);
             },
             onSubmitted: (value) {
-              logWithTab("Place search: $value", tag: "SearchLocationScreen");
+              logWithTag("Place search: $value", tag: "SearchLocationScreen");
               placeSearch(value);
             },
           ),
@@ -136,7 +136,7 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
               padding: const EdgeInsets.only(left: defaultPadding, right: 8),
               child: ElevatedButton.icon(
                 onPressed: () {
-                  logWithTab("Button clicked: ", tag: "SearchLocationScreen");
+                  logWithTag("Button clicked: ", tag: "SearchLocationScreen");
                   placeSearch("Nha tho");
                 },
                 icon: SvgPicture.asset(
@@ -158,7 +158,7 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
 
             ElevatedButton.icon(
               onPressed: () {
-                logWithTab("Button clicked: ", tag: "SearchLocationScreen");
+                logWithTag("Button clicked: ", tag: "SearchLocationScreen");
                 placeSearch("Nha tho");
               },
               icon: SvgPicture.asset(
@@ -187,7 +187,7 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
                 itemBuilder: (context, index) {
                   return LocationListTile_(
                     press: () {
-                      logWithTab(
+                      logWithTag(
                           "Location clicked: ${placeAutoList[index].toString()}",
                           tag: "SearchLocationScreen");
                     },

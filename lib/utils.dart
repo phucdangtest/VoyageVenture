@@ -15,6 +15,6 @@ void showToast(String message) {
 }
 
 
-void logWithTab(String message, {String tag = 'MyTag'}) {
+void logWithTag(String message, {String tag = 'MyTag'}) {
   developer.log(message, name: tag);
 }

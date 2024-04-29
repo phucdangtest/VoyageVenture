@@ -15,7 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/components/fonts.dart';
-
+import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
 import '../components/bottom_sheet_componient.dart';
 import '../components/fonts.dart';
@@ -35,13 +35,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   double? bottomSheetTop;
   late AnimationController _animationController;
   late Animation<double> moveAnimation;
-
+  bool isHaveLastLocation = false;
   Future<List<LatLng>?> polylinePoints = Future.value(null);
-  static const CameraPosition _initialCameraPosition = CameraPosition(
-    target: LatLng(10.7981542, 106.6614047),
-    zoom: 12,
-  );
-
+  static CameraPosition? _initialCameraPosition;
   static const LatLng _airPort = LatLng(10.8114795, 106.6548157);
   static const LatLng _dormitory = LatLng(10.8798036, 106.8052206);
   Polyline? route;
@@ -59,9 +55,25 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //   )
   // ];
 
+  void animateToCurrentPosition() async {
+    Position position = await getCurrentLocation();
+    GoogleMapController controller = await _controller.future;
+    controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: 13.0, // Change this value to your desired zoom level
+          ),
+    ));
+  }
+
   @override
   void initState() {
     super.initState();
+    if (!isHaveLastLocation) {
+      animateToCurrentPosition();
+    }
+
     _animationController = AnimationController(
       duration: const Duration(seconds: 5),
       vsync: this,
@@ -76,7 +88,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       // Transparent status bar
       statusBarIconBrightness: Brightness.dark,
@@ -93,11 +105,20 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           //     color: Colors.black,
           //   ),
           // ),
-          //Todo: Uncomment Google Map
+
           GoogleMap(
-            initialCameraPosition: _initialCameraPosition,
+            initialCameraPosition: (isHaveLastLocation == true)?
+                const CameraPosition(
+                  target: LatLng(20, 106),
+                  zoom: 13,
+                ) // Todo: last location
+            : const CameraPosition(
+              target: LatLng(10.7981542, 106.6614047),
+              zoom: 13,
+            ), //Default location
             mapType: MapType.normal,
             myLocationEnabled: true,
+            myLocationButtonEnabled: false,
             //markers: Set.from(myMarker),
             onMapCreated: (GoogleMapController controller) {
               _controller.complete(controller);
@@ -129,27 +150,24 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           ),
 
           AnimatedPositioned(
-            duration: Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
             bottom: (bottomSheetTop == null)
-                ? MediaQuery.of(context).size.height * 20 / 100
-                : bottomSheetTop,
+                ? (MediaQuery.of(context).size.height * 20 / 100) + 10
+                : bottomSheetTop! + 10,
             right: 10,
             child: Column(
               children: [
                 FloatingActionButton(
+                  elevation: 5,
                   onPressed: () {
+                    animateToCurrentPosition();
                     // Handle button press
                   },
-                  child: Icon(Icons.add),
+                  child: Icon(Icons.my_location_rounded),
                 ),
                 // Add more widgets here that you want to move with the sheet
-                Container(
-                  width: 100,
-                  height: 100,
-                  color: Colors.red,
-                ),
-                Text('Hello World'),
+
               ],
             ),
           ),
@@ -157,7 +175,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
                 setState(() {
-                  logWithTab(
+                  logWithTag(
                       "Change from " +
                           bottomSheetTop.toString() +
                           "to" +
