@@ -1,25 +1,17 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:voyageventure/MySearchBar/my_search_bar.dart';
-import 'package:http/http.dart' as http;
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/utils.dart';
-import 'package:voyageventure/components/fonts.dart';
 import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
 import '../components/bottom_sheet_componient.dart';
-import '../components/fonts.dart';
-import '../models/route_calculate.dart';
 
 class MyHomeScreen extends StatefulWidget {
   @override
@@ -183,20 +175,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       tag: "MyHomeScreen");
                   bottomSheetTop = _DragableController!.pixels;
                 });
-
-                // logWithTab(scrollInfo.toString(), tag: "MyHomeScreen");
-                // if (scrollInfo is ScrollEndNotification) {
-                //   double pixelValue = scrollInfo.metrics.pixels;
-                //   logWithTab('pixel value: ${scrollInfo.metrics.pixels}', tag: "MyHomeScreen1");// In ra giá trị pixel
-                //   logWithTab(_scrollController.position.maxScrollExtent.toString(), tag: "MyHomeScreen2");// In ra giá trị pixel
-                // }
-                //   setState(() {
-                //     _fabPosition = _fabPosition + 10;
-                //     //_fabPosition = scrollInfo.metrics.pixels;
-                //     logWithTab(_fabPosition.toString(),
-                //         tag: "MyHomeScreen");
-                //   });
-
                 return true;
               },
               child: DraggableScrollableSheet(
@@ -233,91 +211,3 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     );
   }
 }
-
-// class MockSearchLocationScreen extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//         child: Column(
-//           children: [
-//             Form(
-//               child: Padding(
-//                 padding: const EdgeInsets.all(16),
-//                 child: TextFormField(
-//                   onChanged: (value) {
-//                     //logWithTab("Place: $value", tag: "SearchLocationScreen");
-//                     //placeAutocomplete(value);
-//                     //placeSearch(value);
-//                   },
-//                   textInputAction: TextInputAction.search,
-//                   decoration: InputDecoration(
-//                     hintText: "Search your location",
-//                   ),
-//                 ),
-//               ),
-//             ),
-//             const Divider(
-//               height: 4,
-//               thickness: 4,
-//               color: Colors.grey,
-//             ),
-//             Padding(
-//               padding: const EdgeInsets.all(16),
-//               child: ElevatedButton.icon(
-//                 onPressed: () {
-//                   //logWithTab("Button clicked: ", tag: "SearchLocationScreen");
-//                   //placeSearch("Nha tho");
-//                   //placeSearch("Nha tho");
-//                 },
-//                 icon: const Icon(Icons.my_location_rounded),
-//                 label: const Text("Use my Current Location"),
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: Colors.green,
-//                   foregroundColor: Colors.orange,
-//                   elevation: 0,
-//                   fixedSize: const Size(double.infinity, 40),
-//                   shape: const RoundedRectangleBorder(
-//                     borderRadius: BorderRadius.all(Radius.circular(10)),
-//                   ),
-//                 ),
-//               ),
-//             ),
-//             const Divider(
-//               height: 4,
-//               thickness: 4,
-//               color: Colors.grey,
-//             ),
-//             ListView.builder(
-//               itemCount: 1,
-//               itemBuilder: (context, index) {
-//                 return ListTile(
-//                   title: Text('Item $index'),
-//                 );
-//               },
-//               shrinkWrap: true, // this property is important
-//             ),
-//
-//             // Expanded(
-//             //   child: ListView.builder(
-//             //     itemCount: 3,
-//             //     itemBuilder: (context, index) {
-//             //       return ListTile(
-//             //         title: Text("Location $index"),
-//             //         subtitle: Text("Location $index"),
-//             //         onTap: () {
-//             //           //logWithTab("Location $index", tag: "SearchLocationScreen");
-//             //         },
-//             //       );
-//             //     },
-//             //   )
-//             //
-//             // ),
-//             // LocationListTile(
-//             //   press: () {},
-//             //   location: "Banasree, Dhaka, Bangladesh",
-//             // ),
-//           ],
-//         )
-//     );
-//   }
-// }
