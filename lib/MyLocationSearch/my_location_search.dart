@@ -100,7 +100,7 @@ Future<List<PlaceAutocomplete_>?> placeAutocomplete(String query) async {
     return null;
   } else {
     print('Request failed with status: ${response.statusCode}.');
-    logWithTag("Request failed with status: ${response.statusCode}.",
+    logWithTag("Request failed with status: ${response.body}.",
         tag: "SearchLocationScreen");
     return null;
   }
@@ -131,7 +131,7 @@ Future<List<PlaceSearch_>?> placeSearch(String query) async {
     }
   } else {
     print('Request failed with status: ${response.statusCode}.');
-    logWithTag("Request failed with status: ${response.statusCode}.",
+    logWithTag("Request failed with status: ${response.body}.",
         tag: "SearchLocationScreen");
     return null;
   }
