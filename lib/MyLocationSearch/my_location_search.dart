@@ -21,8 +21,8 @@ import '../models/place_search.dart';
 
 class LocationSearchScreen_ extends StatefulWidget {
   ScrollController controller;
-
-  LocationSearchScreen_({Key? key, required this.controller}) : super(key: key);
+  DraggableScrollableController sheetController;
+  LocationSearchScreen_({Key? key, required this.controller, required this.sheetController}) : super(key: key);
 
   @override
   State<LocationSearchScreen_> createState() => _LocationSearchScreen_State();
@@ -128,6 +128,16 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
               logWithTag("Place search: $value", tag: "SearchLocationScreen");
               placeSearch(value);
             },
+            onTap: (){
+              setState(() async {
+                await Future.delayed(const Duration(milliseconds: 500));
+                widget.sheetController.animateTo(
+                  0.8, // Scroll to the top of the DraggableScrollableSheet
+                  duration: const Duration(milliseconds: 300), // Duration to complete the scrolling
+                  curve: Curves.fastOutSlowIn, // Animation curve
+                );
+              });
+            },
           ),
         ),
         Row(
@@ -137,7 +147,6 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   logWithTag("Button clicked: ", tag: "SearchLocationScreen");
-                  placeSearch("Nha tho");
                 },
                 icon: SvgPicture.asset(
                   "assets/icons/home_add.svg",
@@ -159,7 +168,6 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
             ElevatedButton.icon(
               onPressed: () {
                 logWithTag("Button clicked: ", tag: "SearchLocationScreen");
-                placeSearch("Nha tho");
               },
               icon: SvgPicture.asset(
                 "assets/icons/location_add.svg",

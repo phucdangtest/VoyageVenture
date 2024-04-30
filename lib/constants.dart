@@ -11,3 +11,5 @@ const Color secondaryColor20LightTheme = Color(0xFF787F84);
 const Color secondaryColor10LightTheme = Color(0xFFEEEEEE);
 const Color secondaryColor5LightTheme = Color(0xFFF8F8F8);
 const defaultPadding = 16.0;
+const double defaultBorderRadius = 20.0;
+const double defaultBottomSheetHeight = 150.0;

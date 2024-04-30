@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/misc_widget.dart';
+import 'package:voyageventure/constants.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
@@ -22,12 +23,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     with SingleTickerProviderStateMixin {
   final Completer<GoogleMapController> _controller = Completer();
   ScrollController _scrollController = ScrollController();
-  DraggableScrollableController? _DragableController =
+  DraggableScrollableController _DragableController =
       DraggableScrollableController();
   double? bottomSheetTop;
   late AnimationController _animationController;
   late Animation<double> moveAnimation;
-  bool isHaveLastLocation = false;
+  LatLng? currentLocation;
+  bool isHaveLastSessionLocation = false;
   Future<List<LatLng>?> polylinePoints = Future.value(null);
   static CameraPosition? _initialCameraPosition;
   static const LatLng _airPort = LatLng(10.8114795, 106.6548157);
@@ -47,23 +49,28 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //   )
   // ];
 
-  void animateToCurrentPosition() async {
+  Future<LatLng> getCurrentLocationLatLng() async {
     Position position = await getCurrentLocation();
+    return LatLng(position.latitude, position.longitude);
+  }
+
+  animateToPosition(LatLng position, {double zoom = 13}) async {
     GoogleMapController controller = await _controller.future;
-    controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: LatLng(position.latitude, position.longitude),
-            zoom: 13.0, // Change this value to your desired zoom level
-          ),
-    ));
+    CameraPosition cameraPosition = CameraPosition(
+      target: position,
+      zoom: zoom, // Change this value to your desired zoom level
+    );
+    controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
 
   @override
   void initState() {
     super.initState();
-    if (!isHaveLastLocation) {
-      animateToCurrentPosition();
+    if (!isHaveLastSessionLocation) {
+      getCurrentLocationLatLng().then((value) {
+        currentLocation = value;
+        animateToPosition(currentLocation!);
+      });
     }
 
     _animationController = AnimationController(
@@ -90,6 +97,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       systemNavigationBarIconBrightness: Brightness.dark, // Dark icons
     ));
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: <Widget>[
           // Container(
@@ -99,15 +107,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           // ),
 
           GoogleMap(
-            initialCameraPosition: (isHaveLastLocation == true)?
-                const CameraPosition(
-                  target: LatLng(20, 106),
-                  zoom: 13,
-                ) // Todo: last location
-            : const CameraPosition(
-              target: LatLng(10.7981542, 106.6614047),
-              zoom: 13,
-            ), //Default location
+            initialCameraPosition: (isHaveLastSessionLocation == true)
+                ? const CameraPosition(
+                    target: LatLng(20, 106),
+                    zoom: 13,
+                  ) // Todo: last location
+                : const CameraPosition(
+                    target: LatLng(10.7981542, 106.6614047),
+                    zoom: 13,
+                  ),
+            //Default location
             mapType: MapType.normal,
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
@@ -145,7 +154,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
             bottom: (bottomSheetTop == null)
-                ? (MediaQuery.of(context).size.height * 20 / 100) + 10
+                ? (MediaQuery.of(context).size.height * defaultBottomSheetHeight / 1000) + 10
                 : bottomSheetTop! + 10,
             right: 10,
             child: Column(
@@ -153,13 +162,23 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 FloatingActionButton(
                   elevation: 5,
                   onPressed: () {
-                    animateToCurrentPosition();
+                    if (currentLocation != null) {
+                      animateToPosition(currentLocation!);
+                    }
+                    getCurrentLocation().then((value) {
+                      if (currentLocation !=
+                          LatLng(value.latitude, value.longitude)) {
+                        currentLocation =
+                            LatLng(value.latitude, value.longitude);
+                        animateToPosition(currentLocation!);
+                        logWithTag("Location changed!", tag: "MyHomeScreen");
+                      }
+                    });
                     // Handle button press
                   },
-                  child: Icon(Icons.my_location_rounded),
+                  child: const Icon(Icons.my_location_rounded),
                 ),
                 // Add more widgets here that you want to move with the sheet
-
               ],
             ),
           ),
@@ -167,23 +186,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
                 setState(() {
-                  logWithTag(
-                      "Change from " +
-                          bottomSheetTop.toString() +
-                          "to" +
-                          _DragableController!.pixels.toString(),
-                      tag: "MyHomeScreen");
-                  bottomSheetTop = _DragableController!.pixels;
+                  bottomSheetTop = _DragableController.pixels;
                 });
                 return true;
               },
               child: DraggableScrollableSheet(
                 controller: _DragableController,
-                // initialChildSize: 0.2,
-
-                initialChildSize: 0.2,
-                minChildSize: 0.1,
-                maxChildSize: 1.0,
+                initialChildSize: defaultBottomSheetHeight / 1000,
+                minChildSize: 0.15,
+                maxChildSize: 1,
                 builder:
                     (BuildContext context, ScrollController scrollController) {
                   return ClipRRect(
@@ -191,18 +202,19 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       topLeft: Radius.circular(24.0),
                       topRight: Radius.circular(24.0),
                     ),
-                    child: Container(
-                      color: Colors.white,
-                      child: SingleChildScrollView(
-                        primary: false,
-                        controller: scrollController,
-                        child: Column(children: <Widget>[
-                          Pill(),
-                          LocationSearchScreen_(controller: _scrollController),
-                          BottomSheetComponient_(controller: _scrollController),
-                        ]),
+                      child: Container(
+                        color: Colors.white,
+                        child: SingleChildScrollView(
+                          primary: false,
+                          controller: scrollController,
+                          child: Column(children: <Widget>[
+                            const Pill(),
+                            LocationSearchScreen_(controller: _scrollController, sheetController: _DragableController),
+                            BottomSheetComponient_(controller: _scrollController),
+                          ]),
+                        ),
                       ),
-                    ),
+
                   );
                 },
               ))
