@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_flutter_api/google_places_flutter_api.dart';
 import 'package:voyageventure/components/fonts.dart';
 import 'package:voyageventure/components/location_list_tile.dart';
@@ -22,7 +24,9 @@ import '../models/place_search.dart';
 class LocationSearchScreen_ extends StatefulWidget {
   ScrollController controller;
   DraggableScrollableController sheetController;
-  LocationSearchScreen_({Key? key, required this.controller, required this.sheetController}) : super(key: key);
+  Completer<GoogleMapController> mapsController;
+  List<Marker> markerList;
+  LocationSearchScreen_({Key? key, required this.controller, required this.sheetController, required this.mapsController, required this.markerList}) : super(key: key);
 
   @override
   State<LocationSearchScreen_> createState() => _LocationSearchScreen_State();
@@ -93,7 +97,9 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
           logWithTag("Search: ${result.toString()}",
               tag: "SearchLocationScreen");
           placeFound = true;
-        });
+          return placeSearchList[0];
+        }
+        );
       } else {
         logWithTag("No places found", tag: "SearchLocationScreen");
         placeFound = false;
@@ -198,6 +204,8 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
                       logWithTag(
                           "Location clicked: ${placeAutoList[index].toString()}",
                           tag: "SearchLocationScreen");
+                      placeSearch(placeAutoList[index].structuredFormat?.mainText?.text ?? "");
+
                     },
                     placeName:
                         placeAutoList[index].structuredFormat?.mainText?.text ??
@@ -215,4 +223,21 @@ class _LocationSearchScreen_State extends State<LocationSearchScreen_> {
       ],
     );
   }
+
+  void addMarker(PlaceSearch_ place) {
+    final markerId = MarkerId(place.id!);
+    final marker = Marker(
+      markerId: markerId,
+      position: LatLng(place.location?.latitude ?? 0.0, place.location?.longitude ?? 0.0),
+      infoWindow: InfoWindow(
+        title: place.displayName?.text,
+        snippet: place.formattedAddress,
+      ),
+
+    );
+    setState(() {
+      widget.markerList.add(marker);
+    });
+  }
+
 }

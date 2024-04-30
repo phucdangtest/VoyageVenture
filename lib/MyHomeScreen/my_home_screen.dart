@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:html';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,9 +22,9 @@ class MyHomeScreen extends StatefulWidget {
 
 class _MyHomeScreenState extends State<MyHomeScreen>
     with SingleTickerProviderStateMixin {
-  final Completer<GoogleMapController> _controller = Completer();
+  final Completer<GoogleMapController> _mapsController = Completer();
   ScrollController _scrollController = ScrollController();
-  DraggableScrollableController _DragableController =
+  DraggableScrollableController _dragableController =
       DraggableScrollableController();
   double? bottomSheetTop;
   late AnimationController _animationController;
@@ -35,19 +36,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   static const LatLng _airPort = LatLng(10.8114795, 106.6548157);
   static const LatLng _dormitory = LatLng(10.8798036, 106.8052206);
   Polyline? route;
-
-  // final List<Marker> myMarker = [];
-  // final List<Marker> markerList = [
-  //   const Marker(markerId: MarkerId("First"),
-  //   position: LatLng(10.7981542, 106.6614147),
-  //   infoWindow: InfoWindow(title: "First Marker"),
-  //   )
-  //   ,
-  //   const Marker(markerId: MarkerId("Second"),
-  //   position: LatLng(10.9243059,106.8155907),
-  //   infoWindow: InfoWindow(title: "Second Marker"),
-  //   )
-  // ];
+  List<Marker> myMarker = [];
 
   Future<LatLng> getCurrentLocationLatLng() async {
     Position position = await getCurrentLocation();
@@ -55,7 +44,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   }
 
   animateToPosition(LatLng position, {double zoom = 13}) async {
-    GoogleMapController controller = await _controller.future;
+    GoogleMapController controller = await _mapsController.future;
     CameraPosition cameraPosition = CameraPosition(
       target: position,
       zoom: zoom, // Change this value to your desired zoom level
@@ -82,7 +71,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       parent: _animationController,
       curve: Curves.fastOutSlowIn,
     );
-    //myMarker.addAll(markerList);
   }
 
   @override
@@ -120,9 +108,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             mapType: MapType.normal,
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
-            //markers: Set.from(myMarker),
+            markers: Set.from(myMarker),
             onMapCreated: (GoogleMapController controller) {
-              _controller.complete(controller);
+              _mapsController.complete(controller);
             },
             polylines: {if (route != null) route!},
             zoomControlsEnabled: false,
@@ -186,12 +174,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
                 setState(() {
-                  bottomSheetTop = _DragableController.pixels;
+                  bottomSheetTop = _dragableController.pixels;
                 });
                 return true;
               },
               child: DraggableScrollableSheet(
-                controller: _DragableController,
+                controller: _dragableController,
                 initialChildSize: defaultBottomSheetHeight / 1000,
                 minChildSize: 0.15,
                 maxChildSize: 1,
@@ -209,7 +197,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                           controller: scrollController,
                           child: Column(children: <Widget>[
                             const Pill(),
-                            LocationSearchScreen_(controller: _scrollController, sheetController: _DragableController),
+                            LocationSearchScreen_(controller: _scrollController, sheetController: _dragableController, mapsController: _mapsController, marker: myMarker),
                             BottomSheetComponient_(controller: _scrollController),
                           ]),
                         ),
