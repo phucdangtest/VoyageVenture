@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:html';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/misc_widget.dart';
@@ -14,6 +14,10 @@ import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
 import '../components/bottom_sheet_componient.dart';
+import '../components/fonts.dart';
+import '../components/location_list_tile.dart';
+import '../models/place_autocomplete.dart';
+import '../models/place_search.dart';
 
 class MyHomeScreen extends StatefulWidget {
   @override
@@ -22,28 +26,27 @@ class MyHomeScreen extends StatefulWidget {
 
 class _MyHomeScreenState extends State<MyHomeScreen>
     with SingleTickerProviderStateMixin {
+  //Controller
   final Completer<GoogleMapController> _mapsController = Completer();
-  ScrollController _scrollController = ScrollController();
+  ScrollController _listviewScrollController = ScrollController();
   DraggableScrollableController _dragableController =
       DraggableScrollableController();
   double? bottomSheetTop;
+
+  //Animation
   late AnimationController _animationController;
   late Animation<double> moveAnimation;
+
+  //GeoLocation
   LatLng? currentLocation;
   bool isHaveLastSessionLocation = false;
-  Future<List<LatLng>?> polylinePoints = Future.value(null);
-  static CameraPosition? _initialCameraPosition;
-  static const LatLng _airPort = LatLng(10.8114795, 106.6548157);
-  static const LatLng _dormitory = LatLng(10.8798036, 106.8052206);
-  Polyline? route;
-  List<Marker> myMarker = [];
 
   Future<LatLng> getCurrentLocationLatLng() async {
     Position position = await getCurrentLocation();
     return LatLng(position.latitude, position.longitude);
   }
 
-  animateToPosition(LatLng position, {double zoom = 13}) async {
+  void animateToPosition(LatLng position, {double zoom = 13}) async {
     GoogleMapController controller = await _mapsController.future;
     CameraPosition cameraPosition = CameraPosition(
       target: position,
@@ -51,6 +54,21 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     );
     controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
+
+  //Location
+  List<PlaceAutocomplete_> placeAutoList = [];
+  List<PlaceSearch_> placeSearchList = [];
+  bool placeFound = true;
+  List<Marker> myMarker = [];
+
+  //Route
+  Future<List<LatLng>?> polylinePoints = Future.value(null);
+  Polyline? route;
+
+  //Test
+  static CameraPosition? _initialCameraPosition;
+  static const LatLng _airPort = LatLng(10.8114795, 106.6548157);
+  static const LatLng _dormitory = LatLng(10.8798036, 106.8052206);
 
   @override
   void initState() {
@@ -88,14 +106,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: <Widget>[
-          // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.black,
-          //   ),
-          // ),
-
           GoogleMap(
-            initialCameraPosition: (isHaveLastSessionLocation == true)
+            initialCameraPosition: (isHaveLastSessionLocation ==
+                    true) // get last location from shared preference, if not exist, use default location, then it will automatically move to current location
                 ? const CameraPosition(
                     target: LatLng(20, 106),
                     zoom: 13,
@@ -137,12 +150,14 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             //   ),
             // }
           ),
-
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
             bottom: (bottomSheetTop == null)
-                ? (MediaQuery.of(context).size.height * defaultBottomSheetHeight / 1000) + 10
+                ? (MediaQuery.of(context).size.height *
+                        defaultBottomSheetHeight /
+                        1000) +
+                    10
                 : bottomSheetTop! + 10,
             right: 10,
             child: Column(
@@ -170,7 +185,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               ],
             ),
           ),
-
           NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
                 setState(() {
@@ -190,19 +204,164 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       topLeft: Radius.circular(24.0),
                       topRight: Radius.circular(24.0),
                     ),
-                      child: Container(
-                        color: Colors.white,
-                        child: SingleChildScrollView(
-                          primary: false,
-                          controller: scrollController,
-                          child: Column(children: <Widget>[
-                            const Pill(),
-                            LocationSearchScreen_(controller: _scrollController, sheetController: _dragableController, mapsController: _mapsController, marker: myMarker),
-                            BottomSheetComponient_(controller: _scrollController),
-                          ]),
-                        ),
-                      ),
+                    child: Container(
+                      color: Colors.white,
+                      child: SingleChildScrollView(
+                        primary: false,
+                        controller: scrollController,
+                        child: Column(children: <Widget>[
+                          const Pill(),
+                          Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.only(
+                                    left: defaultPadding,
+                                    right: defaultPadding,
+                                    top: defaultPadding,
+                                    bottom: 8.0),
+                                child: CupertinoSearchTextField(
+                                  style: leagueSpartanNormal20,
+                                  placeholder: "Tìm địa điểm",
+                                  onChanged: (text) {
+                                    logWithTag("Place auto complete: $text",
+                                        tag: "SearchLocationScreen");
+                                    setState(() {
+                                      placeAutocomplete(text)
+                                          .then((autoList) => setState(() {
+                                                if (autoList != null) {
+                                                  placeAutoList = autoList;
+                                                  placeFound = true;
+                                                } else {
+                                                  placeFound = false;
+                                                }
+                                              }));
+                                    });
+                                  },
+                                  onSubmitted: (text) {
+                                    logWithTag("Place search: $text",
+                                        tag: "SearchLocationScreen");
+                                    placeSearch(text)
+                                        .then((searchList) => setState(() {
+                                              if (searchList != null) {
+                                                placeSearchList = searchList;
+                                                placeFound = true;
+                                              } else {
+                                                placeFound = false;
+                                              }
+                                            }));
+                                  },
+                                  onTap: () {
+                                    logWithTag("Search bar clicked: ",
+                                        tag: "SearchLocationScreen");
+                                    setState(() async {
+                                      await Future.delayed(const Duration(milliseconds: 500));
+                                      _dragableController.animateTo(
+                                        0.8, // Scroll to the top of the DraggableScrollableSheet
+                                        duration: const Duration(milliseconds: 300), // Duration to complete the scrolling
+                                        curve: Curves.fastOutSlowIn, // Animation curve
+                                      );
+                                      //Todo: Fix current location button
+                                      //bottomSheetTop = _dragableController.pixels;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Row(
+                                children: <Widget>[
+                                  Container(
+                                    padding: const EdgeInsets.only(
+                                        left: defaultPadding, right: 8),
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                        logWithTag("Button clicked: ",
+                                            tag: "SearchLocationScreen");
+                                      },
+                                      icon: SvgPicture.asset(
+                                        "assets/icons/home_add.svg",
+                                        height: 16,
+                                      ),
+                                      label: Text("Thêm nhà",
+                                          style: leagueSpartanNormal15),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            secondaryColor10LightTheme,
+                                        foregroundColor: textColorLightTheme,
+                                        elevation: 0,
+                                        fixedSize:
+                                            const Size(double.infinity, 40),
+                                        shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20)),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      logWithTag("Button clicked: ",
+                                          tag: "SearchLocationScreen");
+                                    },
+                                    icon: SvgPicture.asset(
+                                      "assets/icons/location_add.svg",
+                                      height: 16,
+                                    ),
+                                    label: Text("Thêm địa điểm",
+                                        style: leagueSpartanNormal15),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          secondaryColor10LightTheme,
+                                      foregroundColor: textColorLightTheme,
+                                      elevation: 0,
+                                      fixedSize:
+                                          const Size(double.infinity, 40),
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(20)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
 
+                              placeFound
+                                  ? ListView.builder(
+                                      controller: _listviewScrollController,
+                                      shrinkWrap: true,
+                                      itemCount: placeAutoList.length,
+                                      itemBuilder: (context, index) {
+                                        return LocationListTile_(
+                                          press: () {
+                                            logWithTag(
+                                                "Location clicked: ${placeAutoList[index].toString()}",
+                                                tag: "SearchLocationScreen");
+                                            placeSearch(placeAutoList[index]
+                                                    .structuredFormat
+                                                    ?.mainText
+                                                    ?.text ??
+                                                "");
+                                          },
+                                          placeName: placeAutoList[index]
+                                                  .structuredFormat
+                                                  ?.mainText
+                                                  ?.text ??
+                                              "",
+                                          location: placeAutoList[index]
+                                                  .structuredFormat
+                                                  ?.secondaryText
+                                                  ?.text ??
+                                              "",
+                                        );
+                                      },
+                                    )
+                                  : const Center(
+                                      child: Text('Không tìm thấy địa điểm')),
+                              //MockList_()
+                            ],
+                          ),
+                          BottomSheetComponient_(controller: _listviewScrollController),
+                        ]),
+                      ),
+                    ),
                   );
                 },
               ))
