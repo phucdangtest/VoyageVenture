@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/constants.dart';
+import 'package:voyageventure/main.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
@@ -60,6 +61,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   List<PlaceSearch_> placeSearchList = [];
   bool placeFound = true;
   List<Marker> myMarker = [];
+  BitmapDescriptor defaultMarker =
+      BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+  BitmapDescriptor mainMarker =
+      BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
 
   //Route
   Future<List<LatLng>?> polylinePoints = Future.value(null);
@@ -89,6 +94,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       parent: _animationController,
       curve: Curves.fastOutSlowIn,
     );
+
+    BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+            "assets/icons/marker_small.svg", const Size(48, 48))
+        .then((bitmapDescriptor) {
+      setState(() {
+        defaultMarker = bitmapDescriptor;
+      });
+    });
+
+    BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+            "assets/icons/marker_big.svg", const Size(60, 60))
+        .then((bitmapDescriptor) {
+      setState(() {
+        mainMarker = bitmapDescriptor;
+      });
+    });
   }
 
   @override
@@ -121,7 +142,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             mapType: MapType.normal,
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
-            markers: Set.from(myMarker),
+            markers: myMarker.toSet(),
             onMapCreated: (GoogleMapController controller) {
               _mapsController.complete(controller);
             },
@@ -223,42 +244,94 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   style: leagueSpartanNormal20,
                                   placeholder: "Tìm địa điểm",
                                   onChanged: (text) {
-                                    logWithTag("Place auto complete: $text",
-                                        tag: "SearchLocationScreen");
-                                    setState(() {
-                                      placeAutocomplete(text)
-                                          .then((autoList) => setState(() {
-                                                if (autoList != null) {
-                                                  placeAutoList = autoList;
-                                                  placeFound = true;
-                                                } else {
-                                                  placeFound = false;
-                                                }
-                                              }));
-                                    });
+                                    if (text.isEmpty) {
+                                      setState(() {
+                                        placeFound = true;
+                                        placeAutoList.clear();
+                                      });
+                                    } else {
+                                      logWithTag("Place auto complete: $text",
+                                          tag: "SearchLocationScreen");
+                                      setState(() {
+                                        placeAutocomplete(text)
+                                            .then((autoList) => setState(() {
+                                                  if (autoList != null) {
+                                                    placeAutoList = autoList;
+                                                    placeFound = true;
+                                                  } else {
+                                                    placeFound = false;
+                                                  }
+                                                }));
+                                      });
+                                    }
                                   },
                                   onSubmitted: (text) {
-                                    logWithTag("Place search: $text",
-                                        tag: "SearchLocationScreen");
-                                    placeSearch(text)
-                                        .then((searchList) => setState(() {
-                                              if (searchList != null) {
-                                                placeSearchList = searchList;
-                                                placeFound = true;
-                                              } else {
-                                                placeFound = false;
+                                    if (text.isEmpty) {
+                                      placeFound = true;
+                                      placeSearchList.clear();
+                                    } else {
+                                      setState(() {
+                                        myMarker = [];
+                                      });
+                                      logWithTag("Place search: $text",
+                                          tag: "SearchLocationScreen");
+                                      placeSearch(text).then((searchList) =>
+                                          setState(() {
+                                            if (searchList != null) {
+                                              placeSearchList = searchList;
+                                              for (int i = 0; i < placeSearchList.length; i++) {
+                                                final markerId =
+                                                    MarkerId(placeSearchList[i].id!);
+                                                final marker = Marker(
+                                                  markerId: markerId,
+                                                  icon: (i == 0)? mainMarker : defaultMarker,
+                                                  position: LatLng(
+                                                      placeSearchList[i].location
+                                                              ?.latitude ??
+                                                          0.0,
+                                                      placeSearchList[i].location
+                                                              ?.longitude ??
+                                                          0.0),
+                                                  infoWindow: InfoWindow(
+                                                    title:
+                                                        placeSearchList[i].displayName?.text,
+                                                    snippet:
+                                                        placeSearchList[i].formattedAddress,
+                                                  ),
+                                                );
+                                                myMarker.add(marker);
                                               }
-                                            }));
+                                              placeFound = true;
+
+                                              _dragableController.animateTo(
+                                                defaultBottomSheetHeight / 1000,
+                                                // Scroll to the top of the DraggableScrollableSheet
+                                                duration: const Duration(
+                                                    milliseconds: 300),
+                                                // Duration to complete the scrolling
+                                                curve: Curves
+                                                    .fastOutSlowIn, // Animation curve
+                                              );
+                                            } else {
+                                              placeFound = false;
+                                            }
+                                          }));
+                                    }
                                   },
                                   onTap: () {
                                     logWithTag("Search bar clicked: ",
                                         tag: "SearchLocationScreen");
                                     setState(() async {
-                                      await Future.delayed(const Duration(milliseconds: 500));
+                                      await Future.delayed(
+                                          const Duration(milliseconds: 500));
                                       _dragableController.animateTo(
-                                        0.8, // Scroll to the top of the DraggableScrollableSheet
-                                        duration: const Duration(milliseconds: 300), // Duration to complete the scrolling
-                                        curve: Curves.fastOutSlowIn, // Animation curve
+                                        0.8,
+                                        // Scroll to the top of the DraggableScrollableSheet
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        // Duration to complete the scrolling
+                                        curve: Curves
+                                            .fastOutSlowIn, // Animation curve
                                       );
                                       //Todo: Fix current location button
                                       //bottomSheetTop = _dragableController.pixels;
@@ -273,7 +346,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         left: defaultPadding, right: 8),
                                     child: ElevatedButton.icon(
                                       onPressed: () {
-                                        logWithTag("Button clicked: ",
+                                        logWithTag("Add home button clicked: ",
                                             tag: "SearchLocationScreen");
                                       },
                                       icon: SvgPicture.asset(
@@ -358,7 +431,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               //MockList_()
                             ],
                           ),
-                          BottomSheetComponient_(controller: _listviewScrollController),
+                          BottomSheetComponient_(
+                              controller: _listviewScrollController),
                         ]),
                       ),
                     ),
