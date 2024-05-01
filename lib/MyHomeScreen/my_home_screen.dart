@@ -48,6 +48,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   }
 
   void animateToPosition(LatLng position, {double zoom = 13}) async {
+    logWithTag("Animate to position: $position", tag: "MyHomeScreen");
     GoogleMapController controller = await _mapsController.future;
     CameraPosition cameraPosition = CameraPosition(
       target: position,
@@ -78,12 +79,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   @override
   void initState() {
     super.initState();
-    if (!isHaveLastSessionLocation) {
-      getCurrentLocationLatLng().then((value) {
-        currentLocation = value;
+
+    getCurrentLocationLatLng().then((value) {
+      currentLocation = value;
+      if (!isHaveLastSessionLocation) {
         animateToPosition(currentLocation!);
-      });
-    }
+      }
+    });
 
     _animationController = AnimationController(
       duration: const Duration(seconds: 5),
@@ -96,7 +98,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     );
 
     BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
-            "assets/icons/marker_small.svg", const Size(48, 48))
+            "assets/icons/marker_small.svg", const Size(40, 40))
         .then((bitmapDescriptor) {
       setState(() {
         defaultMarker = bitmapDescriptor;
@@ -104,7 +106,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     });
 
     BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
-            "assets/icons/marker_big.svg", const Size(60, 60))
+            "assets/icons/marker_big.svg", const Size(50, 50))
         .then((bitmapDescriptor) {
       setState(() {
         mainMarker = bitmapDescriptor;
@@ -259,7 +261,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 tag: "SearchLocationScreen");
                                             setState(() {
                                               placeAutocomplete(text,
-                                                      currentLocation!, 500)
+                                                      currentLocation, 500)
                                                   .then((autoList) =>
                                                       setState(() {
                                                         if (autoList != null) {
@@ -305,15 +307,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                 : defaultMarker,
                                                             position: LatLng(
                                                                 placeSearchList[
-                                                                            i]
-                                                                        .location
-                                                                        ?.latitude ??
-                                                                    0.0,
+                                                                        i]
+                                                                    .location
+                                                                    .latitude,
                                                                 placeSearchList[
-                                                                            i]
-                                                                        .location
-                                                                        ?.longitude ??
-                                                                    0.0),
+                                                                        i]
+                                                                    .location
+                                                                    .longitude),
                                                             infoWindow:
                                                                 InfoWindow(
                                                               title:
@@ -331,9 +331,24 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                         }
                                                         placeFound = true;
 
+                                                        LatLng firstLocation =
+                                                            LatLng(
+                                                                placeSearchList[
+                                                                        0]
+                                                                    .location
+                                                                    .latitude,
+                                                                placeSearchList[
+                                                                        0]
+                                                                    .location
+                                                                    .longitude);
+                                                        animateToPosition(
+                                                            firstLocation,
+                                                            zoom: 15);
+
                                                         animateBottomSheet(
                                                                 _dragableController,
-                                                                defaultBottomSheetHeight/1000)
+                                                                defaultBottomSheetHeight /
+                                                                    1000)
                                                             .then((_) {
                                                           setState(() {
                                                             bottomSheetTop =
@@ -347,11 +362,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                     }));
                                           }
                                         },
-                                        onTap: () {
+                                        onTap: () async{
                                           logWithTag("Search bar clicked: ",
                                               tag: "SearchLocationScreen");
-                                          setState(() async {
-                                            await Future.delayed(const Duration(
+
+                                          await Future.delayed(const Duration(
                                                 milliseconds: 500));
                                             animateBottomSheet(
                                                     _dragableController, 0.8)
@@ -361,9 +376,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                     _dragableController.pixels;
                                               });
                                             });
-                                            //Todo: Fix current location button
-                                            //bottomSheetTop = _dragableController.pixels;
-                                          });
+
                                         },
                                       ),
                                     ),
@@ -442,11 +455,63 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             logWithTag(
                                                 "Location clicked: ${placeAutoList[index].toString()}",
                                                 tag: "SearchLocationScreen");
-                                            placeSearch(placeAutoList[index]
-                                                    .structuredFormat
-                                                    ?.mainText
-                                                    ?.text ??
-                                                "");
+                                            SystemChannels.textInput
+                                                .invokeMethod('TextInput.hide');
+                                            animateBottomSheet(
+                                                    _dragableController,
+                                                    defaultBottomSheetHeight /
+                                                        1000)
+                                                .then((_) {
+                                              setState(() {
+                                                bottomSheetTop =
+                                                    _dragableController.pixels;
+                                              });
+                                            });
+                                            placeSearchSingle(
+                                                    placeAutoList[index]
+                                                            .structuredFormat
+                                                            ?.mainText
+                                                            ?.text ??
+                                                        "")
+                                                .then((value) => {
+                                                      if (value != null)
+                                                        {
+                                                          animateToPosition(
+                                                            LatLng(
+                                                                value.location
+                                                                    .latitude,
+                                                                value.location
+                                                                    .longitude),
+                                                          ),
+                                                          setState(() {
+                                                            myMarker = [];
+                                                            final markerId =
+                                                                MarkerId(
+                                                                    value.id!);
+                                                            final marker =
+                                                                Marker(
+                                                              markerId:
+                                                                  markerId,
+                                                              icon: mainMarker,
+                                                              position: LatLng(
+                                                                  value.location
+                                                                      .latitude,
+                                                                  value.location
+                                                                      .longitude),
+                                                              infoWindow:
+                                                                  InfoWindow(
+                                                                title: value
+                                                                    .displayName
+                                                                    ?.text,
+                                                                snippet: value
+                                                                    .formattedAddress,
+                                                              ),
+                                                            );
+                                                            myMarker
+                                                                .add(marker);
+                                                          }),
+                                                        },
+                                                    });
                                           },
                                           placeName: placeAutoList[index]
                                                   .structuredFormat

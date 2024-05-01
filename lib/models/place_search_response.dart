@@ -35,3 +35,34 @@ class PlaceSearchResponse_ {
   }
 
 }
+
+class PlaceSearchResponseSingle_ {
+  final String? status;
+  final PlaceSearch_? place;
+
+  PlaceSearchResponseSingle_({this.status, this.place});
+
+  factory PlaceSearchResponseSingle_.fromJson(Map<String, dynamic> json) {
+    return PlaceSearchResponseSingle_(
+      status: json['status'] as String?,
+      place: json['places'] != null
+          ? PlaceSearch_.fromJson((json['places'] as List).first)
+          : null,
+    );
+  }
+
+  String getShortPlace() {
+    return place?.displayName?.text ?? '';
+  }
+
+  static PlaceSearchResponseSingle_ parsePlaceSearchResult(
+      String responseBody) {
+    final parsed = json.decode(responseBody).cast<String, dynamic>();
+    return PlaceSearchResponseSingle_.fromJson(parsed);
+  }
+
+  @override
+  String toString(){
+    return 'PlaceSearchResponseSingle_ { status: $status, place: ${getShortPlace()}, location: ${place?.location.toString()}';
+  }
+}

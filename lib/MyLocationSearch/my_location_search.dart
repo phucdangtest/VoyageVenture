@@ -71,8 +71,9 @@ import '../models/place_search.dart';
 //   }
 // }
 
-Future<List<PlaceAutocomplete_>?> placeAutocomplete(String query, LatLng center, double radius) async {
+Future<List<PlaceAutocomplete_>?> placeAutocomplete(String query, LatLng? center, double radius) async {
   print("Autocomplete: $query");
+  center ??= const LatLng(0, 0);
   var url = Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
   var headers = {
     'Content-Type': 'application/json',
@@ -128,6 +129,37 @@ Future<List<PlaceSearch_>?> placeSearch(String query) async {
     if (result.places != null) {
       logWithTag("Search: ${result.toString()}", tag: "SearchLocationScreen");
       return result.places;
+    } else {
+      logWithTag("No places found", tag: "SearchLocationScreen");
+      return null;
+    }
+  } else {
+    print('Request failed with status: ${response.statusCode}.');
+    logWithTag("Request failed with status: ${response.body}.",
+        tag: "SearchLocationScreen");
+    return null;
+  }
+}
+
+Future<PlaceSearch_?> placeSearchSingle(String query) async {
+  print("Search: $query");
+  var url = Uri.parse('https://places.googleapis.com/v1/places:searchText');
+  var headers = {
+    'Content-Type': 'application/json',
+    'X-Goog-Api-Key': dotenv.env['MAPS_API_KEY1']!,
+    'X-Goog-FieldMask':
+    'places.displayName,places.formattedAddress,places.location,places.id',
+  };
+  var body = jsonEncode({
+    'textQuery': query,
+  });
+  var response = await http.post(url, headers: headers, body: body);
+  if (response.statusCode == 200) {
+    PlaceSearchResponse_ result =
+    PlaceSearchResponse_.parsePlaceSearchResult(response.body);
+    if (result.places != null && result.places!.isNotEmpty) {
+      logWithTag("Search: ${result.toString()}", tag: "SearchLocationScreen");
+      return result.places!.first;
     } else {
       logWithTag("No places found", tag: "SearchLocationScreen");
       return null;
