@@ -26,7 +26,7 @@ class MyHomeScreen extends StatefulWidget {
 }
 
 class _MyHomeScreenState extends State<MyHomeScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   //Controller
   final Completer<GoogleMapController> _mapsController = Completer();
   ScrollController _listviewScrollController = ScrollController();
@@ -110,6 +110,27 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         mainMarker = bitmapDescriptor;
       });
     });
+
+    WidgetsBinding.instance.addObserver(this);
+    // _dragableController.addListener(() {
+    //   setState(() {
+    //     bottomSheetTop = _dragableController.pixels;
+    //   });
+    // });
+  } // InitState
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Trigger rebuild of the map
+      setState(() {});
+    }
   }
 
   @override
@@ -212,110 +233,146 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                           const Pill(),
                           Column(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.only(
-                                    left: defaultPadding,
-                                    right: defaultPadding,
-                                    top: defaultPadding,
-                                    bottom: 8.0),
-                                child: CupertinoSearchTextField(
-                                  style: leagueSpartanNormal20,
-                                  placeholder: "Tìm địa điểm",
-                                  onChanged: (text) {
-                                    if (text.isEmpty) {
-                                      setState(() {
-                                        placeFound = true;
-                                        placeAutoList.clear();
-                                      });
-                                    } else {
-                                      logWithTag("Place auto complete: $text",
-                                          tag: "SearchLocationScreen");
-                                      setState(() {
-                                        placeAutocomplete(text)
-                                            .then((autoList) => setState(() {
-                                                  if (autoList != null) {
-                                                    placeAutoList = autoList;
-                                                    placeFound = true;
-                                                  } else {
-                                                    placeFound = false;
-                                                  }
-                                                }));
-                                      });
-                                    }
-                                  },
-                                  onSubmitted: (text) {
-                                    if (text.isEmpty) {
-                                      placeFound = true;
-                                      placeSearchList.clear();
-                                    } else {
-                                      setState(() {
-                                        myMarker = [];
-                                      });
-                                      logWithTag("Place search: $text",
-                                          tag: "SearchLocationScreen");
-                                      placeSearch(text).then((searchList) =>
-                                          setState(() {
-                                            if (searchList != null) {
-                                              placeSearchList = searchList;
-                                              for (int i = 0; i < placeSearchList.length; i++) {
-                                                final markerId =
-                                                    MarkerId(placeSearchList[i].id!);
-                                                final marker = Marker(
-                                                  markerId: markerId,
-                                                  icon: (i == 0)? mainMarker : defaultMarker,
-                                                  position: LatLng(
-                                                      placeSearchList[i].location
-                                                              ?.latitude ??
-                                                          0.0,
-                                                      placeSearchList[i].location
-                                                              ?.longitude ??
-                                                          0.0),
-                                                  infoWindow: InfoWindow(
-                                                    title:
-                                                        placeSearchList[i].displayName?.text,
-                                                    snippet:
-                                                        placeSearchList[i].formattedAddress,
-                                                  ),
-                                                );
-                                                myMarker.add(marker);
-                                              }
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: defaultPadding,
+                                          right: 0,
+                                          top: defaultPadding,
+                                          bottom: 8.0),
+                                      child: CupertinoSearchTextField(
+                                        style: leagueSpartanNormal20,
+                                        placeholder: "Tìm địa điểm",
+                                        onChanged: (text) {
+                                          if (text.isEmpty) {
+                                            setState(() {
                                               placeFound = true;
+                                              placeAutoList.clear();
+                                            });
+                                          } else {
+                                            logWithTag(
+                                                "Place auto complete: $text",
+                                                tag: "SearchLocationScreen");
+                                            setState(() {
+                                              placeAutocomplete(text,
+                                                      currentLocation!, 500)
+                                                  .then((autoList) =>
+                                                      setState(() {
+                                                        if (autoList != null) {
+                                                          placeAutoList =
+                                                              autoList;
+                                                          placeFound = true;
+                                                        } else {
+                                                          placeFound = false;
+                                                        }
+                                                      }));
+                                            });
+                                          }
+                                        },
+                                        onSubmitted: (text) {
+                                          if (text.isEmpty) {
+                                            placeFound = true;
+                                            placeSearchList.clear();
+                                          } else {
+                                            setState(() {
+                                              myMarker = [];
+                                            });
+                                            logWithTag("Place search: $text",
+                                                tag: "SearchLocationScreen");
+                                            placeSearch(text).then(
+                                                (searchList) => setState(() {
+                                                      if (searchList != null) {
+                                                        placeSearchList =
+                                                            searchList;
+                                                        for (int i = 0;
+                                                            i <
+                                                                placeSearchList
+                                                                    .length;
+                                                            i++) {
+                                                          final markerId =
+                                                              MarkerId(
+                                                                  placeSearchList[
+                                                                          i]
+                                                                      .id!);
+                                                          final marker = Marker(
+                                                            markerId: markerId,
+                                                            icon: (i == 0)
+                                                                ? mainMarker
+                                                                : defaultMarker,
+                                                            position: LatLng(
+                                                                placeSearchList[
+                                                                            i]
+                                                                        .location
+                                                                        ?.latitude ??
+                                                                    0.0,
+                                                                placeSearchList[
+                                                                            i]
+                                                                        .location
+                                                                        ?.longitude ??
+                                                                    0.0),
+                                                            infoWindow:
+                                                                InfoWindow(
+                                                              title:
+                                                                  placeSearchList[
+                                                                          i]
+                                                                      .displayName
+                                                                      ?.text,
+                                                              snippet:
+                                                                  placeSearchList[
+                                                                          i]
+                                                                      .formattedAddress,
+                                                            ),
+                                                          );
+                                                          myMarker.add(marker);
+                                                        }
+                                                        placeFound = true;
 
-                                              _dragableController.animateTo(
-                                                defaultBottomSheetHeight / 1000,
-                                                // Scroll to the top of the DraggableScrollableSheet
-                                                duration: const Duration(
-                                                    milliseconds: 300),
-                                                // Duration to complete the scrolling
-                                                curve: Curves
-                                                    .fastOutSlowIn, // Animation curve
-                                              );
-                                            } else {
-                                              placeFound = false;
-                                            }
-                                          }));
-                                    }
-                                  },
-                                  onTap: () {
-                                    logWithTag("Search bar clicked: ",
-                                        tag: "SearchLocationScreen");
-                                    setState(() async {
-                                      await Future.delayed(
-                                          const Duration(milliseconds: 500));
-                                      _dragableController.animateTo(
-                                        0.8,
-                                        // Scroll to the top of the DraggableScrollableSheet
-                                        duration:
-                                            const Duration(milliseconds: 300),
-                                        // Duration to complete the scrolling
-                                        curve: Curves
-                                            .fastOutSlowIn, // Animation curve
-                                      );
-                                      //Todo: Fix current location button
-                                      //bottomSheetTop = _dragableController.pixels;
-                                    });
-                                  },
-                                ),
+                                                        animateBottomSheet(
+                                                                _dragableController,
+                                                                defaultBottomSheetHeight/1000)
+                                                            .then((_) {
+                                                          setState(() {
+                                                            bottomSheetTop =
+                                                                _dragableController
+                                                                    .pixels;
+                                                          });
+                                                        });
+                                                      } else {
+                                                        placeFound = false;
+                                                      }
+                                                    }));
+                                          }
+                                        },
+                                        onTap: () {
+                                          logWithTag("Search bar clicked: ",
+                                              tag: "SearchLocationScreen");
+                                          setState(() async {
+                                            await Future.delayed(const Duration(
+                                                milliseconds: 500));
+                                            animateBottomSheet(
+                                                    _dragableController, 0.8)
+                                                .then((_) {
+                                              setState(() {
+                                                bottomSheetTop =
+                                                    _dragableController.pixels;
+                                              });
+                                            });
+                                            //Todo: Fix current location button
+                                            //bottomSheetTop = _dragableController.pixels;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                      onPressed: () {},
+                                      icon: SvgPicture.asset(
+                                          "assets/icons/nearby_search.svg")),
+                                ],
                               ),
                               Row(
                                 children: <Widget>[

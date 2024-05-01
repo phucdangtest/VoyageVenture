@@ -71,7 +71,7 @@ import '../models/place_search.dart';
 //   }
 // }
 
-Future<List<PlaceAutocomplete_>?> placeAutocomplete(String query) async {
+Future<List<PlaceAutocomplete_>?> placeAutocomplete(String query, LatLng center, double radius) async {
   print("Autocomplete: $query");
   var url = Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
   var headers = {
@@ -82,8 +82,11 @@ Future<List<PlaceAutocomplete_>?> placeAutocomplete(String query) async {
     'input': query,
     'locationBias': {
       'circle': {
-        'center': {'latitude': 12.5199614, 'longitude': 107.5400949},
-        'radius': 500.0
+        'center': {
+          "latitude": center.latitude,
+          "longitude": center.longitude
+        },
+        'radius': radius
       }
     }
   });

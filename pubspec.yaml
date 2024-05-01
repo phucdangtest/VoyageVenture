@@ -78,6 +78,7 @@ flutter:
     - assets/icons/pluss.svg
     - assets/icons/marker_small.svg
     - assets/icons/marker_big.svg
+    - assets/icons/nearby_search.svg
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

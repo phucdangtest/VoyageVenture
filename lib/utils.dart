@@ -55,3 +55,15 @@ class BitmapDescriptorHelper {
     return BitmapDescriptor.fromBytes(bytes.buffer.asUint8List());
   }
 }
+
+Future<void> animateBottomSheet(DraggableScrollableController controller, double position) {
+  return controller.animateTo(
+    position,
+    // Scroll to the top of the DraggableScrollableSheet
+    duration:
+    const Duration(milliseconds: 300),
+    // Duration to complete the scrolling
+    curve: Curves
+        .fastOutSlowIn, // Animation curve
+  );
+}
