@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/constants.dart';
+import 'package:voyageventure/location_sharing.dart';
 import 'package:voyageventure/main.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
@@ -147,6 +148,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       // Transparent navigation bar
       systemNavigationBarIconBrightness: Brightness.dark, // Dark icons
     ));
+    return LocationSharing();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
