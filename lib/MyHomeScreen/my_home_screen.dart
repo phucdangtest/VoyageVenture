@@ -68,12 +68,14 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   BitmapDescriptor mainMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
   Timer? _debounce;
+  bool locationSearchComponentShow = false;
 
   //Route
   Future<List<LatLng>?> polylinePoints = Future.value(null);
   Polyline? route;
 
   //Test
+
   static CameraPosition? _initialCameraPosition;
   static const LatLng _airPort = LatLng(10.8114795, 106.6548157);
   static const LatLng _dormitory = LatLng(10.8798036, 106.8052206);
@@ -148,7 +150,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       // Transparent navigation bar
       systemNavigationBarIconBrightness: Brightness.dark, // Dark icons
     ));
-    return LocationSharing();
+    //return LocationSharing();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
@@ -184,29 +186,138 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                         1000) +
                     10
                 : bottomSheetTop! + 10,
-            right: 10,
+            right: 0,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                FloatingActionButton(
-                  elevation: 5,
-                  onPressed: () {
-                    if (currentLocation != null) {
-                      animateToPosition(currentLocation!);
-                    }
-                    getCurrentLocation().then((value) {
-                      if (currentLocation !=
-                          LatLng(value.latitude, value.longitude)) {
-                        currentLocation =
-                            LatLng(value.latitude, value.longitude);
+                // return Container(
+                //   margin: EdgeInsets.all(10.0),
+                //   padding: EdgeInsets.all(10.0),
+                //   decoration: BoxDecoration(
+                //     color: Colors.white,
+                //     borderRadius: BorderRadius.circular(10.0),
+                //   ),
+                //   child: Row(
+                //     children: <Widget>[
+                //       Image(image: AssetImage("assets/icons/marker_small.svg"), width: 50, height: 50,),
+                //       // Image.network(
+                //       //   placeAutoList[index].imageUrl,
+                //       //   width: 50,
+                //       //   height: 50,
+                //       // ),
+                //       SizedBox(width: 10.0),
+                //       Column(
+                //         crossAxisAlignment: CrossAxisAlignment.start,
+                //         children: <Widget>[
+                //           Text(
+                //             placeAutoList[index].structuredFormat?.mainText!.text ?? "",
+                //             style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                //           ),
+                //           Text(
+                //             placeAutoList[index].structuredFormat?.secondaryText!.text ?? "",
+                //             style: TextStyle(fontSize: 14.0, color: Colors.grey),
+                //           ),
+                //         ],
+                //       ),
+                //     ],
+                //   ),
+                // );
+
+                Container(
+                  margin: const EdgeInsets.only(right: 10.0),
+                  child: FloatingActionButton(
+                    elevation: 5,
+                    onPressed: () {
+                      if (currentLocation != null) {
                         animateToPosition(currentLocation!);
-                        logWithTag("Location changed!", tag: "MyHomeScreen");
                       }
-                    });
-                    // Handle button press
-                  },
-                  child: const Icon(Icons.my_location_rounded),
+                      getCurrentLocation().then((value) {
+                        if (currentLocation !=
+                            LatLng(value.latitude, value.longitude)) {
+                          currentLocation =
+                              LatLng(value.latitude, value.longitude);
+                          animateToPosition(currentLocation!);
+                          logWithTag("Location changed!", tag: "MyHomeScreen");
+                        }
+                      });
+                      // Handle button press
+                    },
+                    child: const Icon(Icons.my_location_rounded),
+                  ),
                 ),
-                // Add more widgets here that you want to move with the sheet
+                Container(
+                  margin: const EdgeInsets.all(8.0),
+                  child: Visibility(
+                      visible: locationSearchComponentShow,
+                      child: SizedBox(
+                        height: 90.0,
+                        width: (MediaQuery.of(context).size.width),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: placeAutoList.length,
+                          itemBuilder: (context, index) {
+                            return Container(
+                              //margin: EdgeInsets.only(
+                                 // left: 10.0, top: 10.0, bottom: 10.0),
+                              padding: EdgeInsets.all(10.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Image.network(
+                                    "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
+                                    width: 50,
+                                    height: 50,
+                                  ),
+                                  SizedBox(width: 10.0),
+                                  SizedBox(
+                                    width: 140,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        Text(
+                                          (index == 0)
+                                              ? "First place"
+                                              : placeAutoList[index]
+                                                      .structuredFormat
+                                                      ?.mainText
+                                                      ?.text ??
+                                                  "",
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                            fontWeight: FontWeight.bold,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        Text(
+                                          (index == 0)
+                                              ? "First location"
+                                              : placeAutoList[index]
+                                                      .structuredFormat
+                                                      ?.secondaryText
+                                                      ?.text ??
+                                                  "",
+                                          style: TextStyle(
+                                              fontSize: 14.0,
+                                              color: Colors.grey,
+                                              overflow: TextOverflow.ellipsis),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      )),
+                ),
               ],
             ),
           ),
@@ -278,6 +389,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                             placeAutoList =
                                                                 autoList;
                                                             placeFound = true;
+                                                            //locationSearchComponentShow = true;
                                                           } else {
                                                             placeFound = false;
                                                           }
@@ -341,6 +453,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                           myMarker.add(marker);
                                                         }
                                                         placeFound = true;
+                                                        locationSearchComponentShow =
+                                                            true;
 
                                                         LatLng firstLocation =
                                                             LatLng(
