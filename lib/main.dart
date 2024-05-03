@@ -3,9 +3,15 @@ import 'package:voyageventure/AddressConverter/my_converter.dart';
 import 'package:voyageventure/MyHomeScreen/my_home_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:voyageventure/MyLocationSearch/my_location_search.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Đảm bảo rằng các binding của widget đã được khởi tạo
   await dotenv.load();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
