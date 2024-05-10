@@ -27,7 +27,7 @@ class MyHomeScreen extends StatefulWidget {
 }
 
 class _MyHomeScreenState extends State<MyHomeScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin {
   //Controller
   final Completer<GoogleMapController> _mapsController = Completer();
   ScrollController _listviewScrollController = ScrollController();
@@ -68,7 +68,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   BitmapDescriptor mainMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
   Timer? _debounce;
-  bool locationSearchComponentShow = false;
+  bool isShowPlaceHorizontalList =
+      false; // show the location search component
+  bool isShowPlaceHorizontalListFromSearch =
+      true; // true: show from search, false: show from autocomplete
 
   //Route
   Future<List<LatLng>?> polylinePoints = Future.value(null);
@@ -80,10 +83,182 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   static const LatLng _airPort = LatLng(10.8114795, 106.6548157);
   static const LatLng _dormitory = LatLng(10.8798036, 106.8052206);
 
+  //Region function
+  //Search place
+  void searchPlaceAndUpdate(String text) {
+    if (text.isEmpty) {
+      placeFound = true;
+      placeSearchList.clear();
+      isShowPlaceHorizontalList = false;
+    } else {
+      setState(() {
+        myMarker = [];
+      });
+      logWithTag("Place search: $text", tag: "SearchLocationScreen");
+      placeSearch(text).then((searchList) => setState(() {
+            if (searchList != null) {
+              placeSearchList = searchList;
+              for (int i = 0; i < placeSearchList.length; i++) {
+                final markerId = MarkerId(placeSearchList[i].id!);
+                Marker marker = Marker(
+                  markerId: markerId,
+                  icon: (i == 0) ? mainMarker : defaultMarker,
+                  position: LatLng(placeSearchList[i].location.latitude,
+                      placeSearchList[i].location.longitude),
+                  infoWindow: InfoWindow(
+                    title: placeSearchList[i].displayName?.text,
+                    snippet: placeSearchList[i].formattedAddress,
+                  ),
+                );
+                myMarker.add(marker);
+              }
+              placeFound = true;
+              isShowPlaceHorizontalListFromSearch = true;
+              placeOnclick(isShowPlaceHorizontalListFromSearch, 0);
+
+              animateBottomSheet(
+                      _dragableController, defaultBottomSheetHeight / 1000)
+                  .then((_) {
+                setState(() {
+                  bottomSheetTop = _dragableController.pixels;
+                  isShowPlaceHorizontalList = true;
+                });
+              });
+            } else {
+              placeFound = false;
+            }
+          }));
+    }
+  }
+
+  void autocompletePlaceAndUpdate(String text) {
+    if (text.isEmpty) {
+      setState(() {
+        placeFound = true;
+        placeAutoList.clear();
+        isShowPlaceHorizontalList = false;
+      });
+    } else {
+      logWithTag("Place auto complete: $text", tag: "SearchLocationScreen");
+      setState(() {
+        placeAutocomplete(text, currentLocation, 500)
+            .then((autoList) => setState(() {
+                  if (autoList != null) {
+                    placeAutoList = autoList;
+                    placeFound = true;
+                    //locationSearchComponentShow = true;
+                  } else {
+                    placeFound = false;
+                  }
+                }));
+      });
+    }
+  }
+
+  void locationButtonOnclick() {
+    if (currentLocation != null) {
+      animateToPosition(currentLocation!);
+    }
+    getCurrentLocation().then((value) {
+      if (currentLocation != LatLng(value.latitude, value.longitude)) {
+        currentLocation = LatLng(value.latitude, value.longitude);
+        animateToPosition(currentLocation!);
+        logWithTag("Location changed!", tag: "MyHomeScreen");
+      }
+    });
+  }
+
+  String getMainText(bool isShowFromSearch, int index) {
+    if (isShowFromSearch) {
+      return placeSearchList[index].displayName?.text ?? "";
+    } else {
+      return placeAutoList[index].structuredFormat?.mainText?.text ?? "";
+    }
+  }
+
+  String getSecondaryText(bool isShowFromSearch, int index) {
+    if (isShowFromSearch) {
+      return placeSearchList[index].formattedAddress ?? "";
+    } else {
+      return placeAutoList[index].structuredFormat?.secondaryText?.text ?? "";
+    }
+  }
+
+  void placeOnclick(bool isShowFromSearch, int index) {
+    isShowPlaceHorizontalList = true;
+    if (isShowFromSearch) {
+      try {
+        animateToPosition(
+            LatLng(placeSearchList[index].location.latitude,
+                placeSearchList[index].location.longitude),
+            zoom: 15);
+        return;
+      } catch (e) {
+        logWithTag(
+            "Error, show from auto but the isShowFromSearch = true, changing it to false $e",
+            tag: "SearchLocationScreen");
+        isShowFromSearch = false;
+      }
+    }
+    // If the isShowFromSearch is true, but the index is out of range, then it will change to false and execute this
+    // Make sure that the isShowFromSearch is always have the right value
+    placeSearchSingle(
+            placeAutoList[index].structuredFormat?.mainText?.text ?? "")
+        .then((value) => {
+              if (value != null)
+                {
+                  animateToPosition(
+                    LatLng(value.location.latitude, value.location.longitude),
+                  ),
+                  setState(() {
+                    myMarker = [];
+                    final markerId = MarkerId(value.id!);
+                    Marker marker = Marker(
+                      markerId: markerId,
+                      icon: mainMarker,
+                      position: LatLng(
+                          value.location.latitude, value.location.longitude),
+                      infoWindow: InfoWindow(
+                        title: value.displayName?.text,
+                        snippet: value.formattedAddress,
+                      ),
+                    );
+                    myMarker.add(marker);
+                  }),
+                },
+            });
+  }
+
+  void changeMainMarker(int index) {
+    for (int i = 0; i < myMarker.length; i++) {
+      Marker marker = myMarker[i];
+      if (marker.icon == mainMarker) {
+        Marker newMarker = Marker(
+          markerId: marker.markerId,
+          icon: defaultMarker,
+          position: marker.position,
+          infoWindow: marker.infoWindow,
+        );
+        myMarker[i] = newMarker;
+      }
+    }
+
+    Marker markerAtIndex = myMarker[index];
+    Marker newMarkerAtIndex = Marker(
+      markerId: markerAtIndex.markerId,
+      icon: mainMarker,
+      position: markerAtIndex.position,
+      infoWindow: markerAtIndex.infoWindow,
+    );
+    myMarker[index] = newMarkerAtIndex;
+    setState(() {
+
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-
     getCurrentLocationLatLng().then((value) {
       currentLocation = value;
       if (!isHaveLastSessionLocation) {
@@ -116,18 +291,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         mainMarker = bitmapDescriptor;
       });
     });
-
-    WidgetsBinding.instance.addObserver(this);
-    // _dragableController.addListener(() {
-    //   setState(() {
-    //     bottomSheetTop = _dragableController.pixels;
-    //   });
-    // });
-  } // InitState
+  }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -180,138 +347,107 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
-            bottom: (bottomSheetTop == null)
-                ? (MediaQuery.of(context).size.height *
-                        defaultBottomSheetHeight /
-                        1000) +
-                    10
-                : bottomSheetTop! + 10,
+            bottom:
+                isShowPlaceHorizontalList // use this to compensate the height of the location show panel when it showed,
+                    // do not need to use this of use visibility widget, but that widget does not have animation
+                    ? ((bottomSheetTop == null)
+                        ? (MediaQuery.of(context).size.height *
+                                defaultBottomSheetHeight /
+                                1000) +
+                            10
+                        : bottomSheetTop! + 10)
+                    : ((bottomSheetTop == null)
+                        ? (MediaQuery.of(context).size.height *
+                                defaultBottomSheetHeight /
+                                1000) +
+                            10 -
+                            90 // 90 is the height of the location show panel
+                        : bottomSheetTop! + 10 - 90),
+            // 90 is the height of the location show panel
+
             right: 0,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // return Container(
-                //   margin: EdgeInsets.all(10.0),
-                //   padding: EdgeInsets.all(10.0),
-                //   decoration: BoxDecoration(
-                //     color: Colors.white,
-                //     borderRadius: BorderRadius.circular(10.0),
-                //   ),
-                //   child: Row(
-                //     children: <Widget>[
-                //       Image(image: AssetImage("assets/icons/marker_small.svg"), width: 50, height: 50,),
-                //       // Image.network(
-                //       //   placeAutoList[index].imageUrl,
-                //       //   width: 50,
-                //       //   height: 50,
-                //       // ),
-                //       SizedBox(width: 10.0),
-                //       Column(
-                //         crossAxisAlignment: CrossAxisAlignment.start,
-                //         children: <Widget>[
-                //           Text(
-                //             placeAutoList[index].structuredFormat?.mainText!.text ?? "",
-                //             style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                //           ),
-                //           Text(
-                //             placeAutoList[index].structuredFormat?.secondaryText!.text ?? "",
-                //             style: TextStyle(fontSize: 14.0, color: Colors.grey),
-                //           ),
-                //         ],
-                //       ),
-                //     ],
-                //   ),
-                // );
-
                 Container(
                   margin: const EdgeInsets.only(right: 10.0),
                   child: FloatingActionButton(
                     elevation: 5,
                     onPressed: () {
-                      if (currentLocation != null) {
-                        animateToPosition(currentLocation!);
-                      }
-                      getCurrentLocation().then((value) {
-                        if (currentLocation !=
-                            LatLng(value.latitude, value.longitude)) {
-                          currentLocation =
-                              LatLng(value.latitude, value.longitude);
-                          animateToPosition(currentLocation!);
-                          logWithTag("Location changed!", tag: "MyHomeScreen");
-                        }
-                      });
-                      // Handle button press
+                      locationButtonOnclick();
                     },
                     child: const Icon(Icons.my_location_rounded),
                   ),
                 ),
                 Container(
                   margin: const EdgeInsets.all(8.0),
-                  child: Visibility(
-                      visible: locationSearchComponentShow,
+                  child: AnimatedOpacity(
+                      opacity: isShowPlaceHorizontalList ? 1.0 : 0.0,
+                      duration: Duration(milliseconds: 500),
                       child: SizedBox(
                         height: 90.0,
                         width: (MediaQuery.of(context).size.width),
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: placeAutoList.length,
+                          itemCount: isShowPlaceHorizontalListFromSearch
+                              ? placeSearchList.length
+                              : placeAutoList.length,
                           itemBuilder: (context, index) {
-                            return Container(
-                              //margin: EdgeInsets.only(
-                                 // left: 10.0, top: 10.0, bottom: 10.0),
-                              padding: EdgeInsets.all(10.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Image.network(
-                                    "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
-                                    width: 50,
-                                    height: 50,
-                                  ),
-                                  SizedBox(width: 10.0),
-                                  SizedBox(
-                                    width: 140,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Text(
-                                          (index == 0)
-                                              ? "First place"
-                                              : placeAutoList[index]
-                                                      .structuredFormat
-                                                      ?.mainText
-                                                      ?.text ??
-                                                  "",
-                                          style: TextStyle(
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.bold,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        Text(
-                                          (index == 0)
-                                              ? "First location"
-                                              : placeAutoList[index]
-                                                      .structuredFormat
-                                                      ?.secondaryText
-                                                      ?.text ??
-                                                  "",
-                                          style: TextStyle(
-                                              fontSize: 14.0,
-                                              color: Colors.grey,
-                                              overflow: TextOverflow.ellipsis),
-                                        ),
-                                      ],
+                            return GestureDetector(
+                              onTap: () {
+                                placeOnclick(isShowPlaceHorizontalListFromSearch, index);
+                                changeMainMarker(index);
+                              },
+                              onLongPress: () {},
+                              child: Container(
+                                //margin: EdgeInsets.only(
+                                // left: 10.0, top: 10.0, bottom: 10.0),
+                                padding: EdgeInsets.all(10.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Image.network(
+                                      "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
+                                      width: 50,
+                                      height: 50,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 10.0),
+                                    SizedBox(
+                                      width: 140,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Text(
+                                            getMainText(
+                                                isShowPlaceHorizontalListFromSearch, index),
+                                            style: const TextStyle(
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          Text(
+                                            getSecondaryText(
+                                                isShowPlaceHorizontalListFromSearch, index),
+                                            style: const TextStyle(
+                                                fontSize: 14.0,
+                                                color: Colors.grey,
+                                                overflow:
+                                                    TextOverflow.ellipsis),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
@@ -364,133 +500,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         style: leagueSpartanNormal20,
                                         placeholder: "Tìm địa điểm",
                                         onChanged: (text) {
-                                          if (_debounce?.isActive ?? false)
+                                          if (_debounce?.isActive ?? false) {
                                             _debounce?.cancel();
+                                          }
                                           _debounce = Timer(
                                               const Duration(milliseconds: 200),
                                               () {
-                                            // Place your search function here
-                                            if (text.isEmpty) {
-                                              setState(() {
-                                                placeFound = true;
-                                                placeAutoList.clear();
-                                              });
-                                            } else {
-                                              logWithTag(
-                                                  "Place auto complete: $text",
-                                                  tag: "SearchLocationScreen");
-                                              setState(() {
-                                                placeAutocomplete(text,
-                                                        currentLocation, 500)
-                                                    .then((autoList) =>
-                                                        setState(() {
-                                                          if (autoList !=
-                                                              null) {
-                                                            placeAutoList =
-                                                                autoList;
-                                                            placeFound = true;
-                                                            //locationSearchComponentShow = true;
-                                                          } else {
-                                                            placeFound = false;
-                                                          }
-                                                        }));
-                                              });
-                                            }
+                                            autocompletePlaceAndUpdate(text);
                                           });
                                         },
                                         onSubmitted: (text) {
-                                          if (text.isEmpty) {
-                                            placeFound = true;
-                                            placeSearchList.clear();
-                                          } else {
-                                            setState(() {
-                                              myMarker = [];
-                                            });
-                                            logWithTag("Place search: $text",
-                                                tag: "SearchLocationScreen");
-                                            placeSearch(text).then(
-                                                (searchList) => setState(() {
-                                                      if (searchList != null) {
-                                                        placeSearchList =
-                                                            searchList;
-                                                        for (int i = 0;
-                                                            i <
-                                                                placeSearchList
-                                                                    .length;
-                                                            i++) {
-                                                          final markerId =
-                                                              MarkerId(
-                                                                  placeSearchList[
-                                                                          i]
-                                                                      .id!);
-                                                          final marker = Marker(
-                                                            markerId: markerId,
-                                                            icon: (i == 0)
-                                                                ? mainMarker
-                                                                : defaultMarker,
-                                                            position: LatLng(
-                                                                placeSearchList[
-                                                                        i]
-                                                                    .location
-                                                                    .latitude,
-                                                                placeSearchList[
-                                                                        i]
-                                                                    .location
-                                                                    .longitude),
-                                                            infoWindow:
-                                                                InfoWindow(
-                                                              title:
-                                                                  placeSearchList[
-                                                                          i]
-                                                                      .displayName
-                                                                      ?.text,
-                                                              snippet:
-                                                                  placeSearchList[
-                                                                          i]
-                                                                      .formattedAddress,
-                                                            ),
-                                                          );
-                                                          myMarker.add(marker);
-                                                        }
-                                                        placeFound = true;
-                                                        locationSearchComponentShow =
-                                                            true;
-
-                                                        LatLng firstLocation =
-                                                            LatLng(
-                                                                placeSearchList[
-                                                                        0]
-                                                                    .location
-                                                                    .latitude,
-                                                                placeSearchList[
-                                                                        0]
-                                                                    .location
-                                                                    .longitude);
-                                                        animateToPosition(
-                                                            firstLocation,
-                                                            zoom: 15);
-
-                                                        animateBottomSheet(
-                                                                _dragableController,
-                                                                defaultBottomSheetHeight /
-                                                                    1000)
-                                                            .then((_) {
-                                                          setState(() {
-                                                            bottomSheetTop =
-                                                                _dragableController
-                                                                    .pixels;
-                                                          });
-                                                        });
-                                                      } else {
-                                                        placeFound = false;
-                                                      }
-                                                    }));
-                                          }
+                                          searchPlaceAndUpdate(text);
                                         },
                                         onTap: () async {
                                           logWithTag("Search bar clicked: ",
                                               tag: "SearchLocationScreen");
-
+                                          isShowPlaceHorizontalList = false;
                                           await Future.delayed(const Duration(
                                               milliseconds:
                                                   500)); // wait for the keyboard to show up to make the bottom sheet move up smoothly
@@ -581,6 +606,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         logWithTag(
                                             "Location clicked: ${placeAutoList[index].toString()}",
                                             tag: "SearchLocationScreen");
+                                        isShowPlaceHorizontalListFromSearch = false;
                                         SystemChannels.textInput
                                             .invokeMethod('TextInput.hide');
                                         await Future.delayed(const Duration(
@@ -594,46 +620,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 _dragableController.pixels;
                                           });
                                         });
-                                        placeSearchSingle(placeAutoList[index]
-                                                    .structuredFormat
-                                                    ?.mainText
-                                                    ?.text ??
-                                                "")
-                                            .then((value) => {
-                                                  if (value != null)
-                                                    {
-                                                      animateToPosition(
-                                                        LatLng(
-                                                            value.location
-                                                                .latitude,
-                                                            value.location
-                                                                .longitude),
-                                                      ),
-                                                      setState(() {
-                                                        myMarker = [];
-                                                        final markerId =
-                                                            MarkerId(value.id!);
-                                                        final marker = Marker(
-                                                          markerId: markerId,
-                                                          icon: mainMarker,
-                                                          position: LatLng(
-                                                              value.location
-                                                                  .latitude,
-                                                              value.location
-                                                                  .longitude),
-                                                          infoWindow:
-                                                              InfoWindow(
-                                                            title: value
-                                                                .displayName
-                                                                ?.text,
-                                                            snippet: value
-                                                                .formattedAddress,
-                                                          ),
-                                                        );
-                                                        myMarker.add(marker);
-                                                      }),
-                                                    },
-                                                });
+                                        placeOnclick(isShowPlaceHorizontalListFromSearch, index);
                                       },
                                       placeName: placeAutoList[index]
                                               .structuredFormat

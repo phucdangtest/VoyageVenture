@@ -42,3 +42,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .env
+
+firebase.json
+lib/firebase_options.dart
+android/app/google-services.json
+pubspec.lock
+.vs/VSWorkspaceState.json
+.vs\VoyageVenture\v17\.wsuo
