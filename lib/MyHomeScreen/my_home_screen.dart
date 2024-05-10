@@ -20,6 +20,7 @@ import '../components/fonts.dart';
 import '../components/location_list_tile.dart';
 import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
+import '../models/route_calculate.dart';
 
 class MyHomeScreen extends StatefulWidget {
   @override
@@ -68,8 +69,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   BitmapDescriptor mainMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
   Timer? _debounce;
-  bool isShowPlaceHorizontalList =
-      false; // show the location search component
+  bool isShowPlaceHorizontalList = false; // show the location search component
   bool isShowPlaceHorizontalListFromSearch =
       true; // true: show from search, false: show from autocomplete
 
@@ -184,7 +184,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
   }
 
-  void placeOnclick(bool isShowFromSearch, int index) {
+  Future<LatLng?> placeOnclick(bool isShowFromSearch, int index) async {
     isShowPlaceHorizontalList = true;
     if (isShowFromSearch) {
       try {
@@ -192,7 +192,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
             zoom: 15);
-        return;
+        return LatLng(placeSearchList[index].location.latitude,
+            placeSearchList[index].location.longitude);
       } catch (e) {
         logWithTag(
             "Error, show from auto but the isShowFromSearch = true, changing it to false $e",
@@ -202,31 +203,29 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
     // If the isShowFromSearch is true, but the index is out of range, then it will change to false and execute this
     // Make sure that the isShowFromSearch is always have the right value
-    placeSearchSingle(
-            placeAutoList[index].structuredFormat?.mainText?.text ?? "")
-        .then((value) => {
-              if (value != null)
-                {
-                  animateToPosition(
-                    LatLng(value.location.latitude, value.location.longitude),
-                  ),
-                  setState(() {
-                    myMarker = [];
-                    final markerId = MarkerId(value.id!);
-                    Marker marker = Marker(
-                      markerId: markerId,
-                      icon: mainMarker,
-                      position: LatLng(
-                          value.location.latitude, value.location.longitude),
-                      infoWindow: InfoWindow(
-                        title: value.displayName?.text,
-                        snippet: value.formattedAddress,
-                      ),
-                    );
-                    myMarker.add(marker);
-                  }),
-                },
-            });
+    var value = await placeSearchSingle(
+        placeAutoList[index].structuredFormat?.mainText?.text ?? "");
+    if (value != null) {
+      animateToPosition(
+        LatLng(value.location.latitude, value.location.longitude),
+      );
+      setState(() {
+        myMarker = [];
+        final markerId = MarkerId(value.id!);
+        Marker marker = Marker(
+          markerId: markerId,
+          icon: mainMarker,
+          position: LatLng(value.location.latitude, value.location.longitude),
+          infoWindow: InfoWindow(
+            title: value.displayName?.text,
+            snippet: value.formattedAddress,
+          ),
+        );
+        myMarker.add(marker);
+      });
+      return LatLng(value.location.latitude, value.location.longitude);
+    }
+    return null;
   }
 
   void changeMainMarker(int index) {
@@ -250,9 +249,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       position: markerAtIndex.position,
       infoWindow: markerAtIndex.infoWindow,
     );
-    myMarker[index] = newMarkerAtIndex;
     setState(() {
-
+      myMarker[index] = newMarkerAtIndex;
     });
   }
 
@@ -380,10 +378,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.all(8.0),
+                  margin: const EdgeInsets.only(top: 5),
                   child: AnimatedOpacity(
                       opacity: isShowPlaceHorizontalList ? 1.0 : 0.0,
-                      duration: Duration(milliseconds: 500),
+                      duration: const Duration(milliseconds: 500),
                       child: SizedBox(
                         height: 90.0,
                         width: (MediaQuery.of(context).size.width),
@@ -393,60 +391,100 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               ? placeSearchList.length
                               : placeAutoList.length,
                           itemBuilder: (context, index) {
-                            return GestureDetector(
-                              onTap: () {
-                                placeOnclick(isShowPlaceHorizontalListFromSearch, index);
-                                changeMainMarker(index);
-                              },
-                              onLongPress: () {},
-                              child: Container(
-                                //margin: EdgeInsets.only(
-                                // left: 10.0, top: 10.0, bottom: 10.0),
-                                padding: EdgeInsets.all(10.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: <Widget>[
-                                    Image.network(
-                                      "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
-                                      width: 50,
-                                      height: 50,
-                                    ),
-                                    const SizedBox(width: 10.0),
-                                    SizedBox(
-                                      width: 140,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Text(
-                                            getMainText(
-                                                isShowPlaceHorizontalListFromSearch, index),
-                                            style: const TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Text(
-                                            getSecondaryText(
-                                                isShowPlaceHorizontalListFromSearch, index),
-                                            style: const TextStyle(
-                                                fontSize: 14.0,
-                                                color: Colors.grey,
-                                                overflow:
-                                                    TextOverflow.ellipsis),
-                                          ),
-                                        ],
+                            return Container(
+                              margin:
+                                  const EdgeInsets.only(left: 5.0, right: 5),
+                              child: GestureDetector(
+                                onTap: () {
+                                  placeOnclick(
+                                      isShowPlaceHorizontalListFromSearch,
+                                      index);
+                                  if (myMarker.length > 1) {
+                                    changeMainMarker(index);
+                                  }
+                                },
+                                onLongPress: () {
+                                  placeOnclick(
+                                          isShowPlaceHorizontalListFromSearch,
+                                          index)
+                                      .then((place) => {
+                                            if (place != null)
+                                              {
+                                                logWithTag(
+                                                    "Long press on location: $place",
+                                                    tag: "MyHomeScreen"),
+                                                computeRoutes(
+                                                        from: currentLocation!,
+                                                        to: place)
+                                                    .then((polilines) => {
+                                                          if (polilines != null)
+                                                            {
+                                                              setState(() {
+                                                                route = Polyline(
+                                                                    polylineId: PolylineId('route1'),
+                                                                visible: true,
+                                                                points: polilines,
+                                                                color: Colors.green,
+                                                                width: 10);
+
+                                                              }),
+                                                            }
+                                                        })
+                                              }
+                                          });
+                                },
+                                child: Container(
+                                  //margin: EdgeInsets.only(
+                                  // left: 10.0, top: 10.0, bottom: 10.0),
+                                  padding: EdgeInsets.all(10.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: <Widget>[
+                                      Image.network(
+                                        "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
+                                        width: 50,
+                                        height: 50,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 10.0),
+                                      SizedBox(
+                                        width: 140,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: <Widget>[
+                                            Text(
+                                              getMainText(
+                                                  isShowPlaceHorizontalListFromSearch,
+                                                  index),
+                                              style: const TextStyle(
+                                                fontSize: 16.0,
+                                                fontWeight: FontWeight.bold,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Text(
+                                              getSecondaryText(
+                                                  isShowPlaceHorizontalListFromSearch,
+                                                  index),
+                                              style: const TextStyle(
+                                                  fontSize: 14.0,
+                                                  color: Colors.grey,
+                                                  overflow:
+                                                      TextOverflow.ellipsis),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             );
@@ -606,7 +644,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         logWithTag(
                                             "Location clicked: ${placeAutoList[index].toString()}",
                                             tag: "SearchLocationScreen");
-                                        isShowPlaceHorizontalListFromSearch = false;
+                                        isShowPlaceHorizontalListFromSearch =
+                                            false;
                                         SystemChannels.textInput
                                             .invokeMethod('TextInput.hide');
                                         await Future.delayed(const Duration(
@@ -620,7 +659,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 _dragableController.pixels;
                                           });
                                         });
-                                        placeOnclick(isShowPlaceHorizontalListFromSearch, index);
+                                        placeOnclick(
+                                            isShowPlaceHorizontalListFromSearch,
+                                            index);
                                       },
                                       placeName: placeAutoList[index]
                                               .structuredFormat
