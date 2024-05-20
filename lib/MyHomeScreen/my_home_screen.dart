@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/animation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:voyageventure/components/custom_search_field.dart';
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/constants.dart';
 import 'package:voyageventure/location_sharing.dart';
@@ -16,6 +18,7 @@ import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
 import '../components/bottom_sheet_componient.dart';
+import '../components/custom_search_delegate.dart';
 import '../components/fonts.dart';
 import '../components/location_list_tile.dart';
 import '../models/place_autocomplete.dart';
@@ -83,17 +86,43 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   static const LatLng _airPort = LatLng(10.8114795, 106.6548157);
   static const LatLng _dormitory = LatLng(10.8798036, 106.8052206);
 
-  //Region function
-  //Search place
+  //State
+  static const Map<String, int> stateMap = {
+    "Default": 0,
+    "Search Results": 1,
+    "Route Planning": 2,
+    "Navigation": 3,
+  };
+  int state = stateMap["Default"]!;
+  String? stateFromInt(int stateValue) {
+    return stateMap.entries
+        .firstWhere((entry) => entry.value == stateValue)
+        ?.key;
+  }
+
+  //Search Field
+  late TextEditingController _searchFieldController;
+  late FocusNode _searchFieldFocusNode;
+
+/*
+ * This region contains functions.
+ */
+  void showPlaceHorizontalList({required bool show, String nextState = "Default"}) {
+    setState(() {
+      isShowPlaceHorizontalList = show;
+      show == false ?
+      state = stateMap[nextState]!
+          : state = stateMap["Search Results"]!;
+    });
+  }
+
   void searchPlaceAndUpdate(String text) {
     if (text.isEmpty) {
       placeFound = true;
       placeSearchList.clear();
-      isShowPlaceHorizontalList = false;
+      showPlaceHorizontalList(show: false);
     } else {
-      setState(() {
-        myMarker = [];
-      });
+      myMarker = [];
       logWithTag("Place search: $text", tag: "SearchLocationScreen");
       placeSearch(text).then((searchList) => setState(() {
             if (searchList != null) {
@@ -113,15 +142,14 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 myMarker.add(marker);
               }
               placeFound = true;
-              isShowPlaceHorizontalListFromSearch = true;
-              placeOnclick(isShowPlaceHorizontalListFromSearch, 0);
+              placeOnclick(isShowPlaceHorizontalListFromSearch: true, index:  0);
 
               animateBottomSheet(
                       _dragableController, defaultBottomSheetHeight / 1000)
                   .then((_) {
                 setState(() {
                   bottomSheetTop = _dragableController.pixels;
-                  isShowPlaceHorizontalList = true;
+                  showPlaceHorizontalList(show: true);
                 });
               });
             } else {
@@ -136,7 +164,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       setState(() {
         placeFound = true;
         placeAutoList.clear();
-        isShowPlaceHorizontalList = false;
+        showPlaceHorizontalList(show: false);
       });
     } else {
       logWithTag("Place auto complete: $text", tag: "SearchLocationScreen");
@@ -146,7 +174,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   if (autoList != null) {
                     placeAutoList = autoList;
                     placeFound = true;
-                    //locationSearchComponentShow = true;
+                    showPlaceHorizontalList(show: true);
                   } else {
                     placeFound = false;
                   }
@@ -184,9 +212,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
   }
 
-  Future<LatLng?> placeOnclick(bool isShowFromSearch, int index) async {
-    isShowPlaceHorizontalList = true;
-    if (isShowFromSearch) {
+  Future<LatLng?> placeOnclick({required bool isShowPlaceHorizontalListFromSearch, required int index}) async {
+    this.isShowPlaceHorizontalListFromSearch = isShowPlaceHorizontalListFromSearch;
+    showPlaceHorizontalList(show: true);
+    if (isShowPlaceHorizontalListFromSearch) {
       try {
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
@@ -198,7 +227,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         logWithTag(
             "Error, show from auto but the isShowFromSearch = true, changing it to false $e",
             tag: "SearchLocationScreen");
-        isShowFromSearch = false;
+        isShowPlaceHorizontalListFromSearch = false;
       }
     }
     // If the isShowFromSearch is true, but the index is out of range, then it will change to false and execute this
@@ -254,9 +283,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     });
   }
 
+/*
+ * End of functions
+ */
+
   @override
   void initState() {
     super.initState();
+    _searchFieldController = TextEditingController();
+    _searchFieldFocusNode = FocusNode();
+
     getCurrentLocationLatLng().then((value) {
       currentLocation = value;
       if (!isHaveLastSessionLocation) {
@@ -293,10 +329,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   @override
   void dispose() {
+    _animationController.dispose();
+    _searchFieldController.dispose();
+    _searchFieldFocusNode.dispose();
     super.dispose();
   }
 
-  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       // Trigger rebuild of the map
@@ -372,9 +410,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   child: FloatingActionButton(
                     elevation: 5,
                     onPressed: () {
+                      //setState(() {});
                       locationButtonOnclick();
                     },
-                    child: const Icon(Icons.my_location_rounded),
+    //Map from state to statemap
+                    child: Text(stateFromInt(state) ?? "Error"),
+                    //const Icon(Icons.my_location_rounded),
                   ),
                 ),
                 Container(
@@ -397,41 +438,44 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               child: GestureDetector(
                                 onTap: () {
                                   placeOnclick(
-                                      isShowPlaceHorizontalListFromSearch,
-                                      index);
+                                      isShowPlaceHorizontalListFromSearch: isShowPlaceHorizontalListFromSearch,
+                                      index: index);
                                   if (myMarker.length > 1) {
                                     changeMainMarker(index);
                                   }
                                 },
                                 onLongPress: () {
                                   placeOnclick(
-                                          isShowPlaceHorizontalListFromSearch,
-                                          index)
-                                      .then((place) => {
-                                            if (place != null)
-                                              {
-                                                logWithTag(
-                                                    "Long press on location: $place",
-                                                    tag: "MyHomeScreen"),
-                                                computeRoutes(
-                                                        from: currentLocation!,
-                                                        to: place)
-                                                    .then((polilines) => {
-                                                          if (polilines != null)
-                                                            {
-                                                              setState(() {
-                                                                route = Polyline(
-                                                                    polylineId: PolylineId('route1'),
+                                    isShowPlaceHorizontalListFromSearch: isShowPlaceHorizontalListFromSearch,
+                                      index: index
+                                  ).then((place) => {
+                                        if (place != null)
+                                          {
+                                            logWithTag(
+                                                "Long press on location: $place",
+                                                tag: "MyHomeScreen"),
+                                            computeRoutes(
+                                                    from: currentLocation!,
+                                                    to: place)
+                                                .then((polilines) => {
+                                                      if (polilines != null)
+                                                        {
+                                                          setState(() {
+                                                            route = Polyline(
+                                                                polylineId:
+                                                                    const PolylineId(
+                                                                        'route1'),
                                                                 visible: true,
-                                                                points: polilines,
-                                                                color: Colors.green,
+                                                                points:
+                                                                    polilines,
+                                                                color: Colors
+                                                                    .green,
                                                                 width: 10);
-
-                                                              }),
-                                                            }
-                                                        })
-                                              }
-                                          });
+                                                          }),
+                                                        }
+                                                    })
+                                          }
+                                      });
                                 },
                                 child: Container(
                                   //margin: EdgeInsets.only(
@@ -495,6 +539,148 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               ],
             ),
           ),
+          Positioned(
+            //On top search bar
+            top: 50,
+            child: Visibility(
+                visible: true, //state == stateMap["Route Planning"]!,
+                child: Column(
+                  children: [
+                    Row(children: [
+                      IconButton(
+                          onPressed: () {
+                            setState(() {
+                              state = stateMap["Default"]!;
+                              showPlaceHorizontalList(show: false);
+                            });
+                          }, icon: const Icon(Icons.arrow_back)),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        width: MediaQuery.of(context).size.width - 120,
+                        child: TextField(
+                          controller: _searchFieldController,
+                          focusNode: _searchFieldFocusNode,
+                          onSubmitted: (text) {
+                            searchPlaceAndUpdate(text);
+                          },
+                          onChanged: (text) {
+                            if (text.isEmpty) {
+                              placeFound = true;
+                              placeAutoList.clear();
+                              showPlaceHorizontalList(show: false);
+                            }
+                            if (_debounce?.isActive ?? false) {
+                              _debounce?.cancel();
+                            }
+                            _debounce =
+                                Timer(const Duration(milliseconds: 50), () {
+                              autocompletePlaceAndUpdate(text);
+                            });
+                          },
+                          decoration: InputDecoration(
+                            border: InputBorder.none, // No bottom line
+                            prefixIcon: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child:
+                                  SvgPicture.asset("assets/icons/search.svg"),
+                            ),
+                            suffixIcon: _searchFieldFocusNode.hasFocus
+                                ? IconButton(
+                                    icon: Icon(Icons.clear),
+                                    onPressed: () {
+                                      _searchFieldController.clear();
+                                      setState(() {
+                                        placeAutoList.clear();
+                                        placeFound = true;
+                                        showPlaceHorizontalList(show: false);
+                                      });
+                                    },
+                                  )
+                                : IconButton(
+                                    onPressed: () {},
+                                    icon: SvgPicture.asset(
+                                        "assets/icons/nearby_search.svg")), // End icon
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 10.0),
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: IconButton(
+                            padding: EdgeInsets.all(2),
+                            onPressed: () {},
+                            icon: Image.asset(
+                              "assets/profile.png",
+                            )),
+                      ),
+                    ]),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: (placeAutoList.isNotEmpty &&
+                              _searchFieldFocusNode.hasFocus)
+                          ? Container(
+                              //Autocomplete list
+                              margin: EdgeInsets.only(top: 30.0),
+                              alignment: Alignment.center,
+                              width: MediaQuery.of(context).size.width - 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: placeAutoList.length,
+                                itemBuilder: (context, index) {
+                                  return LocationListTile_(
+                                    press: () async {
+                                      logWithTag(
+                                          "Location clicked: ${placeAutoList[index].toString()}",
+                                          tag: "SearchLocationScreen");
+                                      SystemChannels.textInput
+                                          .invokeMethod('TextInput.hide');
+                                      await Future.delayed(const Duration(
+                                          milliseconds:
+                                              500)); // wait for the keyboard to show up to make the bottom sheet move up smoothly
+                                      animateBottomSheet(_dragableController,
+                                              defaultBottomSheetHeight / 1000)
+                                          .then((_) {
+                                        setState(() {
+                                          bottomSheetTop =
+                                              _dragableController.pixels;
+                                        });
+                                      });
+                                      placeOnclick(
+                                          isShowPlaceHorizontalListFromSearch: false,
+                                          index: index);
+                                    },
+                                    placeName: placeAutoList[index]
+                                            .structuredFormat
+                                            ?.mainText
+                                            ?.text ??
+                                        "",
+                                    location: placeAutoList[index]
+                                            .structuredFormat
+                                            ?.secondaryText
+                                            ?.text ??
+                                        "",
+                                  );
+                                },
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                )),
+          ),
           NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
                 setState(() {
@@ -502,197 +688,263 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 });
                 return true;
               },
-              child: DraggableScrollableSheet(
-                controller: _dragableController,
-                initialChildSize: defaultBottomSheetHeight / 1000,
-                minChildSize: 0.15,
-                maxChildSize: 1,
-                builder:
-                    (BuildContext context, ScrollController scrollController) {
-                  return ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(24.0),
-                      topRight: Radius.circular(24.0),
-                    ),
-                    child: Container(
-                      color: Colors.white,
-                      child: SingleChildScrollView(
-                        primary: false,
-                        controller: scrollController,
-                        child: Column(children: <Widget>[
-                          const Pill(),
-                          Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: defaultPadding,
-                                          right: 0,
-                                          top: defaultPadding,
-                                          bottom: 8.0),
-                                      child: CupertinoSearchTextField(
-                                        style: leagueSpartanNormal20,
-                                        placeholder: "Tìm địa điểm",
-                                        onChanged: (text) {
-                                          if (_debounce?.isActive ?? false) {
-                                            _debounce?.cancel();
-                                          }
-                                          _debounce = Timer(
-                                              const Duration(milliseconds: 200),
-                                              () {
-                                            autocompletePlaceAndUpdate(text);
-                                          });
-                                        },
-                                        onSubmitted: (text) {
-                                          searchPlaceAndUpdate(text);
-                                        },
-                                        onTap: () async {
-                                          logWithTag("Search bar clicked: ",
-                                              tag: "SearchLocationScreen");
-                                          isShowPlaceHorizontalList = false;
-                                          await Future.delayed(const Duration(
-                                              milliseconds:
-                                                  500)); // wait for the keyboard to show up to make the bottom sheet move up smoothly
-                                          animateBottomSheet(
-                                                  _dragableController, 0.8)
-                                              .then((_) {
-                                            setState(() {
-                                              bottomSheetTop =
-                                                  _dragableController.pixels;
-                                            });
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                      onPressed: () {},
-                                      icon: SvgPicture.asset(
-                                          "assets/icons/nearby_search.svg")),
-                                ],
+              child: state == stateMap["Default"]!
+                  ? DraggableScrollableSheet(
+                      controller: _dragableController,
+                      initialChildSize: defaultBottomSheetHeight / 1000,
+                      minChildSize: 0.15,
+                      maxChildSize: 1,
+                      builder: (BuildContext context,
+                          ScrollController scrollController) {
+                        return ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(24.0),
+                            topRight: Radius.circular(24.0),
+                          ),
+                          child: Container(
+                            color: Colors.white,
+                            child: SingleChildScrollView(
+                              primary: false,
+                              controller: scrollController,
+                              child: Column(children: <Widget>[
+                                const Pill(),
+                                // Column(
+                                //   children: [
+                                //     Row(
+                                //       mainAxisAlignment:
+                                //           MainAxisAlignment.center,
+                                //       crossAxisAlignment:
+                                //           CrossAxisAlignment.center,
+                                //       children: [
+                                //         Expanded(
+                                //           child: Padding(
+                                //             padding: const EdgeInsets.only(
+                                //                 left: defaultPadding,
+                                //                 right: 0,
+                                //                 top: defaultPadding,
+                                //                 bottom: 8.0),
+                                //             child: CupertinoSearchTextField(
+                                //               style: leagueSpartanNormal20,
+                                //               placeholder: "Tìm địa điểm",
+                                //               onChanged: (text) {
+                                //                 if (_debounce?.isActive ??
+                                //                     false) {
+                                //                   _debounce?.cancel();
+                                //                 }
+                                //                 _debounce = Timer(
+                                //                     const Duration(
+                                //                         milliseconds: 200), () {
+                                //                   autocompletePlaceAndUpdate(
+                                //                       text);
+                                //                 });
+                                //               },
+                                //               onSubmitted: (text) {
+                                //                 searchPlaceAndUpdate(text);
+                                //               },
+                                //               onTap: () async {
+                                //                 logWithTag(
+                                //                     "Search bar clicked: ",
+                                //                     tag:
+                                //                         "SearchLocationScreen");
+                                //                 isShowPlaceHorizontalList =
+                                //                     false;
+                                //                 await Future.delayed(const Duration(
+                                //                     milliseconds:
+                                //                         500)); // wait for the keyboard to show up to make the bottom sheet move up smoothly
+                                //                 animateBottomSheet(
+                                //                         _dragableController,
+                                //                         0.8)
+                                //                     .then((_) {
+                                //                   setState(() {
+                                //                     bottomSheetTop =
+                                //                         _dragableController
+                                //                             .pixels;
+                                //                   });
+                                //                 });
+                                //               },
+                                //             ),
+                                //           ),
+                                //         ),
+                                //         IconButton(
+                                //             onPressed: () {},
+                                //             icon: SvgPicture.asset(
+                                //                 "assets/icons/nearby_search.svg")),
+                                //       ],
+                                //     ),
+                                //     Row(
+                                //       children: <Widget>[
+                                //         Container(
+                                //           padding: const EdgeInsets.only(
+                                //               left: defaultPadding, right: 8),
+                                //           child: ElevatedButton.icon(
+                                //             onPressed: () {
+                                //               logWithTag(
+                                //                   "Add home button clicked: ",
+                                //                   tag: "SearchLocationScreen");
+                                //             },
+                                //             icon: SvgPicture.asset(
+                                //               "assets/icons/home_add.svg",
+                                //               height: 16,
+                                //             ),
+                                //             label: Text("Thêm nhà",
+                                //                 style: leagueSpartanNormal15),
+                                //             style: ElevatedButton.styleFrom(
+                                //               backgroundColor:
+                                //                   secondaryColor10LightTheme,
+                                //               foregroundColor:
+                                //                   textColorLightTheme,
+                                //               elevation: 0,
+                                //               fixedSize: const Size(
+                                //                   double.infinity, 40),
+                                //               shape:
+                                //                   const RoundedRectangleBorder(
+                                //                 borderRadius: BorderRadius.all(
+                                //                     Radius.circular(20)),
+                                //               ),
+                                //             ),
+                                //           ),
+                                //         ),
+                                //         ElevatedButton.icon(
+                                //           onPressed: () {
+                                //             logWithTag("Button clicked: ",
+                                //                 tag: "SearchLocationScreen");
+                                //           },
+                                //           icon: SvgPicture.asset(
+                                //             "assets/icons/location_add.svg",
+                                //             height: 16,
+                                //           ),
+                                //           label: Text("Thêm địa điểm",
+                                //               style: leagueSpartanNormal15),
+                                //           style: ElevatedButton.styleFrom(
+                                //             backgroundColor:
+                                //                 secondaryColor10LightTheme,
+                                //             foregroundColor:
+                                //                 textColorLightTheme,
+                                //             elevation: 0,
+                                //             fixedSize:
+                                //                 const Size(double.infinity, 40),
+                                //             shape: const RoundedRectangleBorder(
+                                //               borderRadius: BorderRadius.all(
+                                //                   Radius.circular(20)),
+                                //             ),
+                                //           ),
+                                //         ),
+                                //       ],
+                                //     ),
+                                //
+                                //     Visibility(
+                                //       visible: placeFound,
+                                //       child: ListView.builder(
+                                //         controller: _listviewScrollController,
+                                //         shrinkWrap: true,
+                                //         itemCount: placeAutoList.length,
+                                //         itemBuilder: (context, index) {
+                                //           return LocationListTile_(
+                                //             press: () async {
+                                //               logWithTag(
+                                //                   "Location clicked: ${placeAutoList[index].toString()}",
+                                //                   tag: "SearchLocationScreen");
+                                //
+                                //               SystemChannels.textInput
+                                //                   .invokeMethod(
+                                //                       'TextInput.hide');
+                                //               await Future.delayed(const Duration(
+                                //                   milliseconds:
+                                //                       500)); // wait for the keyboard to show up to make the bottom sheet move up smoothly
+                                //               animateBottomSheet(
+                                //                       _dragableController,
+                                //                       defaultBottomSheetHeight /
+                                //                           1000)
+                                //                   .then((_) {
+                                //                 setState(() {
+                                //                   bottomSheetTop =
+                                //                       _dragableController
+                                //                           .pixels;
+                                //                 });
+                                //               });
+                                //               placeOnclick(
+                                //                   isShowPlaceHorizontalListFromSearch: false,
+                                //                   index: index);
+                                //             },
+                                //             placeName: placeAutoList[index]
+                                //                     .structuredFormat
+                                //                     ?.mainText
+                                //                     ?.text ??
+                                //                 "",
+                                //             location: placeAutoList[index]
+                                //                     .structuredFormat
+                                //                     ?.secondaryText
+                                //                     ?.text ??
+                                //                 "",
+                                //           );
+                                //         },
+                                //       ),
+                                //     ),
+                                //     Visibility(
+                                //       visible: !placeFound,
+                                //       child: const Center(
+                                //           child:
+                                //               Text('Không tìm thấy địa điểm')),
+                                //     ),
+                                //     //MockList_()
+                                //   ],
+                                // ),
+                                BottomSheetComponient_(
+                                    controller: _listviewScrollController),
+                              ]),
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : (state == stateMap["Search Results"]!)
+                      ? DraggableScrollableSheet(
+                          controller: _dragableController,
+                          initialChildSize: defaultBottomSheetHeight / 1000,
+                          minChildSize: 0.05,
+                          maxChildSize: 1,
+                          builder: (BuildContext context,
+                              ScrollController scrollController) {
+                            return ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(24.0),
+                                topRight: Radius.circular(24.0),
                               ),
-                              Row(
-                                children: <Widget>[
-                                  Container(
-                                    padding: const EdgeInsets.only(
-                                        left: defaultPadding, right: 8),
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {
-                                        logWithTag("Add home button clicked: ",
-                                            tag: "SearchLocationScreen");
-                                      },
-                                      icon: SvgPicture.asset(
-                                        "assets/icons/home_add.svg",
-                                        height: 16,
-                                      ),
-                                      label: Text("Thêm nhà",
-                                          style: leagueSpartanNormal15),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            secondaryColor10LightTheme,
-                                        foregroundColor: textColorLightTheme,
-                                        elevation: 0,
-                                        fixedSize:
-                                            const Size(double.infinity, 40),
-                                        shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(20)),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      logWithTag("Button clicked: ",
-                                          tag: "SearchLocationScreen");
-                                    },
-                                    icon: SvgPicture.asset(
-                                      "assets/icons/location_add.svg",
-                                      height: 16,
-                                    ),
-                                    label: Text("Thêm địa điểm",
-                                        style: leagueSpartanNormal15),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          secondaryColor10LightTheme,
-                                      foregroundColor: textColorLightTheme,
-                                      elevation: 0,
-                                      fixedSize:
-                                          const Size(double.infinity, 40),
-                                      shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(20)),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              child: Container(
+                                color: Colors.white,
+                                child: SingleChildScrollView(
+                                  primary: false,
+                                  controller: scrollController,
+                                  child: const Column(children: <Widget>[
+                                    Pill(),
 
-                              Visibility(
-                                visible: placeFound,
-                                child: ListView.builder(
-                                  controller: _listviewScrollController,
-                                  shrinkWrap: true,
-                                  itemCount: placeAutoList.length,
-                                  itemBuilder: (context, index) {
-                                    return LocationListTile_(
-                                      press: () async {
-                                        logWithTag(
-                                            "Location clicked: ${placeAutoList[index].toString()}",
-                                            tag: "SearchLocationScreen");
-                                        isShowPlaceHorizontalListFromSearch =
-                                            false;
-                                        SystemChannels.textInput
-                                            .invokeMethod('TextInput.hide');
-                                        await Future.delayed(const Duration(
-                                            milliseconds:
-                                                500)); // wait for the keyboard to show up to make the bottom sheet move up smoothly
-                                        animateBottomSheet(_dragableController,
-                                                defaultBottomSheetHeight / 1000)
-                                            .then((_) {
-                                          setState(() {
-                                            bottomSheetTop =
-                                                _dragableController.pixels;
-                                          });
-                                        });
-                                        placeOnclick(
-                                            isShowPlaceHorizontalListFromSearch,
-                                            index);
-                                      },
-                                      placeName: placeAutoList[index]
-                                              .structuredFormat
-                                              ?.mainText
-                                              ?.text ??
-                                          "",
-                                      location: placeAutoList[index]
-                                              .structuredFormat
-                                              ?.secondaryText
-                                              ?.text ??
-                                          "",
-                                    );
-                                  },
+                                  ]),
                                 ),
                               ),
-                              Visibility(
-                                visible: !placeFound,
-                                child: const Center(
-                                    child: Text('Không tìm thấy địa điểm')),
-                              ),
-                              //MockList_()
-                            ],
-                          ),
-                          BottomSheetComponient_(
-                              controller: _listviewScrollController),
-                        ]),
-                      ),
-                    ),
-                  );
-                },
-              ))
+                            );
+                          },
+                        )
+                      : (state == stateMap["Route Planning"]!)
+                          ? DraggableScrollableSheet(
+                              controller: _dragableController,
+                              initialChildSize: defaultBottomSheetHeight / 1000,
+                              minChildSize: 0.15,
+                              maxChildSize: 1,
+                              builder: (BuildContext context,
+                                  ScrollController scrollController) {
+                                return ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(24.0),
+                                    topRight: Radius.circular(24.0),
+                                  ),
+                                  child: Container(
+                                    color: Colors.white,
+                                    child: Text("Route Planning"),
+                                  ),
+                                );
+                              },
+                            )
+                          : Container()),
         ],
       ),
     );
