@@ -44,6 +44,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   late AnimationController _animationController;
   late Animation<double> moveAnimation;
 
+  //double currentZoomLevel = 15;
+
   //GeoLocation
   LatLng? currentLocation;
   bool isHaveLastSessionLocation = false;
@@ -92,10 +94,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //State
   static const Map<String, int> stateMap = {
     "Default": 0,
-    "Search Results": 1,
-    "Route Planning": 2,
-    "Navigation": 3,
-    "Loading" : 10,
+    "Search": 1,
+    "Search Results": 2,
+    "Route Planning": 3,
+    "Navigation": 4,
+    "Loading": 10,
   };
   int state = stateMap["Default"]!;
 
@@ -120,7 +123,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //         : changeState("Search Results");
   // }
 
-
   void changeState(String stateString) {
     if (!stateMap.containsKey(stateString)) {
       throw Exception('Invalid state: $stateString');
@@ -132,17 +134,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       isShowPlaceHorizontalList = false;
     }
 
-
     setState(() {
       state = stateMap[stateString]!;
     });
   }
+
   void searchPlaceAndUpdate(String text) {
     if (text.isEmpty) {
       placeFound = true;
       placeSearchList.clear();
-      setState(() {
-      });
+      setState(() {});
     } else {
       myMarker = [];
       logWithTag("Place search: $text", tag: "SearchLocationScreen");
@@ -239,6 +240,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
     changeState("Search Results");
+
+    polyline = null;
     if (isShowPlaceHorizontalListFromSearch) {
       try {
         animateToPosition(
@@ -289,6 +292,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       required int index}) async {
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
+    myMarker.removeWhere((marker) => marker.icon != mainMarker);
     changeState("Route Planning");
     if (isShowPlaceHorizontalListFromSearch) {
       try {
@@ -433,7 +437,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
-        children: <Widget>[
+        children: [
+          // Maps
           GoogleMap(
             initialCameraPosition: (isHaveLastSessionLocation ==
                     true) // get last location from shared preference, if not exist, use default location, then it will automatically move to current location
@@ -456,6 +461,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             polylines: {if (polyline != null) polyline!},
             zoomControlsEnabled: false,
           ),
+
+          // Horizontal list and location button
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
@@ -481,6 +488,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // Location button
                 Container(
                   margin: const EdgeInsets.only(right: 10.0),
                   child: FloatingActionButton(
@@ -494,6 +502,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                     //const Icon(Icons.my_location_rounded),
                   ),
                 ),
+
+                // Location list
                 Container(
                   margin: const EdgeInsets.only(top: 5),
                   child: AnimatedOpacity(
@@ -602,11 +612,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               ],
             ),
           ),
+
+          // On top search bar
           Positioned(
-            //On top search bar
             top: 50,
             child: Visibility(
-                visible: true, //state == stateMap["Route Planning"]!,
+                visible: true, //state == stateMap["Search"]!,
                 child: Column(
                   children: [
                     Row(children: [
@@ -616,7 +627,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                             changeState("Default");
                             // setState(() {
                             //   state = stateMap["Default"]!;
-                              //showPlaceHorizontalList(show: false);
+                            //showPlaceHorizontalList(show: false);
                             //});
                           },
                           icon: const Icon(Icons.arrow_back)),
@@ -636,16 +647,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                             if (text.isEmpty) {
                               placeFound = true;
                               placeAutoList.clear();
-                              setState(() {
-                              });
+                              setState(() {});
                             }
-                            // if (_debounce?.isActive ?? false) {
-                            //   _debounce?.cancel();
-                            // }
-                            // _debounce =
-                            //     Timer(const Duration(milliseconds: 50), () {
-                              autocompletePlaceAndUpdate(text);
-                            //});
+                            autocompletePlaceAndUpdate(text);
                           },
                           decoration: InputDecoration(
                             border: InputBorder.none, // No bottom line
@@ -748,6 +752,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   ],
                 )),
           ),
+
+          // Bottom sheet
           NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification scrollInfo) {
               setState(() {
@@ -756,7 +762,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               return true;
             },
             child: state == stateMap["Default"]!
-                ? DraggableScrollableSheet(
+                ?
+                // Bottom sheet default
+                DraggableScrollableSheet(
                     controller: _dragableController,
                     initialChildSize: defaultBottomSheetHeight / 1000,
                     minChildSize: 0.15,
@@ -964,8 +972,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       );
                     },
                   )
+
+
                 : (state == stateMap["Search Results"]!)
-                    ? DraggableScrollableSheet(
+                    ?
+                    // Bottom sheet search results
+                    DraggableScrollableSheet(
                         controller: _dragableController,
                         initialChildSize: defaultBottomSheetHeight / 1000,
                         minChildSize: 0.05,
@@ -987,6 +999,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   FilledButton(
                                     onPressed: () {
                                       changeState("Route Planning");
+
+
+
                                     },
                                     child: const Text("Chỉ đường"),
                                   )
@@ -996,8 +1011,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                           );
                         },
                       )
-                    : (state == stateMap["Route Planning"]!)
-                        ? DraggableScrollableSheet(
+
+
+                : (state == stateMap["Route Planning"]!)
+                        ?
+                        // Bottom sheet route planning
+                        DraggableScrollableSheet(
                             controller: _dragableController,
                             initialChildSize: defaultBottomSheetHeight / 1000,
                             minChildSize: 0.15,
@@ -1028,8 +1047,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               );
                             },
                           )
-                        : (state == stateMap["Navigation"]!)
-                            ? DraggableScrollableSheet(
+
+
+                : (state == stateMap["Navigation"]!)
+                            ?
+                              // Bottom sheet navigation
+                            DraggableScrollableSheet(
                                 controller: _dragableController,
                                 initialChildSize:
                                     defaultBottomSheetHeight / 1000,
@@ -1051,7 +1074,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                           const Pill(),
                                           FilledButton(
                                             onPressed: () {
-                                             changeState("Default");
+                                              changeState("Default");
                                             },
                                             child: const Text("Kết thúc"),
                                           )
@@ -1061,8 +1084,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   );
                                 },
                               )
-                            : (state == stateMap["Loading"]!)
-                                ? DraggableScrollableSheet(
+
+
+                : (state == stateMap["Loading"]!)
+                                ?
+                                // Bottom sheet loading
+                                DraggableScrollableSheet(
                                     controller: _dragableController,
                                     initialChildSize:
                                         defaultBottomSheetHeight / 1000,
@@ -1094,7 +1121,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                       );
                                     },
                                   )
-                                : const SizedBox.shrink(),
+                                :
+
+                                // Bottom sheet none
+                                const SizedBox.shrink(),
           )
         ],
       ),
