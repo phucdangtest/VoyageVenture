@@ -112,18 +112,26 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 /*
  * This region contains functions.
  */
-  void showPlaceHorizontalList(
-      {required bool show, String nextState = "Default"}) {
-      isShowPlaceHorizontalList = show;
-      show == false
-          ? changeState(nextState)
-          : changeState("Search Results");
-  }
+  // void showPlaceHorizontalList(
+  //     {required bool show, String nextState = "Default"}) {
+  //     isShowPlaceHorizontalList = show;
+  //     show == false
+  //         ? changeState(nextState)
+  //         : changeState("Search Results");
+  // }
+
 
   void changeState(String stateString) {
     if (!stateMap.containsKey(stateString)) {
       throw Exception('Invalid state: $stateString');
     }
+
+    if (stateString == "Search Results") {
+      isShowPlaceHorizontalList = true;
+    } else {
+      isShowPlaceHorizontalList = false;
+    }
+
 
     setState(() {
       state = stateMap[stateString]!;
@@ -133,7 +141,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     if (text.isEmpty) {
       placeFound = true;
       placeSearchList.clear();
-      showPlaceHorizontalList(show: false);
+      setState(() {
+      });
     } else {
       myMarker = [];
       logWithTag("Place search: $text", tag: "SearchLocationScreen");
@@ -162,7 +171,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   .then((_) {
                 setState(() {
                   bottomSheetTop = _dragableController.pixels;
-                  showPlaceHorizontalList(show: true);
+                  changeState("Search Results");
                 });
               });
             } else {
@@ -177,7 +186,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       setState(() {
         placeFound = true;
         placeAutoList.clear();
-        showPlaceHorizontalList(show: false);
       });
     } else {
       logWithTag("Place auto complete: $text", tag: "SearchLocationScreen");
@@ -187,7 +195,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   if (autoList != null) {
                     placeAutoList = autoList;
                     placeFound = true;
-                    showPlaceHorizontalList(show: true);
+                    changeState("Search Results");
                   } else {
                     placeFound = false;
                   }
@@ -230,7 +238,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       required int index}) async {
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
-    showPlaceHorizontalList(show: true);
+    changeState("Search Results");
     if (isShowPlaceHorizontalListFromSearch) {
       try {
         animateToPosition(
@@ -281,7 +289,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       required int index}) async {
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
-    showPlaceHorizontalList(show: true);
+    changeState("Route Planning");
     if (isShowPlaceHorizontalListFromSearch) {
       try {
         markedPlace = placeSearchList[index];
@@ -605,9 +613,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       IconButton(
                           onPressed: () {
                             //Todo: coi có lỗi ko
+                            changeState("Default");
                             // setState(() {
                             //   state = stateMap["Default"]!;
-                              showPlaceHorizontalList(show: false);
+                              //showPlaceHorizontalList(show: false);
                             //});
                           },
                           icon: const Icon(Icons.arrow_back)),
@@ -627,15 +636,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                             if (text.isEmpty) {
                               placeFound = true;
                               placeAutoList.clear();
-                              showPlaceHorizontalList(show: false);
+                              setState(() {
+                              });
                             }
-                            if (_debounce?.isActive ?? false) {
-                              _debounce?.cancel();
-                            }
-                            _debounce =
-                                Timer(const Duration(milliseconds: 50), () {
+                            // if (_debounce?.isActive ?? false) {
+                            //   _debounce?.cancel();
+                            // }
+                            // _debounce =
+                            //     Timer(const Duration(milliseconds: 50), () {
                               autocompletePlaceAndUpdate(text);
-                            });
+                            //});
                           },
                           decoration: InputDecoration(
                             border: InputBorder.none, // No bottom line
@@ -653,7 +663,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                       setState(() {
                                         placeAutoList.clear();
                                         placeFound = true;
-                                        showPlaceHorizontalList(show: false);
                                       });
                                     },
                                   )
