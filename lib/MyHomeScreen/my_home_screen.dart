@@ -10,6 +10,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/custom_search_field.dart';
+import 'package:voyageventure/components/route_planning_list_tile.dart';
+import 'package:voyageventure/components/navigation_list_tile.dart';
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/constants.dart';
 import 'package:voyageventure/location_sharing.dart';
@@ -132,6 +134,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       isShowPlaceHorizontalList = true;
     } else {
       isShowPlaceHorizontalList = false;
+    }
+
+    if (stateString == "Route Planning") {
+      drawRoute();
     }
 
     setState(() {
@@ -287,13 +293,26 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     return null;
   }
 
+  void drawRoute() {
+    if (routes.isNotEmpty) {
+      setState(() {
+        polyline = Polyline(
+          polylineId: const PolylineId("route"),
+          color: Colors.green,
+          width: 8,
+          points: routes[0].legs[0].polyline.decodedPolyline(),
+        );
+      });
+    }
+  }
+
   Future<void> placeMarkAndRoute(
       {required bool isShowPlaceHorizontalListFromSearch,
       required int index}) async {
+    changeState("Loading");
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
     myMarker.removeWhere((marker) => marker.icon != mainMarker);
-    changeState("Route Planning");
     if (isShowPlaceHorizontalListFromSearch) {
       try {
         markedPlace = placeSearchList[index];
@@ -301,6 +320,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             from: currentLocation!,
             to: LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude)))!;
+        changeState("Route Planning");
         return;
       } catch (e) {
         logWithTag(
@@ -332,8 +352,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       routes = (await computeRoutesReturnRoute_(
           from: currentLocation!,
           to: LatLng(value.location.latitude, value.location.longitude)))!;
+      changeState("Route Planning");
       return;
     }
+    logWithTag("Error, route not found", tag: "SearchLocationScreen");
+    changeState("Search Results");
     return;
   }
 
@@ -404,6 +427,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       setState(() {
         mainMarker = bitmapDescriptor;
       });
+    });
+
+
+    //Todo: Remove after test
+    searchPlaceAndUpdate("Đại học CNTT");
+    placeMarkAndRoute(isShowPlaceHorizontalListFromSearch: true, index: 0).then((value) => {
+    //changeState("Navigation")
     });
   }
 
@@ -997,12 +1027,14 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                 child: Column(children: <Widget>[
                                   const Pill(),
                                   FilledButton(
-                                    onPressed: () {
-                                      changeState("Route Planning");
-
-
-
+                                    onPressed: ()
+                                     {
+                                        placeMarkAndRoute(
+                                        isShowPlaceHorizontalListFromSearch:
+                                        isShowPlaceHorizontalListFromSearch,
+                                        index: 0);
                                     },
+
                                     child: const Text("Chỉ đường"),
                                   )
                                 ]),
@@ -1040,6 +1072,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                           changeState("Navigation");
                                         },
                                         child: const Text("Bắt đầu"),
+                                      ),
+                                      Container(
+                                          child: ListView.builder(
+                                            controller: _listviewScrollController,
+                                            shrinkWrap: true,
+                                            itemCount: 2,
+                                            itemBuilder: (context, index) {
+                                              return RoutePlanningListTile();
+                                            },
+                                          )
                                       )
                                     ]),
                                   ),
@@ -1072,12 +1114,23 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         controller: scrollController,
                                         child: Column(children: <Widget>[
                                           const Pill(),
-                                          FilledButton(
-                                            onPressed: () {
-                                              changeState("Default");
+                                          // FilledButton(
+                                          //   onPressed: () {
+                                          //     changeState("Default");
+                                          //   },
+                                          //   child: const Text("Kết thúc"),
+                                          // )
+                                          Container(
+                                            child: ListView.builder(
+                                            controller: _listviewScrollController,
+                                            shrinkWrap: true,
+                                            itemCount: 2,
+                                            itemBuilder: (context, index) {
+                                            return NavigationListTile();
                                             },
-                                            child: const Text("Kết thúc"),
+                                            )
                                           )
+
                                         ]),
                                       ),
                                     ),
@@ -1109,9 +1162,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             controller: scrollController,
                                             child: Column(children: <Widget>[
                                               const Pill(),
-                                              SizedBox(
-                                                height: 100,
-                                              ),
+                                              // SizedBox(
+                                              //   height: 100,
+                                              // ),
                                               CircularProgressIndicator(
                                                 color: Colors.green,
                                               )
