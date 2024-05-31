@@ -23,6 +23,10 @@ class RouteResponse_ {
     }
     return stringReturn;
   }
+
+  Route_ getRoute(int index) {
+    return routes[index];
+  }
 }
 
 class Route_ {
@@ -39,6 +43,14 @@ class Route_ {
   @override
   String toString() {
     return 'Route_ { legs: ${legs.toString()} }';
+  }
+
+  Leg_ getLeg(int index) {
+    return legs[index];
+  }
+
+  int getLegsCount() {
+    return legs.length;
   }
 }
 
@@ -67,6 +79,61 @@ class Leg_ {
           .toList(),
     );
   }
+
+  String getDistanceMeters() {
+    return distanceMeters.toString();
+  }
+
+  String getDistanceMetersInKm() {
+    return (distanceMeters / 1000).toStringAsFixed(1) + ' km';
+  }
+
+  String getDuration() {
+    return duration;
+  }
+
+  String getDurationFormat() {
+    return convertDurationToMinutesOrHoursAndMinutes(duration);
+  }
+
+  String convertDurationToMinutesOrHoursAndMinutes(String durationString) {
+    int duration = int.parse(durationString.replaceAll('s', ''));
+    int hours = duration ~/ 3600;
+    int minutes = (duration % 3600) ~/ 60;
+    if (hours == 0) {
+      return '$minutes phút';
+    }
+    return '$hours' + 'h $minutes'+ 'p';
+  }
+
+  String getStaticDuration() {
+    return staticDuration;
+  }
+
+  String getStaticDurationFormat() {
+    return convertDurationToMinutesOrHoursAndMinutes(staticDuration);
+  }
+
+  String getDifferenceDuration() {
+    int durationInt = int.parse(duration.replaceAll('s', ''));
+    int staticDurationInt = int.parse(staticDuration.replaceAll('s', ''));
+    int difference = durationInt - staticDurationInt;
+    return convertDurationToMinutesOrHoursAndMinutes(difference.toString());
+  }
+
+  Polyline_ getPolyline() {
+    return polyline;
+  }
+  Location_ getStartLocation() {
+    return startLocation;
+  }
+  Location_ getEndLocation() {
+    return endLocation;
+  }
+  List<Step_> getSteps() {
+    return steps;
+  }
+
   @override
   String toString() {
     return 'Leg_ { distanceMeters: $distanceMeters, duration: $duration, staticDuration: $staticDuration, polyline: ${polyline.encodedPolyline}, startLocation: ${startLocation.latLng}, endLocation: ${endLocation.latLng}, steps: ${steps.toString()} }';
