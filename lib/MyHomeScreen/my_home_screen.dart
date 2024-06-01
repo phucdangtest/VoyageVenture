@@ -413,28 +413,46 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       curve: Curves.fastOutSlowIn,
     );
 
-    BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
-            "assets/icons/marker_small.svg", const Size(40, 40))
-        .then((bitmapDescriptor) {
+    // BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+    //         "assets/icons/marker_small.svg", const Size(40, 40))
+    //     .then((bitmapDescriptor) {
+    //   setState(() {
+    //     defaultMarker = bitmapDescriptor;
+    //   });
+    // });
+    //
+    // BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+    //         "assets/icons/marker_big.svg", const Size(50, 50))
+    //     .then((bitmapDescriptor) {
+    //   setState(() {
+    //     mainMarker = bitmapDescriptor;
+    //   });
+    // });
+
+    BitmapDescriptorHelper.getBitmapDescriptorFromJPGAsset(
+      "assets/icons/custom_icon.jpg",
+      const Size(40, 40),
+    ).then((bitmapDescriptor) {
       setState(() {
         defaultMarker = bitmapDescriptor;
       });
     });
 
-    BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
-            "assets/icons/marker_big.svg", const Size(50, 50))
-        .then((bitmapDescriptor) {
+    BitmapDescriptorHelper.getBitmapDescriptorFromJPGAsset(
+      "assets/icons/custom_icon.jpg",
+      const Size(50, 50),
+    ).then((bitmapDescriptor) {
       setState(() {
         mainMarker = bitmapDescriptor;
       });
     });
 
-
     //Todo: Remove after test
     searchPlaceAndUpdate("Đại học CNTT");
-    placeMarkAndRoute(isShowPlaceHorizontalListFromSearch: true, index: 0).then((value) => {
-    //changeState("Navigation")
-    });
+    placeMarkAndRoute(isShowPlaceHorizontalListFromSearch: true, index: 0)
+        .then((value) => {
+              //changeState("Navigation")
+            });
   }
 
   @override
@@ -1002,8 +1020,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       );
                     },
                   )
-
-
                 : (state == stateMap["Search Results"]!)
                     ?
                     // Bottom sheet search results
@@ -1027,14 +1043,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                 child: Column(children: <Widget>[
                                   const Pill(),
                                   FilledButton(
-                                    onPressed: ()
-                                     {
-                                        placeMarkAndRoute(
-                                        isShowPlaceHorizontalListFromSearch:
-                                        isShowPlaceHorizontalListFromSearch,
-                                        index: 0);
+                                    onPressed: () {
+                                      placeMarkAndRoute(
+                                          isShowPlaceHorizontalListFromSearch:
+                                              isShowPlaceHorizontalListFromSearch,
+                                          index: 0);
                                     },
-
                                     child: const Text("Chỉ đường"),
                                   )
                                 ]),
@@ -1043,9 +1057,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                           );
                         },
                       )
-
-
-                : (state == stateMap["Route Planning"]!)
+                    : (state == stateMap["Route Planning"]!)
                         ?
                         // Bottom sheet route planning
                         DraggableScrollableSheet(
@@ -1075,26 +1087,23 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                       ),
                                       Container(
                                           child: ListView.builder(
-                                            controller: _listviewScrollController,
-                                            shrinkWrap: true,
-                                            itemCount: 2,
-                                            itemBuilder: (context, index) {
-                                              // return RoutePlanningListTile(routeResponse: null,);
-                                              return Placeholder();
-                                            },
-                                          )
-                                      )
+                                        controller: _listviewScrollController,
+                                        shrinkWrap: true,
+                                        itemCount: 2,
+                                        itemBuilder: (context, index) {
+                                          // return RoutePlanningListTile(routeResponse: null,);
+                                          return Placeholder();
+                                        },
+                                      ))
                                     ]),
                                   ),
                                 ),
                               );
                             },
                           )
-
-
-                : (state == stateMap["Navigation"]!)
+                        : (state == stateMap["Navigation"]!)
                             ?
-                              // Bottom sheet navigation
+                            // Bottom sheet navigation
                             DraggableScrollableSheet(
                                 controller: _dragableController,
                                 initialChildSize:
@@ -1122,25 +1131,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                           //   child: const Text("Kết thúc"),
                                           // )
                                           Container(
-                                            child: ListView.builder(
-                                            controller: _listviewScrollController,
+                                              child: ListView.builder(
+                                            controller:
+                                                _listviewScrollController,
                                             shrinkWrap: true,
                                             itemCount: 2,
                                             itemBuilder: (context, index) {
-                                            return NavigationListTile();
+                                              return NavigationListTile();
                                             },
-                                            )
-                                          )
-
+                                          ))
                                         ]),
                                       ),
                                     ),
                                   );
                                 },
                               )
-
-
-                : (state == stateMap["Loading"]!)
+                            : (state == stateMap["Loading"]!)
                                 ?
                                 // Bottom sheet loading
                                 DraggableScrollableSheet(

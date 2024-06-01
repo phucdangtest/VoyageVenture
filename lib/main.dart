@@ -6,6 +6,7 @@ import 'package:voyageventure/MyLocationSearch/my_location_search.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'components/route_planning_list.dart';
 import 'firebase_options.dart';
+import 'location_sharing.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Đảm bảo rằng các binding của widget đã được khởi tạo
@@ -29,9 +30,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Scaffold(
-        body: RoutePlanningList(),
-      ),
+      home: LocationSharing(),
+
     );
   }
 }
