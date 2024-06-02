@@ -33,11 +33,13 @@ class _LocationSharingState extends State<LocationSharing> {
       target: LatLng(position.latitude, position.longitude),
       zoom: 13,
     );
-    myMarker.add(Marker(
-      markerId: const MarkerId('myMarker'),
-      position: LatLng(position.latitude, position.longitude),
-    ));
-    setState(() {}); // Gọi setState để cập nhật UI
+    setState(() {
+      myMarker.add(Marker(
+        markerId: const MarkerId('myMarker'),
+        position: LatLng(position.latitude, position.longitude),
+      ));
+
+    }); // Gọi setState để cập nhật UI
   }
 
   void trackLocation() {
@@ -97,7 +99,9 @@ class _LocationSharingState extends State<LocationSharing> {
             ));
           },
             child: const Icon(Icons.center_focus_strong),
-          )]
+          ),
+
+        ]
         ));
   }
 }

@@ -85,7 +85,9 @@ flutter:
     - assets/icons/walk.svg
     - assets/icons/car.svg
     - assets/icons/public_transport.svg
+    - assets/icons/map-arrow-up.svg
     - lib/API_response_template/Route.json
+    - assets/test_image.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

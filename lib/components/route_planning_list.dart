@@ -8,80 +8,62 @@ import '../models/route_calculate.dart';
 import '../models/route_calculate_response.dart';
 
 class RoutePlanningList extends StatefulWidget {
-  const RoutePlanningList({super.key});
+  final List<Route_> routes;
+  final Function(int) itemClick;
+  const RoutePlanningList({super.key, required this.routes, required this.itemClick});
 
   @override
   State<RoutePlanningList> createState() => _RoutePlanningListState();
+
 }
 
 class _RoutePlanningListState extends State<RoutePlanningList> {
   //late Future<List<Route_>?> routes;
-  Route_? routesCurrent;
-  final LatLng currentLocation = const LatLng(10.8803443, 106.808288);
-  final LatLng cnttLocation = const LatLng(10.8022349,106.6695118);
+  // Route_? routesCurrent;
+  // final LatLng currentLocation = const LatLng(10.8803443, 106.808288);
+  // final LatLng cnttLocation = const LatLng(10.8022349,106.6695118);
   // final LatLng currentLocation = const LatLng(42.340173523716736, -71.05997968330408);
   // final LatLng cnttLocation = const LatLng(42.075698891472804, -72.59806562080408);
 
   @override
   initState() {
     super.initState();
-    computeRoutesReturnRoute_(from: currentLocation, to: cnttLocation).then((value) => {
-      setState(() {
-        routesCurrent = value!.first;
-        logWithTag(routesCurrent.toString(), tag:'RoutePlanningList');
-      })
-    });
+    // computeRoutesReturnRoute_(from: currentLocation, to: cnttLocation).then((value) => {
+    //   setState(() {
+    //     routesCurrent = value!.first;
+    //     logWithTag(routesCurrent.toString(), tag:'RoutePlanningList');
+    //   })
+    // });
   }
 
   @override
 Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Row(
-        children: [
-          Text('Route Planning List'),
-        ],
-      ),
-    ),
-    body: Column(
+  return Container(
+    child: Column(
       children: [
-        Container(
-          width: 100,
-          height: 100,
-          child: FloatingActionButton(onPressed: (){setState(() {
-
-          });}),
-        ),
-        routesCurrent != null? Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: const Offset(0, 3), // changes position of shadow
-              ),
-            ],
-          ),
-          width: double.infinity,
-          height: 500,
-          child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: routesCurrent?.getLegsCount(),
-          itemBuilder: (context, index) {
-            return RoutePlanningListTile(leg: routesCurrent!.getLeg(index));
+        // Container(
+        //   width: 100,
+        //   height: 100,
+        //   child: FloatingActionButton(onPressed: (){setState(() {
+        //
+        //   });}),
+        // ),
+       GestureDetector(
+          onTap: () {
+            widget.itemClick(0);
           },
+         child: Container(
+            width: double.infinity,
+            height: 500,
+            child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: widget.routes[0].getLegsCount(),
+            itemBuilder: (context, index) {
+              return RoutePlanningListTile(leg: widget.routes[0].getLeg(index));
+            },
+            ),
           ),
-        ) :
-        Container(
-          width: double.infinity,
-          height: 500,
-          child: Center(
-            child: CircularProgressIndicator(),
-          ),
-        )
+       )
       ],
     ),
   );
