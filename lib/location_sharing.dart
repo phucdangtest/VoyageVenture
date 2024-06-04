@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:math'; // Import math library for acos function
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/features/current_location.dart';
 import 'package:voyageventure/utils.dart';
@@ -10,6 +11,17 @@ class LocationSharing extends StatefulWidget {
 
   @override
   State<LocationSharing> createState() => _LocationSharingState();
+}
+
+bool distanceBetween(LatLng position1, LatLng position2) {
+  double one = position1.latitude - position2.latitude;
+  one = one.abs();
+  double two = position1.longitude - position2.longitude;
+  two = two.abs();
+  if (one <= 0.0003 && two <= 0.0002) {
+    return true;
+  }
+  return false;
 }
 
 class _LocationSharingState extends State<LocationSharing> {
@@ -23,11 +35,20 @@ class _LocationSharingState extends State<LocationSharing> {
   bool isHaveLastSessionLocation = false;
   late StreamSubscription<Position> _positionStream;
 
+  // Array to store latitude and longitude values
+  final List<LatLng> friendLocations = [
+    LatLng(10.880247, 106.805416),
+    // Example location 1 (replace with actual values)
+    LatLng(10.8672655,106.8071607),
+    // Example location 2 (replace with actual values)
+  ];
+
   @override
   void initState() {
     super.initState();
     setInitialLocation();
-    trackLocation();
+    //addFriendMarkers(); // Add markers for friend locations
+    //trackLocation();
   }
 
   Future<void> setInitialLocation() async {
@@ -40,8 +61,18 @@ class _LocationSharingState extends State<LocationSharing> {
       markerId: const MarkerId('myMarker'),
       position: LatLng(position.latitude, position.longitude),
     ));
-    setState(() {}); // Gọi setState để cập nhật UI
+    setState(() {}); // Update UI
   }
+
+  // void addFriendMarkers() {
+  //   for (final location in friendLocations) {
+  //     myMarker.add(Marker(
+  //       markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+  //       // Unique ID for each friend marker
+  //       position: location,
+  //     ));
+  //   }
+  // }
 
   void trackLocation() {
     final geolocator = GeolocatorPlatform.instance;
@@ -49,15 +80,16 @@ class _LocationSharingState extends State<LocationSharing> {
       (Position position) async {
         final GoogleMapController controller = await _mapsController.future;
         final double currentZoomLevel =
-            await controller.getZoomLevel(); // Lấy mức zoom hiện tại
+            await controller.getZoomLevel(); // Get current zoom level
         controller.animateCamera(CameraUpdate.newCameraPosition(
           CameraPosition(
             target: LatLng(position.latitude, position.longitude),
-            zoom: currentZoomLevel, // Sử dụng mức zoom hiện tại
+            zoom: currentZoomLevel,
           ),
         ));
         setState(() {
           myMarker.clear();
+          // addFriendMarkers(); // Re-add friend markers after clearing
           myMarker.add(Marker(
             markerId: const MarkerId('myMarker'),
             position: LatLng(position.latitude, position.longitude),
@@ -73,6 +105,7 @@ class _LocationSharingState extends State<LocationSharing> {
     _positionStream.cancel();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(children: <Widget>[
@@ -86,21 +119,22 @@ class _LocationSharingState extends State<LocationSharing> {
           _mapsController.complete(controller);
         },
         onTap: (LatLng position) {
-          logWithTag('Tapped location: $position', tag: 'LocationSharing');
-          setState(() {
-            _showWhiteBox = !_showWhiteBox; // Toggle _showWhiteBox
-            if (_showWhiteBox) {
-              _selectedLocation = position; // Store tapped location
-              logWithTag('Selected location: $_selectedLocation',
-                  tag: 'LocationSharing');
+          for (final friendLocation in friendLocations) {
+            if (distanceBetween(position, friendLocation)) {
+              setState(() {
+                _showWhiteBox = !_showWhiteBox; // Toggle _showWhiteBox
+                if (_showWhiteBox) {
+                  _selectedLocation = position; // Store tapped location
+                }
+              });
             }
-          });
+          }
         },
         polylines: {if (route != null) route!},
         zoomControlsEnabled: false,
       ),
       Positioned(
-        bottom: 20, // Position at the bottom
+        bottom: 20,
         left: 20, // Position at the left
         right: 20, // Position at the right
         child: Visibility(
