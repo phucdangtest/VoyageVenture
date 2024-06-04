@@ -7,8 +7,10 @@ import 'dart:ui'
     as ui; // imported as ui to prevent conflict between ui.Image and the Image widget
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:math' as math;
+import 'package:flutter_google_maps_webservices/geocoding.dart';
 
 void showToast(String message) {
   Fluttertoast.showToast(
@@ -87,3 +89,4 @@ Future<void> animateBottomSheet(
     curve: Curves.fastOutSlowIn, // Animation curve
   );
 }
+
