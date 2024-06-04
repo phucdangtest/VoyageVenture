@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/custom_search_field.dart';
@@ -28,6 +29,7 @@ import '../components/route_planning_list.dart';
 import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 import '../models/route_calculate.dart';
+import '../utils.dart';
 
 class MyHomeScreen extends StatefulWidget {
   @override
@@ -51,6 +53,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   //GeoLocation
   LatLng? currentLocation;
+  LatLng? departureLocation;
+  LatLng? destinationLocation;
   bool isHaveLastSessionLocation = false;
 
   Future<LatLng> getCurrentLocationLatLng() async {
@@ -241,6 +245,57 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
   }
 
+  Future<String?> _getAddressFromCoordinates(LatLng place) async {
+    final double latitude = place.latitude;
+    final double longitude = place.longitude; // Replace with your longitude
+
+    final List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+
+
+    if (placemarks.isNotEmpty) {
+      for (int i =0; i < placemarks.length; i++ )
+        {
+          logWithTag(placemarks[i].toString(), tag: "asdjasd");
+        }
+
+      final Placemark placemark = placemarks[0];
+
+      final String address = '${placemark.name}, ${placemark.subThoroughfare} ${placemark.thoroughfare}, ${placemark.locality}, ${placemark.postalCode}, ${placemark.country}';
+      final String name = placemark.name ?? "";
+      return address;
+
+    }
+    return null;
+  }
+
+  Future<void> placeClickLatLng(LatLng position) async {
+    _getAddressFromCoordinates(position).then((place)
+    async {
+      var value = await placeSearchSingle(
+          place!);
+      if (value != null) {
+        animateToPosition(
+          LatLng(value.location.latitude, value.location.longitude),
+        );
+        setState(() {
+          myMarker = [];
+          final markerId = MarkerId(value.id!);
+          Marker marker = Marker(
+            markerId: markerId,
+            icon: mainMarker,
+            position: LatLng(value.location.latitude, value.location.longitude),
+            infoWindow: InfoWindow(
+              title: value.displayName?.text,
+              snippet: value.formattedAddress,
+            ),
+          );
+          myMarker.add(marker);
+        });
+        markedPlace = value;
+      }
+    });
+  }
+
   Future<LatLng?> placeOnclick(
       {required bool isShowPlaceHorizontalListFromSearch,
       required int index}) async {
@@ -307,6 +362,20 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
   }
 
+  void clearRoute() {
+    setState(() {
+      polyline = null;
+    });
+  }
+
+  Future<void> calcRoute({required LatLng from, required LatLng to}) async {
+    routes = (await computeRoutesReturnRoute_(from: from, to: to))!;
+    drawRoute();
+    changeState("Route Planning");
+    departureLocation = from;
+    destinationLocation = to;
+  }
+
   Future<void> placeMarkAndRoute(
       {required bool isShowPlaceHorizontalListFromSearch,
       required int index}) async {
@@ -317,11 +386,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     if (isShowPlaceHorizontalListFromSearch) {
       try {
         markedPlace = placeSearchList[index];
-        routes = (await computeRoutesReturnRoute_(
+        calcRoute(
             from: currentLocation!,
             to: LatLng(placeSearchList[index].location.latitude,
-                placeSearchList[index].location.longitude)))!;
-        changeState("Route Planning");
+                placeSearchList[index].location.longitude));
         return;
       } catch (e) {
         logWithTag(
@@ -350,10 +418,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         myMarker.add(marker);
       });
       markedPlace = value;
-      routes = (await computeRoutesReturnRoute_(
+      calcRoute(
           from: currentLocation!,
-          to: LatLng(value.location.latitude, value.location.longitude)))!;
-      changeState("Route Planning");
+          to: LatLng(value.location.latitude, value.location.longitude));
       return;
     }
     logWithTag("Error, route not found", tag: "SearchLocationScreen");
@@ -486,8 +553,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             markers: myMarker.toSet(),
+            onTap: (LatLng position) {
+              placeClickLatLng(position);
+            },
             onMapCreated: (GoogleMapController controller) {
               _mapsController.complete(controller);
+
             },
             polylines: {if (polyline != null) polyline!},
             zoomControlsEnabled: false,

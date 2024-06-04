@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/features/current_location.dart';
+import 'package:voyageventure/utils.dart';
 
 class LocationSharing extends StatefulWidget {
   const LocationSharing({super.key});
@@ -85,10 +86,13 @@ class _LocationSharingState extends State<LocationSharing> {
           _mapsController.complete(controller);
         },
         onTap: (LatLng position) {
+          logWithTag('Tapped location: $position', tag: 'LocationSharing');
           setState(() {
             _showWhiteBox = !_showWhiteBox; // Toggle _showWhiteBox
             if (_showWhiteBox) {
               _selectedLocation = position; // Store tapped location
+              logWithTag('Selected location: $_selectedLocation',
+                  tag: 'LocationSharing');
             }
           });
         },
