@@ -1,0 +1,543 @@
+{
+  "routes": [
+    {
+      "legs": [
+        {
+          "distanceMeters": 2222,
+          "duration": "378s",
+          "staticDuration": "378s",
+          "polyline": {
+            "encodedPolyline": "yhlaAyd|jSWONQH?TLXi@nAt@NH~EnC~@h@jBfA\\PXNt@b@pAeCLHd@eAfB`AvDrBRJnBjA^PnAv@xA|@\\w@p@{ATe@p@mA~@g@HEjCbBtB~AfAr@rCfB^VPJhA~@g@n@vA~@|FzF]Re@HQCo@AKGEq@MGOC[?YJOHCDO\\CR@xB"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 10.881572,
+              "longitude": 106.8092533
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 10.8702483,
+              "longitude": 106.8032356
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 16,
+              "staticDuration": "1s",
+              "polyline": {
+                "encodedPolyline": "yhlaAyd|jSWO"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.881572,
+                  "longitude": 106.8092533
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8816901,
+                  "longitude": 106.809332
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Đi về hướng Đông Bắc\nĐường bị giới hạn sử dụng"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "16 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 34,
+              "staticDuration": "9s",
+              "polyline": {
+                "encodedPolyline": "qilaAie|jSNQH?TL"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8816901,
+                  "longitude": 106.809332
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.881451199999999,
+                  "longitude": 106.8093504
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải tại Tạp Hóa H2\nĐường bị giới hạn sử dụng"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "34 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 28,
+              "staticDuration": "14s",
+              "polyline": {
+                "encodedPolyline": "ahlaAme|jSXi@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.881451199999999,
+                  "longitude": 106.8093504
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8813193,
+                  "longitude": 106.80956429999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Rẽ trái\nĐường bị giới hạn sử dụng"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "28 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 398,
+              "staticDuration": "64s",
+              "polyline": {
+                "encodedPolyline": "gglaAwf|jSnAt@NH~EnC~@h@jBfA\\PXNt@b@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8813193,
+                  "longitude": 106.80956429999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8783075,
+                  "longitude": 106.80760090000001
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải\nĐường bị giới hạn sử dụng\nĐi qua Cửa hàng bột đậu BESOUP (ở bên trái cách 300m)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,4 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 86,
+              "staticDuration": "22s",
+              "polyline": {
+                "encodedPolyline": "mtkaAoz{jSpAeC"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8783075,
+                  "longitude": 106.80760090000001
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8778974,
+                  "longitude": 106.8082701
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Rẽ trái tại Trạm Y Tế KTX Khu A ĐHQG về hướng Đ. Vành Đai\nĐường bị giới hạn sử dụng"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "86 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 9,
+              "staticDuration": "7s",
+              "polyline": {
+                "encodedPolyline": "{qkaAu~{jSLH"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8778974,
+                  "longitude": 106.8082701
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.877830099999999,
+                  "longitude": 106.8082239
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải về hướng Đ. Vành Đai\nĐường bị giới hạn sử dụng"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "9 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 43,
+              "staticDuration": "15s",
+              "polyline": {
+                "encodedPolyline": "mqkaAk~{jSd@eA"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.877830099999999,
+                  "longitude": 106.8082239
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8776388,
+                  "longitude": 106.80856689999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Rẽ trái tại Phòng gym nhà công vụ 2 về hướng Đ. Vành Đai\nĐường bị giới hạn sử dụng\nĐi qua Ms.Duyen Ehouse - Toeic & Giao Tiếp (ở phía bên trái)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "43 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 411,
+              "staticDuration": "58s",
+              "polyline": {
+                "encodedPolyline": "gpkaAq`|jSfB`AvDrBRJnBjA^PnAv@xA|@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8776388,
+                  "longitude": 106.80856689999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8745285,
+                  "longitude": 106.80653799999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải tại Ngô Lộc vào Đ. Vành Đai\nĐi qua TiệmNhàTruc (ở phía bên trái)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,4 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 215,
+              "staticDuration": "33s",
+              "polyline": {
+                "encodedPolyline": "y|jaA{s{jS\\w@p@{ATe@p@mA~@g@HE"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8745285,
+                  "longitude": 106.80653799999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8734042,
+                  "longitude": 106.8080901
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Rẽ trái tại Quán Cô Tư - Cháo - Bún - Gỏi Gà,Vịt vào Đ. 621\nĐi qua Công Ty Tnhh Kln Distribution (Việt Nam) - Chi Nhánh Bình Dương (ở phía bên phải)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,2 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 416,
+              "staticDuration": "55s",
+              "polyline": {
+                "encodedPolyline": "wujaAq}{jSjCbBtB~AfAr@rCfB^VPJhA~@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8734042,
+                  "longitude": 106.8080901
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8703946,
+                  "longitude": 106.80583299999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải\nĐi qua Sửa Xe Hoàng Đệ (ở phía bên phải)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,4 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 34,
+              "staticDuration": "11s",
+              "polyline": {
+                "encodedPolyline": "}bjaAmo{jSg@n@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8703946,
+                  "longitude": 106.80583299999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8705906,
+                  "longitude": 106.805593
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải tại Xưởng thủy lực Vi Tuấn"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "34 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 257,
+              "staticDuration": "36s",
+              "polyline": {
+                "encodedPolyline": "edjaA}m{jSvA~@|FzF"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8705906,
+                  "longitude": 106.805593
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8688849,
+                  "longitude": 106.8040084
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Rẽ trái  tại Trung tâm đào tạo và sát hạch lái xe đại học An Ninh - Thủ Đức\nĐi qua Tiệm Tạp Hóa (ở phía bên trái)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,3 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 41,
+              "staticDuration": "17s",
+              "polyline": {
+                "encodedPolyline": "oyiaAad{jS]Re@H"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8688849,
+                  "longitude": 106.8040084
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8692206,
+                  "longitude": 106.80385849999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Rẽ phải tại Coffee Xì Trum"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "41 m"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 234,
+              "staticDuration": "36s",
+              "polyline": {
+                "encodedPolyline": "s{iaAcc{jSQCo@AKGEq@MGOC[?YJOHCDO\\CR@xB"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 10.8692206,
+                  "longitude": 106.80385849999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 10.8702483,
+                  "longitude": 106.8032356
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_SLIGHT_RIGHT",
+                "instructions": "Chếch sang phải tại UIT - Cổng B\nĐi qua Canteen ĐH CNTT (ở phía bên phải)\nĐiểm đến sẽ ở bên trái"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0,2 km"
+                },
+                "staticDuration": {
+                  "text": "1 phút"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "travelAdvisory": {
+            "speedReadingIntervals": [
+              {
+                "startPolylinePointIndex": 0,
+                "endPolylinePointIndex": 67,
+                "speed": "NORMAL"
+              }
+            ]
+          },
+          "localizedValues": {
+            "distance": {
+              "text": "2,2 km"
+            },
+            "duration": {
+              "text": "6 phút"
+            },
+            "staticDuration": {
+              "text": "6 phút"
+            }
+          }
+        }
+      ],
+      "distanceMeters": 2222,
+      "duration": "331s",
+      "staticDuration": "377s",
+      "polyline": {
+        "encodedPolyline": "yhlaAyd|jSWONQH?TLXi@nAt@NH~EnC~@h@jBfA\\PXNt@b@pAeCLHd@eAfB`AvDrBRJnBjA^PnAv@xA|@\\w@p@{ATe@p@mA~@g@HEjCbBtB~AfAr@rCfB^VPJhA~@g@n@vA~@|FzF]Re@HQCo@AKGEq@MGOC[?YJOHCDO\\CR@xB"
+      },
+      "description": "Đ. Vành Đai",
+      "warnings": [
+        "Tuyến đường này bị giới hạn sử dụng hoặc là đường riêng."
+      ],
+      "viewport": {
+        "low": {
+          "latitude": 10.8688849,
+          "longitude": 106.8032356
+        },
+        "high": {
+          "latitude": 10.8816901,
+          "longitude": 106.80956429999999
+        }
+      },
+      "travelAdvisory": {
+        "speedReadingIntervals": [
+          {
+            "startPolylinePointIndex": 0,
+            "endPolylinePointIndex": 54,
+            "speed": "NORMAL"
+          }
+        ]
+      },
+      "localizedValues": {
+        "distance": {
+          "text": "2,2 km"
+        },
+        "duration": {
+          "text": "6 phút"
+        },
+        "staticDuration": {
+          "text": "6 phút"
+        }
+      },
+      "routeToken": "Cp4DCqcCChhpou0kxa1WEMZHfUiA7wa2yiR9NQp7ZEoSTGhlfAZ1zKk_EdqUBivLcfMuhqfyviDsl6wXo7MY_bAA9dzgUmiFu39rS1AE9yKmOi03YqIln0unw1CTt-l7_vkE2hZQ7B9-UEtbm8wactrXt-YMWL8l5AGuAr4LsgeRAd0KqzYO9wbcChn4m4zmEpgT5FQLpQKtCA6KCv4rE5sQnUQOkgPbAxzwB-gjwQH7H4kcUrwJo4cCogGPB_AJHOjj2Sf2IN8CCvn_AaYUA6wr-AbsATyAH7gByRDV3gLhASID9-oBOgIECUIaIR4p4QI9Lxo42wIvwwGnAdsBMpIBlQFCvAFKCDZXJD8HxSs_eAGqARc3ZlZtWnFIbUVfNklpZDRQajVxRWdBWRAEGlkKVwoYCg0KAggBEQAAAAAAgGZAEd0kBoFVtLJAEhwIABADEAYQExASGAJCDgoGEJPum7MGGgIIBSoAIhsKFzdmVm1adHYtRXY2SWlkNFBqNXFFZ0FZcAEoASIVAODTVbhr8vvv4c-oxharfTcb0yjn",
+      "routeLabels": [
+        "DEFAULT_ROUTE"
+      ]
+    }
+  ],
+  "geocodingResults": {}
+}

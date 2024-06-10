@@ -6,6 +6,9 @@
             // Location button
 
 // On top search bar
+    //Top search bar - Departure
+            //Bottom search bar - Destination
+
 
 // Bottom sheet
     // Bottom sheet default
