@@ -119,6 +119,7 @@ Future<List<Route_>?> computeRoutesReturnRoute_({
           },
         },
       },
+      //'extraComputations': ["TRAFFIC_ON_POLYLINE"],
       'travelMode': travelMode,
       'routingPreference': routingPreference,
       'departureTime': departureTime,

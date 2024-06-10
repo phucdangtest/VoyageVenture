@@ -91,6 +91,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   List<Route_> routes = [];
   Future<List<LatLng>?> polylinePoints = Future.value(null);
   Polyline? polyline;
+  String travelMode = "DRIVE";
+  String routingPreference = "TRAFFIC_AWARE";
+  bool isTrafficAware = true;
+  bool isComputeAlternativeRoutes = false;
+  bool isAvoidTolls = false;
+  bool isAvoidHighways = false;
+  bool isAvoidFerries = false;
+
+  List<bool> isChange = [false, false, false, false, false];
 
   //Test
 
@@ -129,6 +138,126 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //         ? changeState(nextState)
   //         : changeState("Search Results");
   // }
+  void updateOptionsBasedOnChanges() {
+    for (int i = 0; i < isChange.length; i++) {
+      if (isChange[i]) {
+        switch (i) {
+          case 0:
+            isTrafficAware = !isTrafficAware;
+            break;
+          case 1:
+            isComputeAlternativeRoutes = !isComputeAlternativeRoutes;
+            break;
+          case 2:
+            isAvoidTolls = !isAvoidTolls;
+            break;
+          case 3:
+            isAvoidHighways = !isAvoidHighways;
+            break;
+          case 4:
+            isAvoidFerries = !isAvoidFerries;
+            break;
+        }
+        // Reset the change flag for this option
+        isChange[i] = false;
+      }
+    }
+  }
+
+  void showOptionsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Tùy chọn đường đi'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    CheckboxListTile(
+                      title: Text('Ảnh hưởng giao thông'),
+                      value: isTrafficAware,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isTrafficAware = value!;
+                          isChange[0] = true;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Tính đường đi thay thế'),
+                      value: isComputeAlternativeRoutes,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isComputeAlternativeRoutes = value!;
+                          isChange[1] = true;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Tránh trạm thi phí'),
+                      value: isAvoidTolls,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isAvoidTolls = value!;
+                          isChange[2] = true;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Tránh đường cao tốc'),
+                      value: isAvoidHighways,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isAvoidHighways = value!;
+                          isChange[3] = true;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Tránh phà'),
+                      value: isAvoidFerries,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isAvoidFerries = value!;
+                          isChange[4] = true;
+                        });
+                      },
+                    ),
+
+
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Hủy bỏ'),
+                  onPressed: () {
+                    setState(() {
+                      updateOptionsBasedOnChanges();
+                    });
+                    logWithTag("Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
+                        tag: "SearchLocationScreen");
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('Áp dụng'),
+                  onPressed: () {
+                    logWithTag("Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
+                        tag: "SearchLocationScreen");
+                    calcRoute(from: departureLocation!, to: destinationLocation!);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   void changeState(String stateString) {
     if (!stateMap.containsKey(stateString)) {
@@ -249,30 +378,27 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     final double latitude = place.latitude;
     final double longitude = place.longitude; // Replace with your longitude
 
-    final List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
-
+    final List<Placemark> placemarks =
+        await placemarkFromCoordinates(latitude, longitude);
 
     if (placemarks.isNotEmpty) {
-      for (int i =0; i < placemarks.length; i++ )
-        {
-          logWithTag(placemarks[i].toString(), tag: "asdjasd");
-        }
+      for (int i = 0; i < placemarks.length; i++) {
+        logWithTag(placemarks[i].toString(), tag: "asdjasd");
+      }
 
       final Placemark placemark = placemarks[0];
 
-      final String address = '${placemark.name}, ${placemark.subThoroughfare} ${placemark.thoroughfare}, ${placemark.locality}, ${placemark.postalCode}, ${placemark.country}';
+      final String address =
+          '${placemark.name}, ${placemark.subThoroughfare} ${placemark.thoroughfare}, ${placemark.locality}, ${placemark.postalCode}, ${placemark.country}';
       final String name = placemark.name ?? "";
       return address;
-
     }
     return null;
   }
 
   Future<void> placeClickLatLng(LatLng position) async {
-    _getAddressFromCoordinates(position).then((place)
-    async {
-      var value = await placeSearchSingle(
-          place!);
+    _getAddressFromCoordinates(position).then((place) async {
+      var value = await placeSearchSingle(place!);
       if (value != null) {
         animateToPosition(
           LatLng(value.location.latitude, value.location.longitude),
@@ -369,7 +495,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
-    routes = (await computeRoutesReturnRoute_(from: from, to: to))!;
+    changeState("Loading");
+    if (isTrafficAware)
+      routingPreference = "TRAFFIC_AWARE";
+    routes = (await computeRoutesReturnRoute_(from: from, to: to, travelMode: travelMode, routingPreference: routingPreference, computeAlternativeRoutes: isComputeAlternativeRoutes, avoidTolls: isAvoidTolls, avoidHighways: isAvoidHighways, avoidFerries: isAvoidFerries))!;
     drawRoute();
     changeState("Route Planning");
     departureLocation = from;
@@ -558,7 +687,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             },
             onMapCreated: (GoogleMapController controller) {
               _mapsController.complete(controller);
-
             },
             polylines: {if (polyline != null) polyline!},
             zoomControlsEnabled: false,
@@ -729,6 +857,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 ),
               ),
               child: Visibility(
+                  //Top search bar - Departure
                   visible: true, //state == stateMap["Search"]!,
                   child: Column(
                     children: [
@@ -754,25 +883,27 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                 icon: const Icon(Icons.arrow_back)),
                             Container(
                               //Text input
+                              margin: const EdgeInsets.only(left: 10.0),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(8.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
                               ),
                               width: MediaQuery.of(context).size.width - 120,
+                              height: 45.0,
                               child: TextField(
                                 decoration: InputDecoration(
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Colors.black,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  prefixIcon: SizedBox(
-                                    width: 10,
-                                    height: 10,
-                                    child: SvgPicture.asset(
-                                        "assets/icons/search.svg"),
-                                  ),
+                                  border: InputBorder.none,
+                                  prefixIcon: SvgPicture.asset(
+                                      "assets/icons/search.svg"),
+
                                   suffixIcon: _searchFieldFocusNode.hasFocus
                                       ? IconButton(
                                           icon: Icon(Icons.clear),
@@ -805,65 +936,100 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                 },
                               ),
                             ),
-                            Container(
-                              // Profile picture
-                              margin: EdgeInsets.only(left: 10.0),
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: IconButton(
-                                  padding: EdgeInsets.all(2),
-                                  onPressed: () {},
-                                  icon: Image.asset(
-                                    "assets/profile.png",
-                                  )),
-                            ),
+                            (state == stateMap["Place Search"] ||
+                                    state == stateMap["Search Results"])
+                                ? Container(
+                                    // Profile picture
+                                    margin: EdgeInsets.only(left: 10.0),
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child: IconButton(
+                                        padding: EdgeInsets.all(2),
+                                        onPressed: () {},
+                                        icon: Image.asset(
+                                          "assets/profile.png",
+                                        )),
+                                  )
+                                : Container(
+                                    // Profile picture
+                                    margin: EdgeInsets.only(left: 10.0),
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child: IconButton(
+                                      icon: Icon(Icons.more_vert),
+                                      onPressed: () {
+                                        showOptionsDialog(context);
+                                      },
+                                    ),
+                                  ),
                           ]),
                           Visibility(
+                            //Bottom search bar - Destination
                             visible: state == stateMap["Route Planning"]!,
                             child: Container(
                               width: MediaQuery.of(context).size.width,
                               child: Column(
                                 children: [
-                                  TextField(
-                                    decoration: InputDecoration(
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Colors.black,
+                                  Container(
+                                    width:
+                                        MediaQuery.of(context).size.width - 120,
+                                    height: 45,
+                                    margin:
+                                        EdgeInsets.only(top: 10.0, left: 0.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 5,
+                                          blurRadius: 7,
+                                          offset: Offset(0, 3),
                                         ),
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
+                                      ],
+                                    ),
+                                    child: TextField(
+                                      decoration: InputDecoration(
+                                        border: InputBorder.none,
+                                        prefixIcon: SizedBox(
+                                          width: 10,
+                                          height: 10,
+                                          child: SvgPicture.asset(
+                                              "assets/icons/verified_destination.svg"),
+                                        ),
                                       ),
-                                      prefixIcon: SizedBox(
-                                        width: 10,
-                                        height: 10,
-                                        child: SvgPicture.asset(
-                                            "assets/icons/search.svg"),
-                                      ),
-                                      suffixIcon: IconButton(
-                                          onPressed: () {},
-                                          icon: SvgPicture.asset(
-                                              "assets/icons/nearby_search.svg")),
                                     ),
                                   ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                          onPressed: () {},
-                                          icon: SvgPicture.asset(
-                                              "assets/icons/walk.svg")),
-                                      IconButton(
-                                          onPressed: () {},
-                                          icon: SvgPicture.asset(
-                                              "assets/icons/car.svg")),
-                                      IconButton(
-                                          onPressed: () {},
-                                          icon: SvgPicture.asset(
-                                              "assets/icons/public_transport.svg")),
-                                    ],
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        IconButton(
+                                            onPressed: () {},
+                                            icon: SvgPicture.asset(
+                                                "assets/icons/walk.svg")),
+                                        IconButton(
+                                            onPressed: () {},
+                                            icon: SvgPicture.asset(
+                                                "assets/icons/car.svg")),
+                                        IconButton(
+                                            onPressed: () {},
+                                            icon: SvgPicture.asset(
+                                                "assets/icons/motor.svg")),
+                                        IconButton(
+                                            onPressed: () {},
+                                            icon: SvgPicture.asset(
+                                                "assets/icons/public_transport.svg")),
+                                      ],
+                                    ),
                                   )
                                 ],
                               ),
