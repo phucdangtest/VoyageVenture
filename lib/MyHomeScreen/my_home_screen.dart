@@ -91,11 +91,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   List<Route_> routes = [];
   Future<List<LatLng>?> polylinePoints = Future.value(null);
   Polyline? polyline;
-  List<String> options = ['Option 1', 'Option 2', 'Option 3'];
-  List<bool> selectedOptions = [false, false, false];
-  bool isOption1Selected = false;
-  bool isOption2Selected = false;
-  bool isOption3Selected = false;
+  String travelMode = "DRIVE";
+  String routingPreference = "TRAFFIC_AWARE";
+  bool isTrafficAware = true;
+  bool isComputeAlternativeRoutes = false;
+  bool isAvoidTolls = false;
+  bool isAvoidHighways = false;
+  bool isAvoidFerries = false;
+
+  List<bool> isChange = [false, false, false, false, false];
 
   //Test
 
@@ -134,61 +138,116 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //         ? changeState(nextState)
   //         : changeState("Search Results");
   // }
+  void updateOptionsBasedOnChanges() {
+    for (int i = 0; i < isChange.length; i++) {
+      if (isChange[i]) {
+        switch (i) {
+          case 0:
+            isTrafficAware = !isTrafficAware;
+            break;
+          case 1:
+            isComputeAlternativeRoutes = !isComputeAlternativeRoutes;
+            break;
+          case 2:
+            isAvoidTolls = !isAvoidTolls;
+            break;
+          case 3:
+            isAvoidHighways = !isAvoidHighways;
+            break;
+          case 4:
+            isAvoidFerries = !isAvoidFerries;
+            break;
+        }
+        // Reset the change flag for this option
+        isChange[i] = false;
+      }
+    }
+  }
 
   void showOptionsDialog(BuildContext context) {
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Chọn một tùy chọn'),
+              title: Text('Tùy chọn đường đi'),
               content: SingleChildScrollView(
                 child: ListBody(
                   children: <Widget>[
                     CheckboxListTile(
-                      title: Text('Option 1'),
-                      value: isOption1Selected,
+                      title: Text('Ảnh hưởng giao thông'),
+                      value: isTrafficAware,
                       onChanged: (bool? value) {
                         setState(() {
-                          isOption1Selected = value!;
+                          isTrafficAware = value!;
+                          isChange[0] = true;
                         });
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Option 2'),
-                      value: isOption2Selected,
+                      title: Text('Tính đường đi thay thế'),
+                      value: isComputeAlternativeRoutes,
                       onChanged: (bool? value) {
                         setState(() {
-                          isOption2Selected = value!;
+                          isComputeAlternativeRoutes = value!;
+                          isChange[1] = true;
                         });
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Option 3'),
-                      value: isOption3Selected,
+                      title: Text('Tránh trạm thi phí'),
+                      value: isAvoidTolls,
                       onChanged: (bool? value) {
                         setState(() {
-                          isOption3Selected = value!;
+                          isAvoidTolls = value!;
+                          isChange[2] = true;
                         });
                       },
                     ),
+                    CheckboxListTile(
+                      title: Text('Tránh đường cao tốc'),
+                      value: isAvoidHighways,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isAvoidHighways = value!;
+                          isChange[3] = true;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Tránh phà'),
+                      value: isAvoidFerries,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isAvoidFerries = value!;
+                          isChange[4] = true;
+                        });
+                      },
+                    ),
+
+
                   ],
                 ),
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Áp dụng'),
+                  child: Text('Hủy bỏ'),
                   onPressed: () {
-                    // Xử lý logic của bạn khi nút "Áp dụng" được nhấn
+                    setState(() {
+                      updateOptionsBasedOnChanges();
+                    });
+                    logWithTag("Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
+                        tag: "SearchLocationScreen");
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: Text('Hủy bỏ'),
+                  child: Text('Áp dụng'),
                   onPressed: () {
-                    // Xử lý logic của bạn khi nút "Hủy bỏ" được nhấn
+                    logWithTag("Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
+                        tag: "SearchLocationScreen");
+                    calcRoute(from: departureLocation!, to: destinationLocation!);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -436,7 +495,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
-    routes = (await computeRoutesReturnRoute_(from: from, to: to))!;
+    changeState("Loading");
+    if (isTrafficAware)
+      routingPreference = "TRAFFIC_AWARE";
+    routes = (await computeRoutesReturnRoute_(from: from, to: to, travelMode: travelMode, routingPreference: routingPreference, computeAlternativeRoutes: isComputeAlternativeRoutes, avoidTolls: isAvoidTolls, avoidHighways: isAvoidHighways, avoidFerries: isAvoidFerries))!;
     drawRoute();
     changeState("Route Planning");
     departureLocation = from;
