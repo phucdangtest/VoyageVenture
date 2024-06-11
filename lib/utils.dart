@@ -8,9 +8,13 @@ import 'dart:ui'
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding_platform_interface/src/models/location.dart' as geo_location;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:math' as math;
 import 'package:flutter_google_maps_webservices/geocoding.dart';
+
+import 'features/current_location.dart';
 
 void showToast(String message) {
   Fluttertoast.showToast(
@@ -90,3 +94,32 @@ Future<void> animateBottomSheet(
   );
 }
 
+Future<LatLng> getCurrentLocationLatLng() async {
+  Position position = await getCurrentLocation();
+  return LatLng(position.latitude, position.longitude);
+}
+
+Future<String> convertLatLngToAddress(LatLng latlng) async {
+  double lat = latlng.latitude;
+  double lng = latlng.longitude;
+  try {
+    List<Placemark> placeMarks = await placemarkFromCoordinates(lat, lng);
+    return '${placeMarks[0].name}, ${placeMarks[0].street}, ${placeMarks[0]
+        .subLocality}, ${placeMarks[0].locality}, ${placeMarks[0]
+        .administrativeArea}, ${placeMarks[0].country}, ${placeMarks[0]
+        .postalCode}';
+  } catch (e) {
+    print('Failed to convert LatLng to address: $e');
+    return '';
+  }
+}
+
+  Future<String> convertAddressToLatLng(String address) async {
+    try {
+      List<geo_location.Location> locations = await locationFromAddress(address);
+      return 'Latitude: ${locations[0].latitude}, Longitude: ${locations[0].longitude}';
+    } catch (e) {
+      print('Failed to convert address to LatLng: $e');
+      return '';
+    }
+  }

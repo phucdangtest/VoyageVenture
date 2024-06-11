@@ -52,15 +52,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //double currentZoomLevel = 15;
 
   //GeoLocation
-  LatLng? currentLocation;
-  LatLng? departureLocation;
-  LatLng? destinationLocation;
+  MapData mapData = new MapData();
   bool isHaveLastSessionLocation = false;
 
-  Future<LatLng> getCurrentLocationLatLng() async {
-    Position position = await getCurrentLocation();
-    return LatLng(position.latitude, position.longitude);
-  }
+
 
   void animateToPosition(LatLng position, {double zoom = 13}) async {
     logWithTag("Animate to position: $position", tag: "MyHomeScreen");
@@ -68,6 +63,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     CameraPosition cameraPosition = CameraPosition(
       target: position,
       zoom: zoom, // Change this value to your desired zoom level
+    );
+    controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+  }
+
+  void animateToPositionNoZoom(LatLng position) async {
+    logWithTag("Animate to position: $position", tag: "MyHomeScreen");
+    GoogleMapController controller = await _mapsController.future;
+    CameraPosition cameraPosition = CameraPosition(
+      target: position,
+      zoom: await controller.getZoomLevel(),
     );
     controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
@@ -98,8 +103,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   bool isAvoidTolls = false;
   bool isAvoidHighways = false;
   bool isAvoidFerries = false;
-
   List<bool> isChange = [false, false, false, false, false];
+  bool isCalcRouteFromCurrentLocation = true;
 
   //Test
 
@@ -114,6 +119,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     "Search Results": 2,
     "Route Planning": 3,
     "Navigation": 4,
+    "Search Results None": 5,
     "Loading": 10,
   };
   int state = stateMap["Default"]!;
@@ -225,8 +231,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                         });
                       },
                     ),
-
-
                   ],
                 ),
               ),
@@ -237,7 +241,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                     setState(() {
                       updateOptionsBasedOnChanges();
                     });
-                    logWithTag("Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
+                    logWithTag(
+                        "Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
                         tag: "SearchLocationScreen");
                     Navigator.of(context).pop();
                   },
@@ -245,9 +250,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 TextButton(
                   child: Text('Áp dụng'),
                   onPressed: () {
-                    logWithTag("Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
+                    logWithTag(
+                        "Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
                         tag: "SearchLocationScreen");
-                    calcRoute(from: departureLocation!, to: destinationLocation!);
+                    calcRoute(
+                        from: mapData.departureLocation!,
+                        to: mapData.destinationLocation!);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -266,6 +274,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
     if (stateString == "Search Results") {
       isShowPlaceHorizontalList = true;
+      polyline = null;
     } else {
       isShowPlaceHorizontalList = false;
     }
@@ -331,7 +340,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     } else {
       logWithTag("Place auto complete: $text", tag: "SearchLocationScreen");
       setState(() {
-        placeAutocomplete(text, currentLocation, 500)
+        placeAutocomplete(text, mapData.currentLocation, 500)
             .then((autoList) => setState(() {
                   if (autoList != null) {
                     placeAutoList = autoList;
@@ -346,13 +355,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   }
 
   void locationButtonOnclick() {
-    if (currentLocation != null) {
-      animateToPosition(currentLocation!);
+    if (mapData.currentLocation != null) {
+      animateToPosition(mapData.currentLocation!);
     }
     getCurrentLocation().then((value) {
-      if (currentLocation != LatLng(value.latitude, value.longitude)) {
-        currentLocation = LatLng(value.latitude, value.longitude);
-        animateToPosition(currentLocation!);
+      if (mapData.currentLocation != LatLng(value.latitude, value.longitude)) {
+        mapData.currentLocation = LatLng(value.latitude, value.longitude);
+        animateToPosition(mapData.currentLocation!);
         logWithTag("Location changed!", tag: "MyHomeScreen");
       }
     });
@@ -374,53 +383,36 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
   }
 
-  Future<String?> _getAddressFromCoordinates(LatLng place) async {
-    final double latitude = place.latitude;
-    final double longitude = place.longitude; // Replace with your longitude
 
-    final List<Placemark> placemarks =
-        await placemarkFromCoordinates(latitude, longitude);
 
-    if (placemarks.isNotEmpty) {
-      for (int i = 0; i < placemarks.length; i++) {
-        logWithTag(placemarks[i].toString(), tag: "asdjasd");
-      }
-
-      final Placemark placemark = placemarks[0];
-
-      final String address =
-          '${placemark.name}, ${placemark.subThoroughfare} ${placemark.thoroughfare}, ${placemark.locality}, ${placemark.postalCode}, ${placemark.country}';
-      final String name = placemark.name ?? "";
-      return address;
-    }
-    return null;
+Future<void> placeClickLatLng(LatLng position) async {
+  animateToPositionNoZoom(
+    LatLng(position.latitude, position.longitude),
+  );
+  changeState("Loading");
+  mapData.changeDestinationLocation(position);
+  setState(() {
+    myMarker = [];
+    final markerId = MarkerId("0");
+    Marker marker = Marker(
+      markerId: markerId,
+      icon: mainMarker,
+      position: LatLng(position.latitude, position.longitude),
+    );
+    myMarker.add(marker);
+  });
+  try {
+    String placeString = await convertLatLngToAddress(position);
+    var value = await placeSearchSingle(placeString);
+    if (value != null) {
+      markedPlace = value;
+      changeState("Search Results");
+    } else
+      changeState("Search Results None");
+  } catch (e) {
+    print('Failed to mark and search place: $e');
   }
-
-  Future<void> placeClickLatLng(LatLng position) async {
-    _getAddressFromCoordinates(position).then((place) async {
-      var value = await placeSearchSingle(place!);
-      if (value != null) {
-        animateToPosition(
-          LatLng(value.location.latitude, value.location.longitude),
-        );
-        setState(() {
-          myMarker = [];
-          final markerId = MarkerId(value.id!);
-          Marker marker = Marker(
-            markerId: markerId,
-            icon: mainMarker,
-            position: LatLng(value.location.latitude, value.location.longitude),
-            infoWindow: InfoWindow(
-              title: value.displayName?.text,
-              snippet: value.formattedAddress,
-            ),
-          );
-          myMarker.add(marker);
-        });
-        markedPlace = value;
-      }
-    });
-  }
+}
 
   Future<LatLng?> placeOnclick(
       {required bool isShowPlaceHorizontalListFromSearch,
@@ -428,10 +420,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
     changeState("Search Results");
-
     polyline = null;
     if (isShowPlaceHorizontalListFromSearch) {
       try {
+        mapData.changeDestinationLocation(
+            LatLng(placeSearchList[index].location.latitude,
+                placeSearchList[index].location.longitude));
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
@@ -449,9 +443,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
     // If the isShowFromSearch is true, but the index is out of range, then it will change to false and execute this
     // Make sure that the isShowFromSearch is always have the right value
+
     var value = await placeSearchSingle(
         placeAutoList[index].structuredFormat?.mainText?.text ?? "");
     if (value != null) {
+      mapData.changeDestinationLocation(
+        LatLng(value.location.latitude, value.location.longitude));
       animateToPosition(
         LatLng(value.location.latitude, value.location.longitude),
       );
@@ -494,15 +491,29 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     });
   }
 
+  Future<void> calcRouteFromDepToDes() async {
+    if (mapData.departureLocation != null && mapData.destinationLocation != null)
+      calcRoute(
+          from: mapData.departureLocation!,
+          to: mapData.destinationLocation!);
+  }
+
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
     changeState("Loading");
-    if (isTrafficAware)
-      routingPreference = "TRAFFIC_AWARE";
-    routes = (await computeRoutesReturnRoute_(from: from, to: to, travelMode: travelMode, routingPreference: routingPreference, computeAlternativeRoutes: isComputeAlternativeRoutes, avoidTolls: isAvoidTolls, avoidHighways: isAvoidHighways, avoidFerries: isAvoidFerries))!;
+    if (isTrafficAware) routingPreference = "TRAFFIC_AWARE";
+    routes = (await computeRoutesReturnRoute_(
+        from: from,
+        to: to,
+        travelMode: travelMode,
+        routingPreference: routingPreference,
+        computeAlternativeRoutes: isComputeAlternativeRoutes,
+        avoidTolls: isAvoidTolls,
+        avoidHighways: isAvoidHighways,
+        avoidFerries: isAvoidFerries))!;
     drawRoute();
     changeState("Route Planning");
-    departureLocation = from;
-    destinationLocation = to;
+    mapData.departureLocation = from;
+    mapData.destinationLocation = to;
   }
 
   Future<void> placeMarkAndRoute(
@@ -513,10 +524,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         isShowPlaceHorizontalListFromSearch;
     myMarker.removeWhere((marker) => marker.icon != mainMarker);
     if (isShowPlaceHorizontalListFromSearch) {
+      mapData.destinationLocation = LatLng(
+          placeSearchList[index].location.latitude,
+          placeSearchList[index].location.longitude);
       try {
         markedPlace = placeSearchList[index];
         calcRoute(
-            from: currentLocation!,
+            from: mapData.currentLocation!,
             to: LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude));
         return;
@@ -548,7 +562,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       });
       markedPlace = value;
       calcRoute(
-          from: currentLocation!,
+          from: mapData.currentLocation!,
           to: LatLng(value.location.latitude, value.location.longitude));
       return;
     }
@@ -594,9 +608,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     _searchFieldFocusNode = FocusNode();
 
     getCurrentLocationLatLng().then((value) {
-      currentLocation = value;
+      mapData.currentLocation = value;
+      mapData.departureLocation = value;
       if (!isHaveLastSessionLocation) {
-        animateToPosition(currentLocation!);
+        animateToPosition(mapData.currentLocation!);
       }
     });
 
@@ -627,11 +642,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     });
 
     //Todo: Remove after test
-    searchPlaceAndUpdate("Đại học CNTT");
-    placeMarkAndRoute(isShowPlaceHorizontalListFromSearch: true, index: 0)
-        .then((value) => {
-              //changeState("Navigation")
-            });
+    // searchPlaceAndUpdate("Đại học CNTT");
+    // placeMarkAndRoute(isShowPlaceHorizontalListFromSearch: true, index: 0)
+    //     .then((value) => {
+    //           //changeState("Navigation")
+    //         });
   }
 
   @override
@@ -869,7 +884,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                           Row(children: [
                             IconButton(
                                 onPressed: () {
-                                  if (state == stateMap["Search Results"]!) {
+                                  if (state == stateMap["Search Results"]! ||
+                                      state ==
+                                          stateMap["Search Results None"]!) {
                                     changeState("Default");
                                   } else if (state ==
                                       stateMap["Route Planning"]!) {
@@ -937,7 +954,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               ),
                             ),
                             (state == stateMap["Place Search"] ||
-                                    state == stateMap["Search Results"])
+                                    state == stateMap["Search Results"] ||
+                                    state == stateMap["Search Results None"]!)
                                 ? Container(
                                     // Profile picture
                                     margin: EdgeInsets.only(left: 10.0),
@@ -1342,10 +1360,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   const Pill(),
                                   FilledButton(
                                     onPressed: () {
-                                      placeMarkAndRoute(
-                                          isShowPlaceHorizontalListFromSearch:
-                                              isShowPlaceHorizontalListFromSearch,
-                                          index: 0);
+                                      // placeMarkAndRoute(
+                                      //     isShowPlaceHorizontalListFromSearch:
+                                      //         isShowPlaceHorizontalListFromSearch,
+                                      //     index: 0);
+                                      calcRouteFromDepToDes();
                                     },
                                     child: const Text("Chỉ đường"),
                                   )
@@ -1355,13 +1374,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                           );
                         },
                       )
-                    : (state == stateMap["Route Planning"]!)
+                    : (state == stateMap["Search Results None"]!)
                         ?
-                        // Bottom sheet route planning
+                        // Bottom sheet search results none
                         DraggableScrollableSheet(
                             controller: _dragableController,
                             initialChildSize: defaultBottomSheetHeight / 1000,
-                            minChildSize: 0.15,
+                            minChildSize: 0.05,
                             maxChildSize: 1,
                             builder: (BuildContext context,
                                 ScrollController scrollController) {
@@ -1371,35 +1390,27 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   topRight: Radius.circular(24.0),
                                 ),
                                 child: Container(
-                                  color: Colors.white,
-                                  child: SingleChildScrollView(
-                                    primary: false,
-                                    controller: scrollController,
-                                    child: Column(children: <Widget>[
-                                      const Pill(),
-                                      Container(
-                                        //   child: ListView.builder(
-                                        // controller: _listviewScrollController,
-                                        // shrinkWrap: true,
-                                        // itemCount: 2,
-                                        // itemBuilder: (context, index) {
-                                        //   // return RoutePlanningListTile(routeResponse: null,);
-                                        //   return Placeholder();
-                                        child: RoutePlanningList(
-                                            routes: routes,
-                                            itemClick: (index) {
-                                              changeState("Navigation");
-                                            }),
-                                      )
-                                    ]),
-                                  ),
-                                ),
+                                    color: Colors.white,
+                                    child: SingleChildScrollView(
+                                      primary: false,
+                                      controller: scrollController,
+                                      child: Column(children: <Widget>[
+                                        const Pill(),
+                                        const Center(child: Text('Không tên')),
+                                        FilledButton(
+                                          onPressed: () {
+                                            calcRoute(from: mapData.departureLocation!, to: mapData.destinationLocation!);
+                                          },
+                                          child: const Text("Chỉ đường"),
+                                        ),
+                                      ]),
+                                    )),
                               );
                             },
                           )
-                        : (state == stateMap["Navigation"]!)
+                        : (state == stateMap["Route Planning"]!)
                             ?
-                            // Bottom sheet navigation
+                            // Bottom sheet route planning
                             DraggableScrollableSheet(
                                 controller: _dragableController,
                                 initialChildSize:
@@ -1420,31 +1431,29 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         controller: scrollController,
                                         child: Column(children: <Widget>[
                                           const Pill(),
-                                          // FilledButton(
-                                          //   onPressed: () {
-                                          //     changeState("Default");
-                                          //   },
-                                          //   child: const Text("Kết thúc"),
-                                          // )
                                           Container(
-                                              child: ListView.builder(
-                                            controller:
-                                                _listviewScrollController,
-                                            shrinkWrap: true,
-                                            itemCount: 2,
-                                            itemBuilder: (context, index) {
-                                              return NavigationListTile();
-                                            },
-                                          ))
+                                            //   child: ListView.builder(
+                                            // controller: _listviewScrollController,
+                                            // shrinkWrap: true,
+                                            // itemCount: 2,
+                                            // itemBuilder: (context, index) {
+                                            //   // return RoutePlanningListTile(routeResponse: null,);
+                                            //   return Placeholder();
+                                            child: RoutePlanningList(
+                                                routes: routes,
+                                                itemClick: (index) {
+                                                  changeState("Navigation");
+                                                }),
+                                          )
                                         ]),
                                       ),
                                     ),
                                   );
                                 },
                               )
-                            : (state == stateMap["Loading"]!)
+                            : (state == stateMap["Navigation"]!)
                                 ?
-                                // Bottom sheet loading
+                                // Bottom sheet navigation
                                 DraggableScrollableSheet(
                                     controller: _dragableController,
                                     initialChildSize:
@@ -1465,25 +1474,100 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             controller: scrollController,
                                             child: Column(children: <Widget>[
                                               const Pill(),
-                                              // SizedBox(
-                                              //   height: 100,
-                                              // ),
-                                              CircularProgressIndicator(
-                                                color: Colors.green,
-                                              )
+                                              // FilledButton(
+                                              //   onPressed: () {
+                                              //     changeState("Default");
+                                              //   },
+                                              //   child: const Text("Kết thúc"),
+                                              // )
+                                              Container(
+                                                  child: ListView.builder(
+                                                controller:
+                                                    _listviewScrollController,
+                                                shrinkWrap: true,
+                                                itemCount: 2,
+                                                itemBuilder: (context, index) {
+                                                  return NavigationListTile();
+                                                },
+                                              ))
                                             ]),
                                           ),
                                         ),
                                       );
                                     },
                                   )
-                                :
+                                : (state == stateMap["Loading"]!)
+                                    ?
+                                    // Bottom sheet loading
+                                    DraggableScrollableSheet(
+                                        controller: _dragableController,
+                                        initialChildSize:
+                                            defaultBottomSheetHeight / 1000,
+                                        minChildSize: 0.15,
+                                        maxChildSize: 1,
+                                        builder: (BuildContext context,
+                                            ScrollController scrollController) {
+                                          return ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                              topLeft: Radius.circular(24.0),
+                                              topRight: Radius.circular(24.0),
+                                            ),
+                                            child: Container(
+                                              color: Colors.white,
+                                              child: SingleChildScrollView(
+                                                primary: false,
+                                                controller: scrollController,
+                                                child:
+                                                    Column(children: <Widget>[
+                                                  const Pill(),
+                                                  // SizedBox(
+                                                  //   height: 100,
+                                                  // ),
+                                                  CircularProgressIndicator(
+                                                    color: Colors.green,
+                                                  )
+                                                ]),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    :
 
-                                // Bottom sheet none
-                                const SizedBox.shrink(),
+                                    // Bottom sheet none
+                                    const SizedBox.shrink(),
           )
         ],
       ),
     );
+  }
+}
+
+class MapData {
+  LatLng? currentLocation;
+  LatLng? departureLocation;
+  String departureLocationName;
+  LatLng? destinationLocation;
+  String? destinationLocationName;
+
+  MapData(
+      {this.currentLocation,
+      this.departureLocation,
+      this.destinationLocation,
+      this.departureLocationName = "Vị trí của bạn",
+      this.destinationLocationName,
+      });
+
+  void changeDestinationLocation(LatLng latLng) {
+    destinationLocation = latLng;
+    // Future<String?> placeString = convertLatLngToAddress(latLng);
+    // placeString.then((value) {
+    //   destinationLocationName = value ?? "Không có chi tiết";
+    //   logWithTag("Destination location changed to: $value + $latLng",
+    //       tag: "MapData");
+    // });
+
+
   }
 }
