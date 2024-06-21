@@ -314,7 +314,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 myMarker.add(marker);
               }
               placeFound = true;
-              placeOnclick(isShowPlaceHorizontalListFromSearch: true, index: 0);
+              placeOnclickFromList(isShowPlaceHorizontalListFromSearch: true, index: 0);
 
               animateBottomSheet(
                       _dragableController, defaultBottomSheetHeight / 1000)
@@ -385,7 +385,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
 
 
-Future<void> placeClickLatLng(LatLng position) async {
+Future<void> placeClickLatLngFromMap(LatLng position) async {
   animateToPositionNoZoom(
     LatLng(position.latitude, position.longitude),
   );
@@ -414,7 +414,7 @@ Future<void> placeClickLatLng(LatLng position) async {
   }
 }
 
-  Future<LatLng?> placeOnclick(
+  Future<LatLng?> placeOnclickFromList(
       {required bool isShowPlaceHorizontalListFromSearch,
       required int index}) async {
     this.isShowPlaceHorizontalListFromSearch =
@@ -512,8 +512,8 @@ Future<void> placeClickLatLng(LatLng position) async {
         avoidFerries: isAvoidFerries))!;
     drawRoute();
     changeState("Route Planning");
-    mapData.departureLocation = from;
-    mapData.destinationLocation = to;
+    mapData.changeDepartureLocation(from);
+    mapData.changeDestinationLocation(to);
   }
 
   Future<void> placeMarkAndRoute(
@@ -608,8 +608,8 @@ Future<void> placeClickLatLng(LatLng position) async {
     _searchFieldFocusNode = FocusNode();
 
     getCurrentLocationLatLng().then((value) {
-      mapData.currentLocation = value;
-      mapData.departureLocation = value;
+      mapData.changeCurrentLocation(value);
+      mapData.changeDepartureLocation(value);
       if (!isHaveLastSessionLocation) {
         animateToPosition(mapData.currentLocation!);
       }
@@ -698,7 +698,7 @@ Future<void> placeClickLatLng(LatLng position) async {
             myLocationButtonEnabled: false,
             markers: myMarker.toSet(),
             onTap: (LatLng position) {
-              placeClickLatLng(position);
+              placeClickLatLngFromMap(position);
             },
             onMapCreated: (GoogleMapController controller) {
               _mapsController.complete(controller);
@@ -768,7 +768,7 @@ Future<void> placeClickLatLng(LatLng position) async {
                                   const EdgeInsets.only(left: 5.0, right: 5),
                               child: GestureDetector(
                                 onTap: () {
-                                  placeOnclick(
+                                  placeOnclickFromList(
                                       isShowPlaceHorizontalListFromSearch:
                                           isShowPlaceHorizontalListFromSearch,
                                       index: index);
@@ -1031,19 +1031,31 @@ Future<void> placeClickLatLng(LatLng position) async {
                                     child: Row(
                                       children: [
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              travelMode = "WALK";
+                                              calcRouteFromDepToDes();
+                                            },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/walk.svg")),
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              travelMode = "DRIVE";
+                                              calcRouteFromDepToDes();
+                                            },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/car.svg")),
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              travelMode = "TWO_WHEELER";
+                                              calcRouteFromDepToDes();
+                                            },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/motor.svg")),
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              travelMode = "TRANSIT";
+                                              calcRouteFromDepToDes();
+                                            },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/public_transport.svg")),
                                       ],
@@ -1091,7 +1103,7 @@ Future<void> placeClickLatLng(LatLng position) async {
                                                 _dragableController.pixels;
                                           });
                                         });
-                                        placeOnclick(
+                                        placeOnclickFromList(
                                             isShowPlaceHorizontalListFromSearch:
                                                 false,
                                             index: index);
@@ -1561,6 +1573,8 @@ class MapData {
 
   void changeDestinationLocation(LatLng latLng) {
     destinationLocation = latLng;
+    logWithTag("Destination location changed to: $latLng", tag: "MapData");
+    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
     // Future<String?> placeString = convertLatLngToAddress(latLng);
     // placeString.then((value) {
     //   destinationLocationName = value ?? "Không có chi tiết";
@@ -1568,6 +1582,26 @@ class MapData {
     //       tag: "MapData");
     // });
 
+
+  }
+
+  void changeDepartureLocation(LatLng from) {
+    departureLocation = from;
+    logWithTag("Departure location changed to: $from", tag: "MapData");
+    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
+
+    // Future<String?> placeString = convertLatLngToAddress(from);
+    // placeString.then((value) {
+    //   departureLocationName = value ?? "Không có chi tiết";
+    //   logWithTag("Departure location changed to: $value + $from",
+    //       tag: "MapData");
+    // });
+  }
+
+  void changeCurrentLocation(LatLng value) {
+    currentLocation = value;
+    logWithTag("Current location changed to: $value", tag: "MapData");
+    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
 
   }
 }
