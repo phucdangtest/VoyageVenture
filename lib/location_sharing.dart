@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:math'; // Import math library for acos function
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:voyageventure/features/current_location.dart';
 import 'package:voyageventure/utils.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class LocationSharing extends StatefulWidget {
   const LocationSharing({super.key});
@@ -25,7 +29,8 @@ bool distanceBetween(LatLng position1, LatLng position2) {
 }
 
 class _LocationSharingState extends State<LocationSharing> {
-  late CameraPosition _initialLocation;
+  CameraPosition _initialLocation =
+      const CameraPosition(target: LatLng(0.0, 0.0));
   final Set<Marker> myMarker = {};
   GoogleMapController? _controller;
   bool _showWhiteBox = false; // State variable to control box visibility
@@ -39,7 +44,7 @@ class _LocationSharingState extends State<LocationSharing> {
   final List<LatLng> friendLocations = [
     LatLng(10.880247, 106.805416),
     // Example location 1 (replace with actual values)
-    LatLng(10.8672655,106.8071607),
+    LatLng(10.8672655, 106.8071607),
     // Example location 2 (replace with actual values)
   ];
 
@@ -47,6 +52,15 @@ class _LocationSharingState extends State<LocationSharing> {
   void initState() {
     super.initState();
     setInitialLocation();
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    firestore.collection('user').get().then((QuerySnapshot querySnapshot) {
+      logWithTag("Get data from firestore", tag: "LocationSharing");
+      DocumentSnapshot documentSnapshot = querySnapshot.docs.first;
+      String Email = documentSnapshot.get('Email');
+      logWithTag("Data: ${Email}", tag: "LocationSharing");
+    });
+
     //addFriendMarkers(); // Add markers for friend locations
     //trackLocation();
   }
@@ -105,12 +119,16 @@ class _LocationSharingState extends State<LocationSharing> {
     _positionStream.cancel();
   }
 
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  //final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(children: <Widget>[
       GoogleMap(
-        initialCameraPosition: _initialLocation!,
+        initialCameraPosition: _initialLocation,
         mapType: MapType.normal,
         myLocationEnabled: true,
         myLocationButtonEnabled: false,
@@ -132,6 +150,80 @@ class _LocationSharingState extends State<LocationSharing> {
         },
         polylines: {if (route != null) route!},
         zoomControlsEnabled: false,
+      ),
+      Positioned(
+        top: 20.0,
+        right: 20.0,
+        child: FloatingActionButton(
+          onPressed: () async {
+            try {
+              // Trigger Google Sign-In
+              final GoogleSignInAccount? googleUser =
+                  await googleSignIn.signIn();
+
+              if (googleUser != null) {
+                // Retrieve Google authentication credentials
+                final GoogleSignInAuthentication googleAuth =
+                    await googleUser.authentication;
+
+                // Create a Firebase credential object
+                final credential = GoogleAuthProvider.credential(
+                  accessToken: googleAuth.accessToken,
+                  idToken: googleAuth.idToken,
+                );
+
+                // Sign in to Firebase with the credential
+                final UserCredential authResult =
+                    await firebaseAuth.signInWithCredential(credential);
+
+                // Check for successful login
+                if (authResult.user != null) {
+                  final User user =
+                      authResult.user!; // Access the logged-in user
+
+                  // Show successful login SnackBar
+                  final snackBar = SnackBar(
+                    content: Text('Đăng nhập thành công!'),
+                    backgroundColor: Colors.green,
+                    action: SnackBarAction(
+                      label: 'Đóng',
+                      onPressed: () {},
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+                  // Get current location
+                  Position position = await getCurrentLocation();
+
+                  // Create a reference to the user's location node in Firestore
+                  // final databaseReference = firestore
+                  //     .collection('users')
+                  //     .doc('${user.uid}')
+                  //     .collection('location');
+
+                  // Save location data as a map
+                  final locationData = {
+                    'latitude': position.latitude,
+                    'longitude': position.longitude,
+                  };
+
+
+                  // Write location data to Firestore
+                  // await databaseReference
+                  //     .doc()
+                  //     .set(locationData); // Use doc() for Firestore
+                  print('Vị trí người dùng đã được lưu trên Firestore');
+                } else {
+                  print('Đăng nhập thất bại');
+                  // Handle login failure (optional)
+                }
+              }
+            } catch (e) {
+              print(e);
+            }
+          },
+          child: const Icon(Icons.login),
+        ),
       ),
       Positioned(
         bottom: 20,
