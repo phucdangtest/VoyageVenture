@@ -24,6 +24,7 @@ import '../MyLocationSearch/my_location_search.dart';
 import '../components/bottom_sheet_componient.dart';
 import '../components/custom_search_delegate.dart';
 import '../components/fonts.dart';
+import '../components/loading_indicator.dart';
 import '../components/location_list_tile.dart';
 import '../components/route_planning_list.dart';
 import '../models/place_autocomplete.dart';
@@ -54,8 +55,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //GeoLocation
   MapData mapData = new MapData();
   bool isHaveLastSessionLocation = false;
-
-
 
   void animateToPosition(LatLng position, {double zoom = 13}) async {
     logWithTag("Animate to position: $position", tag: "MyHomeScreen");
@@ -120,6 +119,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     "Route Planning": 3,
     "Navigation": 4,
     "Search Results None": 5,
+    "Loading Can Route": 6,
     "Loading": 10,
   };
   int state = stateMap["Default"]!;
@@ -275,6 +275,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     if (stateString == "Search Results") {
       isShowPlaceHorizontalList = true;
       polyline = null;
+      travelMode = "TWO_WHEELER";
     } else {
       isShowPlaceHorizontalList = false;
     }
@@ -314,7 +315,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 myMarker.add(marker);
               }
               placeFound = true;
-              placeOnclickFromList(isShowPlaceHorizontalListFromSearch: true, index: 0);
+              placeOnclickFromList(
+                  isShowPlaceHorizontalListFromSearch: true, index: 0);
 
               animateBottomSheet(
                       _dragableController, defaultBottomSheetHeight / 1000)
@@ -383,36 +385,36 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
   }
 
-
-
-Future<void> placeClickLatLngFromMap(LatLng position) async {
-  animateToPositionNoZoom(
-    LatLng(position.latitude, position.longitude),
-  );
-  changeState("Loading");
-  mapData.changeDestinationLocation(position);
-  setState(() {
-    myMarker = [];
-    final markerId = MarkerId("0");
-    Marker marker = Marker(
-      markerId: markerId,
-      icon: mainMarker,
-      position: LatLng(position.latitude, position.longitude),
+  Future<void> placeClickLatLngFromMap(LatLng position) async {
+    animateToPositionNoZoom(
+      LatLng(position.latitude, position.longitude),
     );
-    myMarker.add(marker);
-  });
-  try {
-    String placeString = await convertLatLngToAddress(position);
-    var value = await placeSearchSingle(placeString);
-    if (value != null) {
-      markedPlace = value;
-      changeState("Search Results");
-    } else
-      changeState("Search Results None");
-  } catch (e) {
-    print('Failed to mark and search place: $e');
+    changeState("Loading Can Route");
+    mapData.changeDestinationLocation(position);
+    setState(() {
+      myMarker = [];
+      final markerId = MarkerId("0");
+      Marker marker = Marker(
+        markerId: markerId,
+        icon: mainMarker,
+        position: LatLng(position.latitude, position.longitude),
+      );
+      myMarker.add(marker);
+    });
+    try {
+      String placeString = await convertLatLngToAddress(position);
+      var value = await placeSearchSingle(placeString);
+      if (value != null) {
+        markedPlace = value;
+        if (state == stateMap["Loading Can Route"]!)
+          changeState("Search Results");
+      } else
+      if (state == stateMap["Loading Can Route"]!)
+        changeState("Search Results None");
+    } catch (e) {
+      print('Failed to mark and search place: $e');
+    }
   }
-}
 
   Future<LatLng?> placeOnclickFromList(
       {required bool isShowPlaceHorizontalListFromSearch,
@@ -423,9 +425,9 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
     polyline = null;
     if (isShowPlaceHorizontalListFromSearch) {
       try {
-        mapData.changeDestinationLocation(
-            LatLng(placeSearchList[index].location.latitude,
-                placeSearchList[index].location.longitude));
+        mapData.changeDestinationLocation(LatLng(
+            placeSearchList[index].location.latitude,
+            placeSearchList[index].location.longitude));
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
@@ -448,7 +450,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
         placeAutoList[index].structuredFormat?.mainText?.text ?? "");
     if (value != null) {
       mapData.changeDestinationLocation(
-        LatLng(value.location.latitude, value.location.longitude));
+          LatLng(value.location.latitude, value.location.longitude));
       animateToPosition(
         LatLng(value.location.latitude, value.location.longitude),
       );
@@ -492,10 +494,10 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
   }
 
   Future<void> calcRouteFromDepToDes() async {
-    if (mapData.departureLocation != null && mapData.destinationLocation != null)
+    if (mapData.departureLocation != null &&
+        mapData.destinationLocation != null)
       calcRoute(
-          from: mapData.departureLocation!,
-          to: mapData.destinationLocation!);
+          from: mapData.departureLocation!, to: mapData.destinationLocation!);
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
@@ -884,17 +886,26 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                           Row(children: [
                             IconButton(
                                 onPressed: () {
-                                  if (state == stateMap["Search Results"]! ||
-                                      state ==
-                                          stateMap["Search Results None"]!) {
-                                    changeState("Default");
-                                  } else if (state ==
-                                      stateMap["Route Planning"]!) {
-                                    changeState("Search Results");
-                                  } else if (state == stateMap["Navigation"]!) {
-                                    changeState("Route Planning");
-                                  } else if (state == stateMap["Loading"]!) {
-                                    changeState("Search Results");
+                                  String currentState = stateFromInt(state);
+
+                                  switch (currentState) {
+                                    case "Search Results":
+                                    case "Search Results None":
+                                      changeState("Default");
+                                      break;
+                                    case "Route Planning":
+                                    case "Loading Can Route":
+                                      changeState("Search Results");
+                                      break;
+                                    case "Navigation":
+                                      changeState("Route Planning");
+                                      break;
+                                    case "Loading":
+                                      changeState("Search Results");
+                                      break;
+                                    default:
+                                      changeState("Default");
+                                      break;
                                   }
                                 },
                                 icon: const Icon(Icons.arrow_back)),
@@ -953,9 +964,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                 },
                               ),
                             ),
-                            (state == stateMap["Place Search"] ||
-                                    state == stateMap["Search Results"] ||
-                                    state == stateMap["Search Results None"]!)
+                            (state == stateMap["Default"]!)
                                 ? Container(
                                     // Profile picture
                                     margin: EdgeInsets.only(left: 10.0),
@@ -1029,6 +1038,8 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+
                                       children: [
                                         IconButton(
                                             onPressed: () {
@@ -1037,6 +1048,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/walk.svg")),
+                                        SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "DRIVE";
@@ -1044,6 +1056,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/car.svg")),
+                                        SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "TWO_WHEELER";
@@ -1051,6 +1064,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/motor.svg")),
+                                        SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "TRANSIT";
@@ -1411,7 +1425,11 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                         const Center(child: Text('Không tên')),
                                         FilledButton(
                                           onPressed: () {
-                                            calcRoute(from: mapData.departureLocation!, to: mapData.destinationLocation!);
+                                            calcRoute(
+                                                from:
+                                                    mapData.departureLocation!,
+                                                to: mapData
+                                                    .destinationLocation!);
                                           },
                                           child: const Text("Chỉ đường"),
                                         ),
@@ -1426,7 +1444,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                             DraggableScrollableSheet(
                                 controller: _dragableController,
                                 initialChildSize:
-                                    defaultBottomSheetHeight / 1000,
+                                defaultBottomSheetHeight / 1000,
                                 minChildSize: 0.15,
                                 maxChildSize: 1,
                                 builder: (BuildContext context,
@@ -1451,8 +1469,10 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                             // itemBuilder: (context, index) {
                                             //   // return RoutePlanningListTile(routeResponse: null,);
                                             //   return Placeholder();
+
                                             child: RoutePlanningList(
                                                 routes: routes,
+                                                travelMode: travelMode,
                                                 itemClick: (index) {
                                                   changeState("Navigation");
                                                 }),
@@ -1508,53 +1528,118 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                       );
                                     },
                                   )
-                                : (state == stateMap["Loading"]!)
+                                : (state == stateMap["Loading Can Route"]!)
                                     ?
-                                    // Bottom sheet loading
+                                    // Bottom sheet loading can route
                                     DraggableScrollableSheet(
-                                        controller: _dragableController,
-                                        initialChildSize:
-                                            defaultBottomSheetHeight / 1000,
-                                        minChildSize: 0.15,
-                                        maxChildSize: 1,
-                                        builder: (BuildContext context,
-                                            ScrollController scrollController) {
-                                          return ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.only(
-                                              topLeft: Radius.circular(24.0),
-                                              topRight: Radius.circular(24.0),
+                                      controller: _dragableController,
+                                      initialChildSize:
+                                      defaultBottomSheetHeight / 1000,
+                                      minChildSize: 0.15,
+                                      maxChildSize: 1,
+                                      builder: (BuildContext context,
+                                          ScrollController
+                                          scrollController) {
+                                        return ClipRRect(
+                                          borderRadius:
+                                          const BorderRadius.only(
+                                            topLeft:
+                                            Radius.circular(24.0),
+                                            topRight:
+                                            Radius.circular(24.0),
+                                          ),
+                                          child: Container(
+                                            color: Colors.white,
+                                            child: SingleChildScrollView(
+                                              primary: false,
+                                              controller:
+                                              scrollController,
+                                              child: Column(
+                                                  children: <Widget>[
+                                                    const Pill(),
+                                                    SizedBox(
+                                                      height: 30,
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        CircularProgressIndicator(
+                                                          color: Colors.green,
+                                                        ),
+                                                        FilledButton(
+                                                          onPressed: () {
+                                                            calcRoute(
+                                                                from:
+                                                                mapData.departureLocation!,
+                                                                to: mapData
+                                                                    .destinationLocation!);
+                                                          },
+                                                          child: const Text("Chỉ đường"),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  ]),
                                             ),
-                                            child: Container(
-                                              color: Colors.white,
-                                              child: SingleChildScrollView(
-                                                primary: false,
-                                                controller: scrollController,
-                                                child:
-                                                    Column(children: <Widget>[
-                                                  const Pill(),
-                                                  // SizedBox(
-                                                  //   height: 100,
-                                                  // ),
-                                                  CircularProgressIndicator(
-                                                    color: Colors.green,
-                                                  )
-                                                ]),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      )
-                                    :
+                                          ),
+                                        );
+                                      },
+                                    )
+                                    : (state == stateMap["Loading"]!)
+                                        ?
+                                        // Bottom sheet loading
+                                        DraggableScrollableSheet(
+                                            controller: _dragableController,
+                                            initialChildSize:
+                                                defaultBottomSheetHeight / 1000,
+                                            minChildSize: 0.15,
+                                            maxChildSize: 1,
+                                            builder: (BuildContext context,
+                                                ScrollController
+                                                    scrollController) {
+                                              return ClipRRect(
+                                                borderRadius:
+                                                    const BorderRadius.only(
+                                                  topLeft:
+                                                      Radius.circular(24.0),
+                                                  topRight:
+                                                      Radius.circular(24.0),
+                                                ),
+                                                child: Container(
+                                                  color: Colors.white,
+                                                  child: SingleChildScrollView(
+                                                    primary: false,
+                                                    controller:
+                                                        scrollController,
+                                                    child: Column(
+                                                        children: <Widget>[
+                                                          const Pill(),
+                                                          // SizedBox(
+                                                          //   height: 100,
+                                                          // ),
+                                                          LoadingIndicator(
+                                                            color: Colors.green,
+                                                            onPressed: ()
+                                                            {
+                                                              changeState("Search Results");
+                                                            },
+                                                          ),
+                                                        ]),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          )
+                                        :
 
-                                    // Bottom sheet none
-                                    const SizedBox.shrink(),
+                                        // Bottom sheet none
+                                        const SizedBox.shrink(),
           )
         ],
       ),
     );
   }
 }
+
+
 
 class MapData {
   LatLng? currentLocation;
@@ -1563,32 +1648,34 @@ class MapData {
   LatLng? destinationLocation;
   String? destinationLocationName;
 
-  MapData(
-      {this.currentLocation,
-      this.departureLocation,
-      this.destinationLocation,
-      this.departureLocationName = "Vị trí của bạn",
-      this.destinationLocationName,
-      });
+  MapData({
+    this.currentLocation,
+    this.departureLocation,
+    this.destinationLocation,
+    this.departureLocationName = "Vị trí của bạn",
+    this.destinationLocationName,
+  });
 
   void changeDestinationLocation(LatLng latLng) {
     destinationLocation = latLng;
     logWithTag("Destination location changed to: $latLng", tag: "MapData");
-    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        tag: "MapData");
     // Future<String?> placeString = convertLatLngToAddress(latLng);
     // placeString.then((value) {
     //   destinationLocationName = value ?? "Không có chi tiết";
     //   logWithTag("Destination location changed to: $value + $latLng",
     //       tag: "MapData");
     // });
-
-
   }
 
   void changeDepartureLocation(LatLng from) {
     departureLocation = from;
     logWithTag("Departure location changed to: $from", tag: "MapData");
-    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        tag: "MapData");
 
     // Future<String?> placeString = convertLatLngToAddress(from);
     // placeString.then((value) {
@@ -1601,7 +1688,8 @@ class MapData {
   void changeCurrentLocation(LatLng value) {
     currentLocation = value;
     logWithTag("Current location changed to: $value", tag: "MapData");
-    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
-
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        tag: "MapData");
   }
 }

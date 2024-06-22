@@ -11,7 +11,7 @@ class _PillState extends State<Pill> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 8.0),
+      margin: EdgeInsets.only(top: 8.0, bottom: 8.0),
       height: 4.0,
       width: 40.0,
       decoration: BoxDecoration(

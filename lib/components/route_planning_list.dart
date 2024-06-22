@@ -10,7 +10,8 @@ import '../models/route_calculate_response.dart';
 class RoutePlanningList extends StatefulWidget {
   final List<Route_> routes;
   final Function(int) itemClick;
-  const RoutePlanningList({super.key, required this.routes, required this.itemClick});
+  final String travelMode;
+  const RoutePlanningList({super.key, required this.routes, required this.itemClick, required String this.travelMode});
 
   @override
   State<RoutePlanningList> createState() => _RoutePlanningListState();
@@ -59,7 +60,7 @@ Widget build(BuildContext context) {
             shrinkWrap: true,
             itemCount: widget.routes[0].getLegsCount(),
             itemBuilder: (context, index) {
-              return RoutePlanningListTile(leg: widget.routes[0].getLeg(index));
+              return RoutePlanningListTile(leg: widget.routes[0].getLeg(index), travelMode: widget.travelMode);
             },
             ),
           ),
