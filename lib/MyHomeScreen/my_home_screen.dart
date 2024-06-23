@@ -12,6 +12,7 @@ import 'package:voyageventure/components/custom_search_field.dart';
 import 'package:voyageventure/components/route_planning_list_tile.dart';
 import 'package:voyageventure/components/navigation_list_tile.dart';
 import 'package:voyageventure/components/misc_widget.dart';
+import 'package:voyageventure/components/waypoint_list.dart';
 import 'package:voyageventure/constants.dart';
 import 'package:voyageventure/models/route_calculate_response.dart';
 import 'package:voyageventure/utils.dart';
@@ -100,7 +101,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   bool isAvoidFerries = false;
   List<bool> isChange = [false, false, false, false, false];
   bool isCalcRouteFromCurrentLocation = true;
-  List<LatLng> waypointsLatLgn = [];
+  List<LatLng> waypointsLatLgn = [
+    LatLng(10.7981542, 106.6614047),
+    LatLng(10.8022349, 106.6695118),
+    LatLng(10.8114795, 106.6548157),
+    LatLng(10.8798036, 106.8052206),
+  ];
+
 
   //Test
 
@@ -117,6 +124,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     "Navigation": 4,
     "Search Results None": 5,
     "Loading Can Route": 6,
+    "Add Waypoint": 7,
     "Loading": 10,
   };
   int state = stateMap["Default"]!;
@@ -273,14 +281,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       isShowPlaceHorizontalList = true;
       polyline = null;
       travelMode = "TWO_WHEELER";
-      waypointsLatLgn = [];
+      //Todo remove after test waypoint
+      //waypointsLatLgn = [];
     } else {
       isShowPlaceHorizontalList = false;
     }
 
     if (stateString == "Route Planning") {
       drawRoute();
-    }
+    } else if (stateString == "Add Waypoint") {}
 
     setState(() {
       state = stateMap[stateString]!;
@@ -406,11 +415,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         markedPlace = value;
         if (state == stateMap["Loading Can Route"]!)
           changeState("Search Results");
-      } else
-      if (state == stateMap["Loading Can Route"]!)
+      } else if (state == stateMap["Loading Can Route"]!)
         changeState("Search Results None");
     } catch (e) {
-      logWithTag("Error, place click from map: $e", tag: "SearchLocationScreen");
+      logWithTag("Error, place click from map: $e",
+          tag: "SearchLocationScreen");
     }
   }
 
@@ -476,11 +485,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       setState(() {
         encodedPolyline = routes[0].legs[0].polyline.encodedPolyline;
         polyline = Polyline(
-          polylineId: const PolylineId("route"),
-          color: Colors.green,
-          width: 8,
-          points: Polyline_.decodePolyline(encodedPolyline)
-        );
+            polylineId: const PolylineId("route"),
+            color: Colors.green,
+            width: 8,
+            points: Polyline_.decodePolyline(encodedPolyline));
       });
     }
   }
@@ -492,7 +500,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   }
 
   Future<void> calcRouteFromDepToDes() async {
-    waypointsLatLgn = [];
+    //Todo remove after test waypoint
+    //waypointsLatLgn = [];
     if (mapData.departureLocation != null &&
         mapData.destinationLocation != null)
       calcRoute(
@@ -605,6 +614,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   @override
   void initState() {
     super.initState();
+
+
     _searchFieldController = TextEditingController();
     _searchFieldFocusNode = FocusNode();
 
@@ -783,7 +794,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                           isShowPlaceHorizontalListFromSearch,
                                       index: index);
                                   drawRoute();
-
                                 },
                                 child: Container(
                                   //margin: EdgeInsets.only(
@@ -863,7 +873,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               ),
               child: Visibility(
                   //Top search bar - Departure
-                  visible: true, //state == stateMap["Search"]!,
+                  visible: state != stateMap["Add Waypoint"],
+                  //state == stateMap["Search"]!,
                   child: Column(
                     children: [
                       const SizedBox(
@@ -956,8 +967,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                 ? Container(
                                     // Profile picture
                                     margin: const EdgeInsets.only(left: 10.0),
-                                    width: 50,
-                                    height: 50,
+                                    width: 45,
+                                    height: 45,
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(8.0),
@@ -971,7 +982,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   )
                                 : Container(
                                     // Profile picture
-                                    margin: const EdgeInsets.only(left: 10.0),
                                     width: 50,
                                     height: 50,
                                     decoration: BoxDecoration(
@@ -993,41 +1003,55 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               width: MediaQuery.of(context).size.width,
                               child: Column(
                                 children: [
-                                  Container(
-                                    width:
-                                        MediaQuery.of(context).size.width - 120,
-                                    height: 45,
-                                    margin:
-                                    const EdgeInsets.only(top: 10.0, left: 0.0),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          spreadRadius: 5,
-                                          blurRadius: 7,
-                                          offset: const Offset(0, 3),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width:
+                                            MediaQuery.of(context).size.width -
+                                                120,
+                                        height: 45,
+                                        margin: const EdgeInsets.only(
+                                            top: 10.0, right: 10.0),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              spreadRadius: 5,
+                                              blurRadius: 7,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    child: TextField(
-                                      decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        prefixIcon: SizedBox(
-                                          width: 10,
-                                          height: 10,
-                                          child: SvgPicture.asset(
-                                              "assets/icons/verified_destination.svg"),
+                                        child: TextField(
+                                          decoration: InputDecoration(
+                                            border: InputBorder.none,
+                                            prefixIcon: SizedBox(
+                                              width: 10,
+                                              height: 10,
+                                              child: SvgPicture.asset(
+                                                  "assets/icons/verified_destination.svg"),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      SizedBox(
+                                          width: 40,
+                                          height: 40,
+                                          child: IconButton(
+                                              onPressed: () {},
+                                              icon: SvgPicture.asset(
+                                                  "assets/icons/swap.svg"))),
+                                    ],
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         IconButton(
                                             onPressed: () {
@@ -1432,7 +1456,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                             DraggableScrollableSheet(
                                 controller: _dragableController,
                                 initialChildSize:
-                                defaultBottomSheetHeight / 1000,
+                                    defaultBottomSheetHeight / 1000,
                                 minChildSize: 0.15,
                                 maxChildSize: 1,
                                 builder: (BuildContext context,
@@ -1449,6 +1473,19 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         controller: scrollController,
                                         child: Column(children: <Widget>[
                                           const Pill(),
+                                          Container(
+                                            child: ElevatedButton.icon(
+                                              onPressed: () {
+                                                changeState("Add Waypoint");
+                                              },
+                                              icon: SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: SvgPicture.asset(
+                                                      "assets/icons/add_waypoint.svg")),
+                                              label: Text('Thêm điểm dừng'),
+                                            ),
+                                          ),
                                           RoutePlanningList(
                                               routes: routes,
                                               travelMode: travelMode,
@@ -1456,8 +1493,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                               isAvoidHighways: isAvoidHighways,
                                               isAvoidFerries: isAvoidFerries,
                                               waypointsLatLgn: waypointsLatLgn,
-                                              destinationLatLgn: mapData
-                                                  .destinationLocation!,
+                                              destinationLatLgn:
+                                                  mapData.destinationLocation!,
                                               itemClick: (index) {
                                                 //changeState("Navigation");
                                               })
@@ -1516,60 +1553,57 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                     ?
                                     // Bottom sheet loading can route
                                     DraggableScrollableSheet(
-                                      controller: _dragableController,
-                                      initialChildSize:
-                                      defaultBottomSheetHeight / 1000,
-                                      minChildSize: 0.15,
-                                      maxChildSize: 1,
-                                      builder: (BuildContext context,
-                                          ScrollController
-                                          scrollController) {
-                                        return ClipRRect(
-                                          borderRadius:
-                                          const BorderRadius.only(
-                                            topLeft:
-                                            Radius.circular(24.0),
-                                            topRight:
-                                            Radius.circular(24.0),
-                                          ),
-                                          child: Container(
-                                            color: Colors.white,
-                                            child: SingleChildScrollView(
-                                              primary: false,
-                                              controller:
-                                              scrollController,
-                                              child: Column(
-                                                  children: <Widget>[
-                                                    const Pill(),
-                                                    const SizedBox(
-                                                      height: 30,
-                                                    ),
-                                                    Row(
-                                                      children: [
-                                                        const CircularProgressIndicator(
-                                                          color: Colors.green,
-                                                        ),
-                                                        FilledButton(
-                                                          onPressed: () {
-                                                            calcRoute(
-                                                                from:
-                                                                mapData.departureLocation!,
-                                                                to: mapData
-                                                                    .destinationLocation!);
-                                                          },
-                                                          child: const Text("Chỉ đường"),
-                                                        ),
-                                                      ],
-                                                    )
-                                                  ]),
+                                        controller: _dragableController,
+                                        initialChildSize:
+                                            defaultBottomSheetHeight / 1000,
+                                        minChildSize: 0.15,
+                                        maxChildSize: 1,
+                                        builder: (BuildContext context,
+                                            ScrollController scrollController) {
+                                          return ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                              topLeft: Radius.circular(24.0),
+                                              topRight: Radius.circular(24.0),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                    : (state == stateMap["Loading"]!)
+                                            child: Container(
+                                              color: Colors.white,
+                                              child: SingleChildScrollView(
+                                                primary: false,
+                                                controller: scrollController,
+                                                child:
+                                                    Column(children: <Widget>[
+                                                  const Pill(),
+                                                  const SizedBox(
+                                                    height: 30,
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      const CircularProgressIndicator(
+                                                        color: Colors.green,
+                                                      ),
+                                                      FilledButton(
+                                                        onPressed: () {
+                                                          calcRoute(
+                                                              from: mapData
+                                                                  .departureLocation!,
+                                                              to: mapData
+                                                                  .destinationLocation!);
+                                                        },
+                                                        child: const Text(
+                                                            "Chỉ đường"),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ]),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : (state == stateMap["Add Waypoint"]!)
                                         ?
-                                        // Bottom sheet loading
+                                        // Bottom sheet add waypoint
                                         DraggableScrollableSheet(
                                             controller: _dragableController,
                                             initialChildSize:
@@ -1590,40 +1624,82 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 child: Container(
                                                   color: Colors.white,
                                                   child: SingleChildScrollView(
-                                                    primary: false,
-                                                    controller:
-                                                        scrollController,
-                                                    child: Column(
-                                                        children: <Widget>[
-                                                          const Pill(),
-                                                          // SizedBox(
-                                                          //   height: 100,
-                                                          // ),
-                                                          LoadingIndicator(
-                                                            color: Colors.green,
-                                                            onPressed: ()
-                                                            {
-                                                              changeState("Search Results");
-                                                            },
-                                                          ),
-                                                        ]),
-                                                  ),
+                                                      primary: false,
+                                                      controller:
+                                                          scrollController,
+                                                      child: Column(
+                                                          children: <Widget>[
+                                                            const Pill(),
+                                                            // SizedBox(
+                                                            //   height: 100,
+                                                            // ),
+                                                            WaypointList(
+                                                              waypoints:
+                                                                  waypointsLatLgn,
+                                                            ),
+                                                          ])),
                                                 ),
                                               );
                                             },
                                           )
-                                        :
+                                        : (state == stateMap["Loading"]!)
+                                            ?
+                                            // Bottom sheet loading
+                                            DraggableScrollableSheet(
+                                                controller: _dragableController,
+                                                initialChildSize:
+                                                    defaultBottomSheetHeight /
+                                                        1000,
+                                                minChildSize: 0.15,
+                                                maxChildSize: 1,
+                                                builder: (BuildContext context,
+                                                    ScrollController
+                                                        scrollController) {
+                                                  return ClipRRect(
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(24.0),
+                                                      topRight:
+                                                          Radius.circular(24.0),
+                                                    ),
+                                                    child: Container(
+                                                      color: Colors.white,
+                                                      child:
+                                                          SingleChildScrollView(
+                                                        primary: false,
+                                                        controller:
+                                                            scrollController,
+                                                        child: Column(
+                                                            children: <Widget>[
+                                                              const Pill(),
+                                                              // SizedBox(
+                                                              //   height: 100,
+                                                              // ),
+                                                              LoadingIndicator(
+                                                                color: Colors
+                                                                    .green,
+                                                                onPressed: () {
+                                                                  changeState(
+                                                                      "Search Results");
+                                                                },
+                                                              ),
+                                                            ]),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            :
 
-                                        // Bottom sheet none
-                                        const SizedBox.shrink(),
+                                            // Bottom sheet none
+                                            const SizedBox.shrink(),
           )
         ],
       ),
     );
   }
 }
-
-
 
 class MapData {
   LatLng? currentLocation;

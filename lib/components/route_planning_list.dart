@@ -86,6 +86,8 @@ class _RoutePlanningListState extends State<RoutePlanningList> {
 
               if (widget.travelMode == "TWO_WHEELER")
                 travelModeParameter = "&mode=l";
+              else if (widget.travelMode == "WALK")
+                travelModeParameter = "&mode=w";
 
 
               for (int i = 0; i < widget.waypointsLatLgn.length; i++) {
