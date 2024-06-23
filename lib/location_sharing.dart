@@ -157,74 +157,112 @@ class _LocationSharingState extends State<LocationSharing> {
         child: FloatingActionButton(
           onPressed: () async {
             try {
-              // Trigger Google Sign-In
-              final GoogleSignInAccount? googleUser =
-                  await googleSignIn.signIn();
+              // Define email and password
+              String email = 'nhancanh02@gmail.com'; // replace with actual email
+              String password = 'maihan1609'; // replace with actual password
 
-              if (googleUser != null) {
-                // Retrieve Google authentication credentials
-                final GoogleSignInAuthentication googleAuth =
-                    await googleUser.authentication;
+              // Sign in to Firebase with email and password
+              final UserCredential authResult = await firebaseAuth
+                  .signInWithEmailAndPassword(
+                email: email,
+                password: password,
+              );
 
-                // Create a Firebase credential object
-                final credential = GoogleAuthProvider.credential(
-                  accessToken: googleAuth.accessToken,
-                  idToken: googleAuth.idToken,
+              // Check for successful login
+              if (authResult.user != null) {
+                final User user = authResult
+                    .user!; // Access the logged-in user
+
+                // Show successful login SnackBar
+                final snackBar = SnackBar(
+                  content: Text('Đăng nhập thành công!'),
+                  backgroundColor: Colors.green,
+                  action: SnackBarAction(
+                    label: 'Đóng',
+                    onPressed: () {},
+                  ),
                 );
-
-                // Sign in to Firebase with the credential
-                final UserCredential authResult =
-                    await firebaseAuth.signInWithCredential(credential);
-
-                // Check for successful login
-                if (authResult.user != null) {
-                  final User user =
-                      authResult.user!; // Access the logged-in user
-
-                  // Show successful login SnackBar
-                  final snackBar = SnackBar(
-                    content: Text('Đăng nhập thành công!'),
-                    backgroundColor: Colors.green,
-                    action: SnackBarAction(
-                      label: 'Đóng',
-                      onPressed: () {},
-                    ),
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-                  // Get current location
-                  Position position = await getCurrentLocation();
-
-                  // Create a reference to the user's location node in Firestore
-                  // final databaseReference = firestore
-                  //     .collection('users')
-                  //     .doc('${user.uid}')
-                  //     .collection('location');
-
-                  // Save location data as a map
-                  final locationData = {
-                    'latitude': position.latitude,
-                    'longitude': position.longitude,
-                  };
-
-
-                  // Write location data to Firestore
-                  // await databaseReference
-                  //     .doc()
-                  //     .set(locationData); // Use doc() for Firestore
-                  print('Vị trí người dùng đã được lưu trên Firestore');
-                } else {
-                  print('Đăng nhập thất bại');
-                  // Handle login failure (optional)
-                }
+                ScaffoldMessenger.of(context).showSnackBar(snackBar);
               }
             } catch (e) {
-              print(e);
+              // Handle login failure
+              print('Đăng nhập thất bại: $e');
             }
           },
           child: const Icon(Icons.login),
         ),
       ),
+            //
+            //
+            // try {
+            //   // Trigger Google Sign-In
+            //   final GoogleSignInAccount? googleUser =
+            //       await googleSignIn.signIn();
+            //
+            //   if (googleUser != null) {
+            //     // Retrieve Google authentication credentials
+            //     final GoogleSignInAuthentication googleAuth =
+            //         await googleUser.authentication;
+            //
+            //     // Create a Firebase credential object
+            //     final credential = GoogleAuthProvider.credential(
+            //       accessToken: googleAuth.accessToken,
+            //       idToken: googleAuth.idToken,
+            //     );
+            //
+            //     // Sign in to Firebase with the credential
+            //     final UserCredential authResult =
+            //         await firebaseAuth.signInWithCredential(credential);
+            //
+            //     // Check for successful login
+            //     if (authResult.user != null) {
+            //       final User user =
+            //           authResult.user!; // Access the logged-in user
+            //
+            //       // Show successful login SnackBar
+            //       final snackBar = SnackBar(
+            //         content: Text('Đăng nhập thành công!'),
+            //         backgroundColor: Colors.green,
+            //         action: SnackBarAction(
+            //           label: 'Đóng',
+            //           onPressed: () {},
+            //         ),
+            //       );
+            //       ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            //
+            //       // Get current location
+            //       Position position = await getCurrentLocation();
+            //
+            //       // Create a reference to the user's location node in Firestore
+            //       // final databaseReference = firestore
+            //       //     .collection('users')
+            //       //     .doc('${user.uid}')
+            //       //     .collection('location');
+            //
+            //       // Save location data as a map
+            //       final locationData = {
+            //         'latitude': position.latitude,
+            //         'longitude': position.longitude,
+            //       };
+            //
+            //
+            //       // Write location data to Firestore
+            //       // await databaseReference
+            //       //     .doc()
+            //       //     .set(locationData); // Use doc() for Firestore
+            //       print('Vị trí người dùng đã được lưu trên Firestore');
+            //     } else {
+            //       print('Đăng nhập thất bại');
+            //       // Handle login failure (optional)
+            //     }
+            //   }
+            // } catch (e) {
+            //   print(e);
+            // }
+      //     },
+      //     child: const Icon(Icons.login),
+      //   ),
+      // ),
       Positioned(
         bottom: 20,
         left: 20, // Position at the left
