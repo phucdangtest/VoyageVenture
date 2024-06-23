@@ -71,7 +71,7 @@ Future<List<LatLng>?> computeRoutes({
     RouteResponse_ routeResponse = RouteResponse_.fromJson(parsed);
     Route_ route = routeResponse.routes[0];
     List<LatLng> polylinePoints =
-        route.legs[0].polyline.decodedPolyline();
+        Polyline_.decodePolyline(route.legs[0].polyline.encodedPolyline);
     //logWithTag(route.toString(), tag: 'computeRoutes');
     logWithTag("route.toString()", tag: 'computeRoutes');
     return polylinePoints;

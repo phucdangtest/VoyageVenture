@@ -95,6 +95,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   List<Route_> routes = [];
   Future<List<LatLng>?> polylinePoints = Future.value(null);
   Polyline? polyline;
+  String encodedPolyline = "";
   String travelMode = "DRIVE";
   String routingPreference = "TRAFFIC_AWARE";
   bool isTrafficAware = true;
@@ -104,6 +105,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   bool isAvoidFerries = false;
   List<bool> isChange = [false, false, false, false, false];
   bool isCalcRouteFromCurrentLocation = true;
+  List<LatLng> waypointsLatLgn = [];
 
   //Test
 
@@ -276,6 +278,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       isShowPlaceHorizontalList = true;
       polyline = null;
       travelMode = "TWO_WHEELER";
+      waypointsLatLgn = [];
     } else {
       isShowPlaceHorizontalList = false;
     }
@@ -422,7 +425,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
     changeState("Search Results");
-    polyline = null;
     if (isShowPlaceHorizontalListFromSearch) {
       try {
         mapData.changeDestinationLocation(LatLng(
@@ -477,11 +479,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   void drawRoute() {
     if (routes.isNotEmpty) {
       setState(() {
+        encodedPolyline = routes[0].legs[0].polyline.encodedPolyline;
         polyline = Polyline(
           polylineId: const PolylineId("route"),
           color: Colors.green,
           width: 8,
-          points: routes[0].legs[0].polyline.decodedPolyline(),
+          points: Polyline_.decodePolyline(encodedPolyline)
         );
       });
     }
@@ -494,6 +497,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   }
 
   Future<void> calcRouteFromDepToDes() async {
+    waypointsLatLgn = [];
     if (mapData.departureLocation != null &&
         mapData.destinationLocation != null)
       calcRoute(
@@ -783,19 +787,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                       isShowPlaceHorizontalListFromSearch:
                                           isShowPlaceHorizontalListFromSearch,
                                       index: index);
-                                  if (routes.isNotEmpty) {
-                                    setState(() {
-                                      polyline = Polyline(
-                                        polylineId: const PolylineId("route"),
-                                        color: Colors.green,
-                                        width: 8,
-                                        points: routes[0]
-                                            .legs[0]
-                                            .polyline
-                                            .decodedPolyline(),
-                                      );
-                                    });
-                                  }
+                                  drawRoute();
+
                                 },
                                 child: Container(
                                   //margin: EdgeInsets.only(
@@ -1476,6 +1469,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 isAvoidTolls: isAvoidTolls,
                                                 isAvoidHighways: isAvoidHighways,
                                                 isAvoidFerries: isAvoidFerries,
+                                                waypointsLatLgn: waypointsLatLgn,
+                                                destinationLatLgn: mapData
+                                                    .destinationLocation!,
                                                 itemClick: (index) {
                                                   //changeState("Navigation");
                                                 }),

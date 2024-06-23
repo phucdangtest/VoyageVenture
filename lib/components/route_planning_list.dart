@@ -13,6 +13,8 @@ class RoutePlanningList extends StatefulWidget {
   final List<Route_> routes;
   final Function(int) itemClick;
   final String travelMode;
+  final List<LatLng> waypointsLatLgn;
+  final LatLng destinationLatLgn;
 
   final bool isAvoidTolls;
   final bool isAvoidHighways;
@@ -22,7 +24,13 @@ class RoutePlanningList extends StatefulWidget {
       {super.key,
       required this.routes,
       required this.itemClick,
-      required String this.travelMode, required this.isAvoidTolls, required this.isAvoidHighways, required this.isAvoidFerries});
+      required String this.travelMode,
+        required this.isAvoidTolls,
+        required this.isAvoidHighways,
+        required this.isAvoidFerries,
+      required this.waypointsLatLgn,
+      required this.destinationLatLgn
+      });
 
   @override
   State<RoutePlanningList> createState() => _RoutePlanningListState();
@@ -61,12 +69,6 @@ class _RoutePlanningListState extends State<RoutePlanningList> {
           // ),
           GestureDetector(
             onTap: () async {
-              List<LatLng> waypointsLatLgn = [
-                LatLng(10.876024, 106.804634),
-                LatLng(10.873868, 106.800783),
-                LatLng(10.865081, 106.794146),
-              ];
-              LatLng destinationLatLgn = LatLng(10.8666419, 106.8051744);
 
               String travelModeParameter = '';
               String waypointsParameter = '';
@@ -86,18 +88,18 @@ class _RoutePlanningListState extends State<RoutePlanningList> {
                 travelModeParameter = "&mode=l";
 
 
-              for (int i = 0; i < waypointsLatLgn.length; i++) {
+              for (int i = 0; i < widget.waypointsLatLgn.length; i++) {
                 if (i == 0)
                   waypointsParameter += "&waypoints=";
 
-                waypointsParameter += LatLngToString(waypointsLatLgn[i]);
+                waypointsParameter += LatLngToString(widget.waypointsLatLgn[i]);
 
-                if (i != waypointsLatLgn.length - 1)
+                if (i != widget.waypointsLatLgn.length - 1)
                   waypointsParameter += "%7C";
 
               }
               logWithTag('google.navigation:q='
-                  '${LatLngToString(destinationLatLgn)}'
+                  '${LatLngToString(widget.destinationLatLgn)}'
                   '${waypointsParameter}'
                   '${travelModeParameter}'
                   '${avoidParameter}'
@@ -106,7 +108,7 @@ class _RoutePlanningListState extends State<RoutePlanningList> {
 
               await launchUrl(Uri.parse(
                   'google.navigation:q='
-                      '${LatLngToString(destinationLatLgn)}'
+                      '${LatLngToString(widget.destinationLatLgn)}'
                       '${waypointsParameter}'
                       '${travelModeParameter}'
                       '${avoidParameter}'

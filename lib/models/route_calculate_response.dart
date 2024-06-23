@@ -152,7 +152,7 @@ class Polyline_ {
     );
   }
 
-  List<LatLng> decodedPolyline() {
+  static List<LatLng> decodePolyline(encodedPolyline) {
     List<LatLng> points = <LatLng>[];
     int index = 0, len = encodedPolyline.length;
     int lat = 0, lng = 0;
