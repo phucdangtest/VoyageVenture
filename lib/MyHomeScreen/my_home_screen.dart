@@ -7,21 +7,17 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/custom_search_field.dart';
 import 'package:voyageventure/components/route_planning_list_tile.dart';
 import 'package:voyageventure/components/navigation_list_tile.dart';
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/constants.dart';
-import 'package:voyageventure/location_sharing.dart';
-import 'package:voyageventure/main.dart';
 import 'package:voyageventure/models/route_calculate_response.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
-import '../components/bottom_sheet_componient.dart';
+import '../components/bottom_sheet_component.dart';
 import '../components/custom_search_delegate.dart';
 import '../components/fonts.dart';
 import '../components/loading_indicator.dart';
@@ -30,7 +26,6 @@ import '../components/route_planning_list.dart';
 import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 import '../models/route_calculate.dart';
-import '../utils.dart';
 
 class MyHomeScreen extends StatefulWidget {
   @override
@@ -53,7 +48,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //double currentZoomLevel = 15;
 
   //GeoLocation
-  MapData mapData = new MapData();
+  MapData mapData = MapData();
   bool isHaveLastSessionLocation = false;
 
   void animateToPosition(LatLng position, {double zoom = 13}) async {
@@ -179,12 +174,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Tùy chọn đường đi'),
+              title: const Text('Tùy chọn đường đi'),
               content: SingleChildScrollView(
                 child: ListBody(
                   children: <Widget>[
                     CheckboxListTile(
-                      title: Text('Ảnh hưởng giao thông'),
+                      title: const Text('Ảnh hưởng giao thông'),
                       value: isTrafficAware,
                       onChanged: (bool? value) {
                         setState(() {
@@ -194,7 +189,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tính đường đi thay thế'),
+                      title: const Text('Tính đường đi thay thế'),
                       value: isComputeAlternativeRoutes,
                       onChanged: (bool? value) {
                         setState(() {
@@ -204,7 +199,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh trạm thu phí'),
+                      title: const Text('Tránh trạm thu phí'),
                       value: isAvoidTolls,
                       onChanged: (bool? value) {
                         setState(() {
@@ -214,7 +209,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh đường cao tốc'),
+                      title: const Text('Tránh đường cao tốc'),
                       value: isAvoidHighways,
                       onChanged: (bool? value) {
                         setState(() {
@@ -224,7 +219,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh phà'),
+                      title: const Text('Tránh phà'),
                       value: isAvoidFerries,
                       onChanged: (bool? value) {
                         setState(() {
@@ -238,7 +233,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Hủy bỏ'),
+                  child: const Text('Hủy bỏ'),
                   onPressed: () {
                     setState(() {
                       updateOptionsBasedOnChanges();
@@ -250,7 +245,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   },
                 ),
                 TextButton(
-                  child: Text('Áp dụng'),
+                  child: const Text('Áp dụng'),
                   onPressed: () {
                     logWithTag(
                         "Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
@@ -415,7 +410,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       if (state == stateMap["Loading Can Route"]!)
         changeState("Search Results None");
     } catch (e) {
-      print('Failed to mark and search place: $e');
+      logWithTag("Error, place click from map: $e", tag: "SearchLocationScreen");
     }
   }
 
@@ -793,7 +788,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                 child: Container(
                                   //margin: EdgeInsets.only(
                                   // left: 10.0, top: 10.0, bottom: 10.0),
-                                  padding: EdgeInsets.all(10.0),
+                                  padding: const EdgeInsets.all(10.0),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(10.0),
@@ -871,7 +866,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   visible: true, //state == stateMap["Search"]!,
                   child: Column(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         height: 50.0,
                       ),
                       Column(
@@ -913,7 +908,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                     color: Colors.grey.withOpacity(0.5),
                                     spreadRadius: 5,
                                     blurRadius: 7,
-                                    offset: Offset(0, 3),
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
@@ -927,7 +922,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
                                   suffixIcon: _searchFieldFocusNode.hasFocus
                                       ? IconButton(
-                                          icon: Icon(Icons.clear),
+                                          icon: const Icon(Icons.clear),
                                           onPressed: () {
                                             _searchFieldController.clear();
                                             setState(() {
@@ -960,7 +955,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                             (state == stateMap["Default"]!)
                                 ? Container(
                                     // Profile picture
-                                    margin: EdgeInsets.only(left: 10.0),
+                                    margin: const EdgeInsets.only(left: 10.0),
                                     width: 50,
                                     height: 50,
                                     decoration: BoxDecoration(
@@ -968,7 +963,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: IconButton(
-                                        padding: EdgeInsets.all(2),
+                                        padding: const EdgeInsets.all(2),
                                         onPressed: () {},
                                         icon: Image.asset(
                                           "assets/profile.png",
@@ -976,7 +971,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   )
                                 : Container(
                                     // Profile picture
-                                    margin: EdgeInsets.only(left: 10.0),
+                                    margin: const EdgeInsets.only(left: 10.0),
                                     width: 50,
                                     height: 50,
                                     decoration: BoxDecoration(
@@ -984,7 +979,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: IconButton(
-                                      icon: Icon(Icons.more_vert),
+                                      icon: const Icon(Icons.more_vert),
                                       onPressed: () {
                                         showOptionsDialog(context);
                                       },
@@ -1003,7 +998,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         MediaQuery.of(context).size.width - 120,
                                     height: 45,
                                     margin:
-                                        EdgeInsets.only(top: 10.0, left: 0.0),
+                                    const EdgeInsets.only(top: 10.0, left: 0.0),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(8.0),
@@ -1012,7 +1007,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                           color: Colors.grey.withOpacity(0.5),
                                           spreadRadius: 5,
                                           blurRadius: 7,
-                                          offset: Offset(0, 3),
+                                          offset: const Offset(0, 3),
                                         ),
                                       ],
                                     ),
@@ -1041,7 +1036,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/walk.svg")),
-                                        SizedBox(width: 10),
+                                        const SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "DRIVE";
@@ -1049,7 +1044,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/car.svg")),
-                                        SizedBox(width: 10),
+                                        const SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "TWO_WHEELER";
@@ -1057,7 +1052,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/motor.svg")),
-                                        SizedBox(width: 10),
+                                        const SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "TRANSIT";
@@ -1080,7 +1075,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                 _searchFieldFocusNode.hasFocus)
                             ? Container(
                                 //Autocomplete list
-                                margin: EdgeInsets.only(top: 30.0),
+                                margin: const EdgeInsets.only(top: 30.0),
                                 alignment: Alignment.center,
                                 width: MediaQuery.of(context).size.width - 40,
                                 decoration: BoxDecoration(
@@ -1454,28 +1449,18 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         controller: scrollController,
                                         child: Column(children: <Widget>[
                                           const Pill(),
-                                          Container(
-                                            //   child: ListView.builder(
-                                            // controller: _listviewScrollController,
-                                            // shrinkWrap: true,
-                                            // itemCount: 2,
-                                            // itemBuilder: (context, index) {
-                                            //   // return RoutePlanningListTile(routeResponse: null,);
-                                            //   return Placeholder();
-
-                                            child: RoutePlanningList(
-                                                routes: routes,
-                                                travelMode: travelMode,
-                                                isAvoidTolls: isAvoidTolls,
-                                                isAvoidHighways: isAvoidHighways,
-                                                isAvoidFerries: isAvoidFerries,
-                                                waypointsLatLgn: waypointsLatLgn,
-                                                destinationLatLgn: mapData
-                                                    .destinationLocation!,
-                                                itemClick: (index) {
-                                                  //changeState("Navigation");
-                                                }),
-                                          )
+                                          RoutePlanningList(
+                                              routes: routes,
+                                              travelMode: travelMode,
+                                              isAvoidTolls: isAvoidTolls,
+                                              isAvoidHighways: isAvoidHighways,
+                                              isAvoidFerries: isAvoidFerries,
+                                              waypointsLatLgn: waypointsLatLgn,
+                                              destinationLatLgn: mapData
+                                                  .destinationLocation!,
+                                              itemClick: (index) {
+                                                //changeState("Navigation");
+                                              })
                                         ]),
                                       ),
                                     ),
@@ -1556,12 +1541,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                               child: Column(
                                                   children: <Widget>[
                                                     const Pill(),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                       height: 30,
                                                     ),
                                                     Row(
                                                       children: [
-                                                        CircularProgressIndicator(
+                                                        const CircularProgressIndicator(
                                                           color: Colors.green,
                                                         ),
                                                         FilledButton(

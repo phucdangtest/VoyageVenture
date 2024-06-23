@@ -62,7 +62,7 @@ class Leg_ {
   Polyline_ polyline;
   Location_ startLocation;
   Location_ endLocation;
-  List<Step_> steps;
+  List<Step_>? steps;
 
   Leg_(
       {required this.distanceMeters, required this.duration, required this.staticDuration, required this.polyline, required this.startLocation, required this.endLocation, required this.steps});
@@ -75,9 +75,10 @@ class Leg_ {
       polyline: Polyline_.fromJson(json['polyline']),
       startLocation: Location_.fromJson(json['startLocation']),
       endLocation: Location_.fromJson(json['endLocation']),
-      steps: (json['steps'] as List)
-          .map((item) => Step_.fromJson(item))
-          .toList(),
+      steps: null,
+      // steps: (json['steps'] as List)
+      //     .map((item) => Step_.fromJson(item))
+      //     .toList(),
     );
   }
 
@@ -131,7 +132,7 @@ class Leg_ {
   Location_ getEndLocation() {
     return endLocation;
   }
-  List<Step_> getSteps() {
+  List<Step_>? getSteps() {
     return steps;
   }
 
