@@ -9,6 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:voyageventure/features/current_location.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class LocationSharing extends StatefulWidget {
   const LocationSharing({super.key});
@@ -40,13 +41,123 @@ class _LocationSharingState extends State<LocationSharing> {
   bool isHaveLastSessionLocation = false;
   late StreamSubscription<Position> _positionStream;
 
-  // Array to store latitude and longitude values
-  final List<LatLng> friendLocations = [
+  List<LatLng> friendLocations = [
     LatLng(10.880247, 106.805416),
-    // Example location 1 (replace with actual values)
     LatLng(10.8672655, 106.8071607),
-    // Example location 2 (replace with actual values)
   ];
+
+  FirebaseFirestore get firestore => FirebaseFirestore
+      .instance; // Function to add a user to the Firestore database
+  Future<void> addUser(String userId, String name, GeoPoint location) async {
+    // Create a new document with the user ID
+    final userRef = firestore.collection('users').doc(userId);
+
+    // Add user data, including an empty "friends" array initially
+    await userRef.set({
+      'name': name,
+      'location': location,
+      'lastup': DateTime.now().toIso8601String(), // Update timestamp
+      'friends': [], // Empty friends array
+    });
+  }
+
+  Future<void> createUserProfile(
+      String userId, String name, String email, GeoPoint location) async {
+    // Get a reference to the document with the user ID
+    final userRef = firestore.collection('users').doc(userId);
+
+    // Add user data
+    await userRef.set({
+      'name': name,
+      'email': email,
+      'location': location, // Add location to user data
+      'lastup': DateTime.now().toIso8601String(),
+      'friends': [],
+    });
+  }
+
+  Future<void> updateUserProfile(String userId, GeoPoint newLocation) async {
+    // Get a reference to the document with the user ID
+    final userRef = firestore.collection('users').doc(userId);
+
+    // Get the current document
+    final doc = await userRef.get();
+
+    // Get the current location
+    final GeoPoint currentLocation = doc.get('location');
+
+    // Update user data
+    await userRef.update({
+      'lastLocation': currentLocation,
+      'location': newLocation,
+      'lastup': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> addFriend(String userId, String friendId) async {
+    // Get a reference to the user document
+    final userRef = firestore.collection('users').doc(userId);
+    final friendRef = firestore.collection('users').doc(friendId);
+
+    // Perform a transaction to ensure data consistency
+    await firestore.runTransaction((transaction) async {
+      final userDoc = await transaction.get(userRef);
+      final friendDoc = await transaction.get(friendRef);
+
+      final currentUserFriends = (userDoc.get('friends') as List)
+          .map((item) => item.toString())
+          .toList();
+      final currentFriendFriends = (friendDoc.get('friends') as List)
+          .map((item) => item.toString())
+          .toList();
+
+      // Check if friend is already present for user
+      if (!currentUserFriends.contains(friendId)) {
+        // Update the user document with the new friend added
+        transaction.update(userRef, {
+          'friends': FieldValue.arrayUnion([friendId]),
+        });
+      }
+
+      // Check if user is already present for friend
+      if (!currentFriendFriends.contains(userId)) {
+        // Update the friend document with the new friend added
+        transaction.update(friendRef, {
+          'friends': FieldValue.arrayUnion([userId]),
+        });
+      }
+    });
+  }
+
+// Function to retrieve a user's friends (consider implementing pagination for large friend lists)
+  Future<void> getFriends(String userId1, String userId2) async {
+    // Get a reference to the user documents
+    final userRef1 = firestore.collection('users').doc(userId1);
+    final userRef2 = firestore.collection('users').doc(userId2);
+
+    // Get the current documents
+    final doc1 = await userRef1.get();
+    final doc2 = await userRef2.get();
+
+    // Get the current locations
+    final GeoPoint currentLocation1 = doc1.get('location');
+    final GeoPoint currentLocation2 = doc2.get('location');
+
+    // Update user data
+    await userRef1.update({
+      'fr_lastLocation': currentLocation1,
+      'fr_location': currentLocation2,
+      // Update location with the location of the other user
+      'fr_lastup': DateTime.now().toIso8601String(),
+    });
+
+    await userRef2.update({
+      'fr_lastLocation': currentLocation2,
+      'fr_location': currentLocation1,
+      // Update location with the location of the other user
+      'fr_lastup': DateTime.now().toIso8601String(),
+    });
+  }
 
   @override
   void initState() {
@@ -78,15 +189,15 @@ class _LocationSharingState extends State<LocationSharing> {
     setState(() {}); // Update UI
   }
 
-  // void addFriendMarkers() {
-  //   for (final location in friendLocations) {
-  //     myMarker.add(Marker(
-  //       markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-  //       // Unique ID for each friend marker
-  //       position: location,
-  //     ));
-  //   }
-  // }
+  void addFriendMarkers() {
+    for (final location in friendLocations) {
+      myMarker.add(Marker(
+        markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+        // Unique ID for each friend marker
+        position: location,
+      ));
+    }
+  }
 
   void trackLocation() {
     final geolocator = GeolocatorPlatform.instance;
@@ -121,6 +232,7 @@ class _LocationSharingState extends State<LocationSharing> {
 
   final GoogleSignIn googleSignIn = GoogleSignIn();
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
   //final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   @override
@@ -157,23 +269,25 @@ class _LocationSharingState extends State<LocationSharing> {
         child: FloatingActionButton(
           onPressed: () async {
             try {
-              // Define email and password
-              String email = 'nhancanh02@gmail.com'; // replace with actual email
-              String password = 'maihan1609'; // replace with actual password
+              String email = 'nhancanh02@gmail.com';
+              String password = 'maihan1609';
 
-              // Sign in to Firebase with email and password
-              final UserCredential authResult = await firebaseAuth
-                  .signInWithEmailAndPassword(
+              final UserCredential authResult =
+                  await firebaseAuth.signInWithEmailAndPassword(
                 email: email,
                 password: password,
               );
 
-              // Check for successful login
               if (authResult.user != null) {
-                final User user = authResult
-                    .user!; // Access the logged-in user
+                final User user = authResult.user!;
 
-                // Show successful login SnackBar
+                // GeoPoint newLocation = GeoPoint(
+                //     10.8737481, 106.7911169); // replace with your new location
+                // await createUserProfile(user.uid, user.displayName ?? '',
+                //     user.email ?? '', newLocation);
+                GeoPoint newLocation = GeoPoint(10.8737481, 106.7611169);
+                await updateUserProfile(user.uid, newLocation);
+
                 final snackBar = SnackBar(
                   content: Text('Đăng nhập thành công!'),
                   backgroundColor: Colors.green,
@@ -185,110 +299,31 @@ class _LocationSharingState extends State<LocationSharing> {
                 ScaffoldMessenger.of(context).showSnackBar(snackBar);
               }
             } catch (e) {
-              // Handle login failure
               print('Đăng nhập thất bại: $e');
             }
           },
           child: const Icon(Icons.login),
         ),
       ),
-            //
-            //
-            // try {
-            //   // Trigger Google Sign-In
-            //   final GoogleSignInAccount? googleUser =
-            //       await googleSignIn.signIn();
-            //
-            //   if (googleUser != null) {
-            //     // Retrieve Google authentication credentials
-            //     final GoogleSignInAuthentication googleAuth =
-            //         await googleUser.authentication;
-            //
-            //     // Create a Firebase credential object
-            //     final credential = GoogleAuthProvider.credential(
-            //       accessToken: googleAuth.accessToken,
-            //       idToken: googleAuth.idToken,
-            //     );
-            //
-            //     // Sign in to Firebase with the credential
-            //     final UserCredential authResult =
-            //         await firebaseAuth.signInWithCredential(credential);
-            //
-            //     // Check for successful login
-            //     if (authResult.user != null) {
-            //       final User user =
-            //           authResult.user!; // Access the logged-in user
-            //
-            //       // Show successful login SnackBar
-            //       final snackBar = SnackBar(
-            //         content: Text('Đăng nhập thành công!'),
-            //         backgroundColor: Colors.green,
-            //         action: SnackBarAction(
-            //           label: 'Đóng',
-            //           onPressed: () {},
-            //         ),
-            //       );
-            //       ScaffoldMessenger.of(context).showSnackBar(snackBar);
-            //
-            //       // Get current location
-            //       Position position = await getCurrentLocation();
-            //
-            //       // Create a reference to the user's location node in Firestore
-            //       // final databaseReference = firestore
-            //       //     .collection('users')
-            //       //     .doc('${user.uid}')
-            //       //     .collection('location');
-            //
-            //       // Save location data as a map
-            //       final locationData = {
-            //         'latitude': position.latitude,
-            //         'longitude': position.longitude,
-            //       };
-            //
-            //
-            //       // Write location data to Firestore
-            //       // await databaseReference
-            //       //     .doc()
-            //       //     .set(locationData); // Use doc() for Firestore
-            //       print('Vị trí người dùng đã được lưu trên Firestore');
-            //     } else {
-            //       print('Đăng nhập thất bại');
-            //       // Handle login failure (optional)
-            //     }
-            //   }
-            // } catch (e) {
-            //   print(e);
-            // }
-      //     },
-      //     child: const Icon(Icons.login),
-      //   ),
-      // ),
       Positioned(
         bottom: 20,
-        left: 20, // Position at the left
-        right: 20, // Position at the right
+        left: 20,
+        right: 20,
         child: Visibility(
-          visible: _showWhiteBox, // Show only when _showWhiteBox is true
+          visible: _showWhiteBox,
           child: Container(
             height: 120,
-            // Adjust the height as needed
             width: MediaQuery.of(context).size.width,
-            // Full width
             padding: const EdgeInsets.all(16.0),
-            // Add padding
             decoration: BoxDecoration(
-              color: Colors.white, // Set background color
-              borderRadius: BorderRadius.circular(10.0), // Add rounded corners
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
             ),
             child: Column(
-              // Use Column for vertical arrangement
               children: [
                 Row(
-                  // Row for "MAI HÂN" and Spacer
                   children: [
                     Container(
-                      // Wrap "MAI HÂN" with a width
-                      // width: 100.0, // Adjust width as needed
                       child: Text('MAI HÂN',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -298,9 +333,8 @@ class _LocationSharingState extends State<LocationSharing> {
                     Spacer(),
                   ],
                 ),
-                SizedBox(height: 20.0), // Add vertical space below name
+                SizedBox(height: 20.0),
                 const Expanded(
-                  // Fills remaining vertical space
                   child: Text(
                       '255 Biscayne Blvd Way, Miami, FL 33131, United States'),
                 ),
@@ -309,7 +343,6 @@ class _LocationSharingState extends State<LocationSharing> {
           ),
         ),
       ),
-      // Your existing FloatingActionButton
       FloatingActionButton(
         onPressed: () async {
           Position position = await getCurrentLocation();
@@ -324,6 +357,26 @@ class _LocationSharingState extends State<LocationSharing> {
         },
         child: const Icon(Icons.center_focus_strong),
       ),
+      Positioned(
+          bottom: 20.0,
+          right: 20.0,
+          child: FloatingActionButton(
+            onPressed: () async {
+              final userId1 = 'user1_id';
+              final userId2 = 'user2_id';
+              final name1 = 'John Doe';
+              final name2 = 'Jane Smith';
+              final location1 = GeoPoint(10.8740927, 106.8064434);
+              final location2 = GeoPoint(10.8706025, 106.8028352);
+
+              await addUser(userId1, name1, location1);
+              await addUser(userId2, name2, location2);
+              await addFriend('USVKhmyX0ihlnpIU9Uvr4vCJ6JL2', userId2);
+
+              final friends =
+                  await getFriends('USVKhmyX0ihlnpIU9Uvr4vCJ6JL2', userId2);
+            },
+          ))
     ]));
   }
 }
