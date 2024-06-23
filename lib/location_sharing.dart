@@ -189,15 +189,15 @@ class _LocationSharingState extends State<LocationSharing> {
     setState(() {}); // Update UI
   }
 
-  void addFriendMarkers() {
-    for (final location in friendLocations) {
-      myMarker.add(Marker(
-        markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-        // Unique ID for each friend marker
-        position: location,
-      ));
-    }
-  }
+  // void addFriendMarkers() {
+  //   for (final location in friendLocations) {
+  //     myMarker.add(Marker(
+  //       markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+  //       // Unique ID for each friend marker
+  //       position: location,
+  //     ));
+  //   }
+  // }
 
   void trackLocation() {
     final geolocator = GeolocatorPlatform.instance;
@@ -375,6 +375,10 @@ class _LocationSharingState extends State<LocationSharing> {
 
               final friends =
                   await getFriends('USVKhmyX0ihlnpIU9Uvr4vCJ6JL2', userId2);
+
+              setState(() {
+                friendLocations.add(LatLng(location2.latitude, location2.longitude));
+              });
             },
           ))
     ]));
