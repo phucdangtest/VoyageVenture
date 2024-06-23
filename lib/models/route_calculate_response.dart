@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:voyageventure/utils.dart';
 
 class RouteResponse_ {
   List<Route_> routes;
@@ -117,7 +118,7 @@ class Leg_ {
   String getDifferenceDuration() {
     int durationInt = int.parse(duration.replaceAll('s', ''));
     int staticDurationInt = int.parse(staticDuration.replaceAll('s', ''));
-    int difference = durationInt - staticDurationInt;
+    int difference = (durationInt - staticDurationInt).abs();
     return convertDurationToMinutesOrHoursAndMinutes(difference.toString());
   }
 

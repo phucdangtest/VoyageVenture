@@ -38,7 +38,7 @@ class RoutePlanningListTile extends StatelessWidget {
                         style: TextStyle(fontSize: 12, color: Colors.green),
                       )
                     : Text(
-                        "Bao gồm " + leg.getDifferenceDuration(),
+                        "Chậm hơn ${leg.getDifferenceDuration()} so với bình thường",
                         style: TextStyle(
                             fontSize: 12,
                             color: Colors.red,

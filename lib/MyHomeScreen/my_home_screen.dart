@@ -202,7 +202,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh trạm thi phí'),
+                      title: Text('Tránh trạm thu phí'),
                       value: isAvoidTolls,
                       onChanged: (bool? value) {
                         setState(() {
@@ -1473,8 +1473,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             child: RoutePlanningList(
                                                 routes: routes,
                                                 travelMode: travelMode,
+                                                isAvoidTolls: isAvoidTolls,
+                                                isAvoidHighways: isAvoidHighways,
+                                                isAvoidFerries: isAvoidFerries,
                                                 itemClick: (index) {
-                                                  changeState("Navigation");
+                                                  //changeState("Navigation");
                                                 }),
                                           )
                                         ]),
