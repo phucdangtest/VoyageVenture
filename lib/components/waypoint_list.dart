@@ -17,51 +17,53 @@ class _WaypointListState extends State<WaypointList> {
       itemCount: widget.waypoints.length,
       shrinkWrap: true,
       itemBuilder: (context, index) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Không tên'),
-                  Text(LatLngToString(widget.waypoints[index])),
-                ],
+        return Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Không tên'),
+                    Text(LatLngToString(widget.waypoints[index])),
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              icon: Icon(Icons.arrow_upward),
-              onPressed: () {
-                if (index != 0) {
+              IconButton(
+                icon: Icon(Icons.arrow_upward),
+                onPressed: () {
+                  if (index != 0) {
+                    setState(() {
+                      var temp = widget.waypoints[index];
+                      widget.waypoints[index] = widget.waypoints[index - 1];
+                      widget.waypoints[index - 1] = temp;
+                    });
+                  }
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.arrow_downward),
+                onPressed: () {
+                  if (index != widget.waypoints.length - 1) {
+                    setState(() {
+                      var temp = widget.waypoints[index];
+                      widget.waypoints[index] = widget.waypoints[index + 1];
+                      widget.waypoints[index + 1] = temp;
+                    });
+                  }
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
                   setState(() {
-                    var temp = widget.waypoints[index];
-                    widget.waypoints[index] = widget.waypoints[index - 1];
-                    widget.waypoints[index - 1] = temp;
+                    widget.waypoints.removeAt(index);
                   });
-                }
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.arrow_downward),
-              onPressed: () {
-                if (index != widget.waypoints.length - 1) {
-                  setState(() {
-                    var temp = widget.waypoints[index];
-                    widget.waypoints[index] = widget.waypoints[index + 1];
-                    widget.waypoints[index + 1] = temp;
-                  });
-                }
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-                setState(() {
-                  widget.waypoints.removeAt(index);
-                });
-              },
-            ),
-          ],
+                },
+              ),
+            ],
+          ),
         );
       },
     );
