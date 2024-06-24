@@ -93,6 +93,8 @@ flutter:
     - assets/icons/verified_destination.svg
     - assets/icons/swap.svg
     - assets/icons/add_waypoint.svg
+    - assets/icons/add.svg
+    - assets/icons/remove.svg
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

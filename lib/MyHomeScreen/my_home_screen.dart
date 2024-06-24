@@ -108,7 +108,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     LatLng(10.8798036, 106.8052206),
   ];
 
-
   //Test
 
   static CameraPosition? _initialCameraPosition;
@@ -607,6 +606,17 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     });
   }
 
+  Future<LatLng> getCenterLatLng() async {
+    GoogleMapController controller = await _mapsController.future;
+    final screenCenter = ScreenCoordinate(
+        x: MediaQuery.of(context).size.width ~/ 2,
+        y: MediaQuery.of(context).size.height ~/ 2);
+    final centerLatLng = await controller.getLatLng(screenCenter);
+
+    logWithTag("Center LatLng: $centerLatLng", tag: "Add waypoint");
+    return centerLatLng;
+  }
+
 /*
  * End of functions
  */
@@ -614,7 +624,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   @override
   void initState() {
     super.initState();
-
 
     _searchFieldController = TextEditingController();
     _searchFieldFocusNode = FocusNode();
@@ -1630,12 +1639,71 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                       child: Column(
                                                           children: <Widget>[
                                                             const Pill(),
-                                                            // SizedBox(
-                                                            //   height: 100,
-                                                            // ),
-                                                            WaypointList(
-                                                              waypoints:
-                                                                  waypointsLatLgn,
+                                                            Column(
+                                                              children: [
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    SizedBox(
+                                                                      width: 80,
+                                                                      height:
+                                                                          40,
+                                                                      child: IconButton(
+                                                                          onPressed: () {
+                                                                            setState(() {
+                                                                              waypointsLatLgn.removeLast();
+                                                                              myMarker.removeLast();
+                                                                            });
+                                                                          },
+                                                                          icon: SvgPicture.asset("assets/icons/remove.svg")),
+                                                                    ),
+                                                                    ElevatedButton(
+                                                                        onPressed:
+                                                                            () {
+                                                                          changeState(
+                                                                              "Route Planning");
+                                                                        },
+                                                                        child: Text(
+                                                                            "Áp dụng")),
+                                                                    SizedBox(
+                                                                        width:
+                                                                            80,
+                                                                        height:
+                                                                            40,
+                                                                        child: IconButton(
+                                                                            onPressed: () {
+                                                                              setState(() {
+                                                                                getCenterLatLng().then((centerLatLng) {
+                                                                                  waypointsLatLgn.add(centerLatLng);
+                                                                                  myMarker.add(Marker(
+                                                                                    markerId: MarkerId(centerLatLng.toString()),
+                                                                                    icon: defaultMarker,
+                                                                                    position: centerLatLng,
+                                                                                  ));
+                                                                                });
+                                                                              });
+                                                                            },
+                                                                            icon: SvgPicture.asset("assets/icons/add.svg")))
+                                                                  ],
+                                                                ),
+                                                                TextButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      setState(
+                                                                          () {
+                                                                        waypointsLatLgn
+                                                                            .clear();
+                                                                      });
+                                                                    },
+                                                                    child: Text(
+                                                                        "Xóa tất cả")),
+                                                                WaypointList(
+                                                                  waypoints:
+                                                                      waypointsLatLgn,
+                                                                ),
+                                                              ],
                                                             ),
                                                           ])),
                                                 ),

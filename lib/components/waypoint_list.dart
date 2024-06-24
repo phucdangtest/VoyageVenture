@@ -18,9 +18,11 @@ class _WaypointListState extends State<WaypointList> {
       shrinkWrap: true,
       itemBuilder: (context, index) {
         return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Không tên'),
                   Text(LatLngToString(widget.waypoints[index])),
