@@ -123,3 +123,7 @@ Future<String> convertLatLngToAddress(LatLng latlng) async {
       return '';
     }
   }
+
+  String LatLngToString(LatLng latLng) {
+    return '${latLng.latitude}, ${latLng.longitude}';
+  }

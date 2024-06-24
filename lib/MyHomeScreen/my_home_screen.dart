@@ -7,29 +7,26 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/custom_search_field.dart';
 import 'package:voyageventure/components/route_planning_list_tile.dart';
 import 'package:voyageventure/components/navigation_list_tile.dart';
 import 'package:voyageventure/components/misc_widget.dart';
+import 'package:voyageventure/components/waypoint_list.dart';
 import 'package:voyageventure/constants.dart';
-import 'package:voyageventure/location_sharing.dart';
-import 'package:voyageventure/main.dart';
 import 'package:voyageventure/models/route_calculate_response.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
-import '../components/bottom_sheet_componient.dart';
+import '../components/bottom_sheet_component.dart';
 import '../components/custom_search_delegate.dart';
 import '../components/fonts.dart';
+import '../components/loading_indicator.dart';
 import '../components/location_list_tile.dart';
 import '../components/route_planning_list.dart';
 import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 import '../models/route_calculate.dart';
-import '../utils.dart';
 
 class MyHomeScreen extends StatefulWidget {
   @override
@@ -52,10 +49,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //double currentZoomLevel = 15;
 
   //GeoLocation
-  MapData mapData = new MapData();
+  MapData mapData = MapData();
   bool isHaveLastSessionLocation = false;
-
-
 
   void animateToPosition(LatLng position, {double zoom = 13}) async {
     logWithTag("Animate to position: $position", tag: "MyHomeScreen");
@@ -96,6 +91,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   List<Route_> routes = [];
   Future<List<LatLng>?> polylinePoints = Future.value(null);
   Polyline? polyline;
+  String encodedPolyline = "";
   String travelMode = "DRIVE";
   String routingPreference = "TRAFFIC_AWARE";
   bool isTrafficAware = true;
@@ -105,6 +101,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   bool isAvoidFerries = false;
   List<bool> isChange = [false, false, false, false, false];
   bool isCalcRouteFromCurrentLocation = true;
+  List<LatLng> waypointsLatLgn = [
+    LatLng(10.7981542, 106.6614047),
+    LatLng(10.8022349, 106.6695118),
+    LatLng(10.8114795, 106.6548157),
+    LatLng(10.8798036, 106.8052206),
+  ];
 
   //Test
 
@@ -120,6 +122,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     "Route Planning": 3,
     "Navigation": 4,
     "Search Results None": 5,
+    "Loading Can Route": 6,
+    "Add Waypoint": 7,
     "Loading": 10,
   };
   int state = stateMap["Default"]!;
@@ -177,12 +181,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Tùy chọn đường đi'),
+              title: const Text('Tùy chọn đường đi'),
               content: SingleChildScrollView(
                 child: ListBody(
                   children: <Widget>[
                     CheckboxListTile(
-                      title: Text('Ảnh hưởng giao thông'),
+                      title: const Text('Ảnh hưởng giao thông'),
                       value: isTrafficAware,
                       onChanged: (bool? value) {
                         setState(() {
@@ -192,7 +196,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tính đường đi thay thế'),
+                      title: const Text('Tính đường đi thay thế'),
                       value: isComputeAlternativeRoutes,
                       onChanged: (bool? value) {
                         setState(() {
@@ -202,7 +206,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh trạm thi phí'),
+                      title: const Text('Tránh trạm thu phí'),
                       value: isAvoidTolls,
                       onChanged: (bool? value) {
                         setState(() {
@@ -212,7 +216,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh đường cao tốc'),
+                      title: const Text('Tránh đường cao tốc'),
                       value: isAvoidHighways,
                       onChanged: (bool? value) {
                         setState(() {
@@ -222,7 +226,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh phà'),
+                      title: const Text('Tránh phà'),
                       value: isAvoidFerries,
                       onChanged: (bool? value) {
                         setState(() {
@@ -236,7 +240,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Hủy bỏ'),
+                  child: const Text('Hủy bỏ'),
                   onPressed: () {
                     setState(() {
                       updateOptionsBasedOnChanges();
@@ -248,7 +252,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   },
                 ),
                 TextButton(
-                  child: Text('Áp dụng'),
+                  child: const Text('Áp dụng'),
                   onPressed: () {
                     logWithTag(
                         "Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
@@ -275,13 +279,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     if (stateString == "Search Results") {
       isShowPlaceHorizontalList = true;
       polyline = null;
+      travelMode = "TWO_WHEELER";
+      //Todo remove after test waypoint
+      //waypointsLatLgn = [];
     } else {
       isShowPlaceHorizontalList = false;
     }
 
     if (stateString == "Route Planning") {
       drawRoute();
-    }
+    } else if (stateString == "Add Waypoint") {}
 
     setState(() {
       state = stateMap[stateString]!;
@@ -314,7 +321,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 myMarker.add(marker);
               }
               placeFound = true;
-              placeOnclick(isShowPlaceHorizontalListFromSearch: true, index: 0);
+              placeOnclickFromList(
+                  isShowPlaceHorizontalListFromSearch: true, index: 0);
 
               animateBottomSheet(
                       _dragableController, defaultBottomSheetHeight / 1000)
@@ -383,49 +391,48 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
   }
 
-
-
-Future<void> placeClickLatLng(LatLng position) async {
-  animateToPositionNoZoom(
-    LatLng(position.latitude, position.longitude),
-  );
-  changeState("Loading");
-  mapData.changeDestinationLocation(position);
-  setState(() {
-    myMarker = [];
-    final markerId = MarkerId("0");
-    Marker marker = Marker(
-      markerId: markerId,
-      icon: mainMarker,
-      position: LatLng(position.latitude, position.longitude),
+  Future<void> placeClickLatLngFromMap(LatLng position) async {
+    animateToPositionNoZoom(
+      LatLng(position.latitude, position.longitude),
     );
-    myMarker.add(marker);
-  });
-  try {
-    String placeString = await convertLatLngToAddress(position);
-    var value = await placeSearchSingle(placeString);
-    if (value != null) {
-      markedPlace = value;
-      changeState("Search Results");
-    } else
-      changeState("Search Results None");
-  } catch (e) {
-    print('Failed to mark and search place: $e');
+    changeState("Loading Can Route");
+    mapData.changeDestinationLocation(position);
+    setState(() {
+      myMarker = [];
+      final markerId = MarkerId("0");
+      Marker marker = Marker(
+        markerId: markerId,
+        icon: mainMarker,
+        position: LatLng(position.latitude, position.longitude),
+      );
+      myMarker.add(marker);
+    });
+    try {
+      String placeString = await convertLatLngToAddress(position);
+      var value = await placeSearchSingle(placeString);
+      if (value != null) {
+        markedPlace = value;
+        if (state == stateMap["Loading Can Route"]!)
+          changeState("Search Results");
+      } else if (state == stateMap["Loading Can Route"]!)
+        changeState("Search Results None");
+    } catch (e) {
+      logWithTag("Error, place click from map: $e",
+          tag: "SearchLocationScreen");
+    }
   }
-}
 
-  Future<LatLng?> placeOnclick(
+  Future<LatLng?> placeOnclickFromList(
       {required bool isShowPlaceHorizontalListFromSearch,
       required int index}) async {
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
     changeState("Search Results");
-    polyline = null;
     if (isShowPlaceHorizontalListFromSearch) {
       try {
-        mapData.changeDestinationLocation(
-            LatLng(placeSearchList[index].location.latitude,
-                placeSearchList[index].location.longitude));
+        mapData.changeDestinationLocation(LatLng(
+            placeSearchList[index].location.latitude,
+            placeSearchList[index].location.longitude));
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
@@ -448,7 +455,7 @@ Future<void> placeClickLatLng(LatLng position) async {
         placeAutoList[index].structuredFormat?.mainText?.text ?? "");
     if (value != null) {
       mapData.changeDestinationLocation(
-        LatLng(value.location.latitude, value.location.longitude));
+          LatLng(value.location.latitude, value.location.longitude));
       animateToPosition(
         LatLng(value.location.latitude, value.location.longitude),
       );
@@ -475,12 +482,12 @@ Future<void> placeClickLatLng(LatLng position) async {
   void drawRoute() {
     if (routes.isNotEmpty) {
       setState(() {
+        encodedPolyline = routes[0].legs[0].polyline.encodedPolyline;
         polyline = Polyline(
-          polylineId: const PolylineId("route"),
-          color: Colors.green,
-          width: 8,
-          points: routes[0].legs[0].polyline.decodedPolyline(),
-        );
+            polylineId: const PolylineId("route"),
+            color: Colors.green,
+            width: 8,
+            points: Polyline_.decodePolyline(encodedPolyline));
       });
     }
   }
@@ -492,10 +499,12 @@ Future<void> placeClickLatLng(LatLng position) async {
   }
 
   Future<void> calcRouteFromDepToDes() async {
-    if (mapData.departureLocation != null && mapData.destinationLocation != null)
+    //Todo remove after test waypoint
+    //waypointsLatLgn = [];
+    if (mapData.departureLocation != null &&
+        mapData.destinationLocation != null)
       calcRoute(
-          from: mapData.departureLocation!,
-          to: mapData.destinationLocation!);
+          from: mapData.departureLocation!, to: mapData.destinationLocation!);
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
@@ -512,8 +521,8 @@ Future<void> placeClickLatLng(LatLng position) async {
         avoidFerries: isAvoidFerries))!;
     drawRoute();
     changeState("Route Planning");
-    mapData.departureLocation = from;
-    mapData.destinationLocation = to;
+    mapData.changeDepartureLocation(from);
+    mapData.changeDestinationLocation(to);
   }
 
   Future<void> placeMarkAndRoute(
@@ -597,6 +606,17 @@ Future<void> placeClickLatLng(LatLng position) async {
     });
   }
 
+  Future<LatLng> getCenterLatLng() async {
+    GoogleMapController controller = await _mapsController.future;
+    final screenCenter = ScreenCoordinate(
+        x: MediaQuery.of(context).size.width ~/ 2,
+        y: MediaQuery.of(context).size.height ~/ 2);
+    final centerLatLng = await controller.getLatLng(screenCenter);
+
+    logWithTag("Center LatLng: $centerLatLng", tag: "Add waypoint");
+    return centerLatLng;
+  }
+
 /*
  * End of functions
  */
@@ -604,12 +624,13 @@ Future<void> placeClickLatLng(LatLng position) async {
   @override
   void initState() {
     super.initState();
+
     _searchFieldController = TextEditingController();
     _searchFieldFocusNode = FocusNode();
 
     getCurrentLocationLatLng().then((value) {
-      mapData.currentLocation = value;
-      mapData.departureLocation = value;
+      mapData.changeCurrentLocation(value);
+      mapData.changeDepartureLocation(value);
       if (!isHaveLastSessionLocation) {
         animateToPosition(mapData.currentLocation!);
       }
@@ -698,7 +719,7 @@ Future<void> placeClickLatLng(LatLng position) async {
             myLocationButtonEnabled: false,
             markers: myMarker.toSet(),
             onTap: (LatLng position) {
-              placeClickLatLng(position);
+              placeClickLatLngFromMap(position);
             },
             onMapCreated: (GoogleMapController controller) {
               _mapsController.complete(controller);
@@ -768,7 +789,7 @@ Future<void> placeClickLatLng(LatLng position) async {
                                   const EdgeInsets.only(left: 5.0, right: 5),
                               child: GestureDetector(
                                 onTap: () {
-                                  placeOnclick(
+                                  placeOnclickFromList(
                                       isShowPlaceHorizontalListFromSearch:
                                           isShowPlaceHorizontalListFromSearch,
                                       index: index);
@@ -781,24 +802,12 @@ Future<void> placeClickLatLng(LatLng position) async {
                                       isShowPlaceHorizontalListFromSearch:
                                           isShowPlaceHorizontalListFromSearch,
                                       index: index);
-                                  if (routes.isNotEmpty) {
-                                    setState(() {
-                                      polyline = Polyline(
-                                        polylineId: const PolylineId("route"),
-                                        color: Colors.green,
-                                        width: 8,
-                                        points: routes[0]
-                                            .legs[0]
-                                            .polyline
-                                            .decodedPolyline(),
-                                      );
-                                    });
-                                  }
+                                  drawRoute();
                                 },
                                 child: Container(
                                   //margin: EdgeInsets.only(
                                   // left: 10.0, top: 10.0, bottom: 10.0),
-                                  padding: EdgeInsets.all(10.0),
+                                  padding: const EdgeInsets.all(10.0),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(10.0),
@@ -873,10 +882,11 @@ Future<void> placeClickLatLng(LatLng position) async {
               ),
               child: Visibility(
                   //Top search bar - Departure
-                  visible: true, //state == stateMap["Search"]!,
+                  visible: state != stateMap["Add Waypoint"],
+                  //state == stateMap["Search"]!,
                   child: Column(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         height: 50.0,
                       ),
                       Column(
@@ -884,17 +894,26 @@ Future<void> placeClickLatLng(LatLng position) async {
                           Row(children: [
                             IconButton(
                                 onPressed: () {
-                                  if (state == stateMap["Search Results"]! ||
-                                      state ==
-                                          stateMap["Search Results None"]!) {
-                                    changeState("Default");
-                                  } else if (state ==
-                                      stateMap["Route Planning"]!) {
-                                    changeState("Search Results");
-                                  } else if (state == stateMap["Navigation"]!) {
-                                    changeState("Route Planning");
-                                  } else if (state == stateMap["Loading"]!) {
-                                    changeState("Search Results");
+                                  String currentState = stateFromInt(state);
+
+                                  switch (currentState) {
+                                    case "Search Results":
+                                    case "Search Results None":
+                                      changeState("Default");
+                                      break;
+                                    case "Route Planning":
+                                    case "Loading Can Route":
+                                      changeState("Search Results");
+                                      break;
+                                    case "Navigation":
+                                      changeState("Route Planning");
+                                      break;
+                                    case "Loading":
+                                      changeState("Search Results");
+                                      break;
+                                    default:
+                                      changeState("Default");
+                                      break;
                                   }
                                 },
                                 icon: const Icon(Icons.arrow_back)),
@@ -909,7 +928,7 @@ Future<void> placeClickLatLng(LatLng position) async {
                                     color: Colors.grey.withOpacity(0.5),
                                     spreadRadius: 5,
                                     blurRadius: 7,
-                                    offset: Offset(0, 3),
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
@@ -923,7 +942,7 @@ Future<void> placeClickLatLng(LatLng position) async {
 
                                   suffixIcon: _searchFieldFocusNode.hasFocus
                                       ? IconButton(
-                                          icon: Icon(Icons.clear),
+                                          icon: const Icon(Icons.clear),
                                           onPressed: () {
                                             _searchFieldController.clear();
                                             setState(() {
@@ -953,20 +972,18 @@ Future<void> placeClickLatLng(LatLng position) async {
                                 },
                               ),
                             ),
-                            (state == stateMap["Place Search"] ||
-                                    state == stateMap["Search Results"] ||
-                                    state == stateMap["Search Results None"]!)
+                            (state == stateMap["Default"]!)
                                 ? Container(
                                     // Profile picture
-                                    margin: EdgeInsets.only(left: 10.0),
-                                    width: 50,
-                                    height: 50,
+                                    margin: const EdgeInsets.only(left: 10.0),
+                                    width: 45,
+                                    height: 45,
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: IconButton(
-                                        padding: EdgeInsets.all(2),
+                                        padding: const EdgeInsets.all(2),
                                         onPressed: () {},
                                         icon: Image.asset(
                                           "assets/profile.png",
@@ -974,7 +991,6 @@ Future<void> placeClickLatLng(LatLng position) async {
                                   )
                                 : Container(
                                     // Profile picture
-                                    margin: EdgeInsets.only(left: 10.0),
                                     width: 50,
                                     height: 50,
                                     decoration: BoxDecoration(
@@ -982,7 +998,7 @@ Future<void> placeClickLatLng(LatLng position) async {
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: IconButton(
-                                      icon: Icon(Icons.more_vert),
+                                      icon: const Icon(Icons.more_vert),
                                       onPressed: () {
                                         showOptionsDialog(context);
                                       },
@@ -996,54 +1012,85 @@ Future<void> placeClickLatLng(LatLng position) async {
                               width: MediaQuery.of(context).size.width,
                               child: Column(
                                 children: [
-                                  Container(
-                                    width:
-                                        MediaQuery.of(context).size.width - 120,
-                                    height: 45,
-                                    margin:
-                                        EdgeInsets.only(top: 10.0, left: 0.0),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          spreadRadius: 5,
-                                          blurRadius: 7,
-                                          offset: Offset(0, 3),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width:
+                                            MediaQuery.of(context).size.width -
+                                                120,
+                                        height: 45,
+                                        margin: const EdgeInsets.only(
+                                            top: 10.0, right: 10.0),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              spreadRadius: 5,
+                                              blurRadius: 7,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    child: TextField(
-                                      decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        prefixIcon: SizedBox(
-                                          width: 10,
-                                          height: 10,
-                                          child: SvgPicture.asset(
-                                              "assets/icons/verified_destination.svg"),
+                                        child: TextField(
+                                          decoration: InputDecoration(
+                                            border: InputBorder.none,
+                                            prefixIcon: SizedBox(
+                                              width: 10,
+                                              height: 10,
+                                              child: SvgPicture.asset(
+                                                  "assets/icons/verified_destination.svg"),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      SizedBox(
+                                          width: 40,
+                                          height: 40,
+                                          child: IconButton(
+                                              onPressed: () {},
+                                              icon: SvgPicture.asset(
+                                                  "assets/icons/swap.svg"))),
+                                    ],
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              travelMode = "WALK";
+                                              calcRouteFromDepToDes();
+                                            },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/walk.svg")),
+                                        const SizedBox(width: 10),
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              travelMode = "DRIVE";
+                                              calcRouteFromDepToDes();
+                                            },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/car.svg")),
+                                        const SizedBox(width: 10),
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              travelMode = "TWO_WHEELER";
+                                              calcRouteFromDepToDes();
+                                            },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/motor.svg")),
+                                        const SizedBox(width: 10),
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              travelMode = "TRANSIT";
+                                              calcRouteFromDepToDes();
+                                            },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/public_transport.svg")),
                                       ],
@@ -1061,7 +1108,7 @@ Future<void> placeClickLatLng(LatLng position) async {
                                 _searchFieldFocusNode.hasFocus)
                             ? Container(
                                 //Autocomplete list
-                                margin: EdgeInsets.only(top: 30.0),
+                                margin: const EdgeInsets.only(top: 30.0),
                                 alignment: Alignment.center,
                                 width: MediaQuery.of(context).size.width - 40,
                                 decoration: BoxDecoration(
@@ -1091,7 +1138,7 @@ Future<void> placeClickLatLng(LatLng position) async {
                                                 _dragableController.pixels;
                                           });
                                         });
-                                        placeOnclick(
+                                        placeOnclickFromList(
                                             isShowPlaceHorizontalListFromSearch:
                                                 false,
                                             index: index);
@@ -1399,7 +1446,11 @@ Future<void> placeClickLatLng(LatLng position) async {
                                         const Center(child: Text('Không tên')),
                                         FilledButton(
                                           onPressed: () {
-                                            calcRoute(from: mapData.departureLocation!, to: mapData.destinationLocation!);
+                                            calcRoute(
+                                                from:
+                                                    mapData.departureLocation!,
+                                                to: mapData
+                                                    .destinationLocation!);
                                           },
                                           child: const Text("Chỉ đường"),
                                         ),
@@ -1432,19 +1483,30 @@ Future<void> placeClickLatLng(LatLng position) async {
                                         child: Column(children: <Widget>[
                                           const Pill(),
                                           Container(
-                                            //   child: ListView.builder(
-                                            // controller: _listviewScrollController,
-                                            // shrinkWrap: true,
-                                            // itemCount: 2,
-                                            // itemBuilder: (context, index) {
-                                            //   // return RoutePlanningListTile(routeResponse: null,);
-                                            //   return Placeholder();
-                                            child: RoutePlanningList(
-                                                routes: routes,
-                                                itemClick: (index) {
-                                                  changeState("Navigation");
-                                                }),
-                                          )
+                                            child: ElevatedButton.icon(
+                                              onPressed: () {
+                                                changeState("Add Waypoint");
+                                              },
+                                              icon: SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: SvgPicture.asset(
+                                                      "assets/icons/add_waypoint.svg")),
+                                              label: Text('Thêm điểm dừng'),
+                                            ),
+                                          ),
+                                          RoutePlanningList(
+                                              routes: routes,
+                                              travelMode: travelMode,
+                                              isAvoidTolls: isAvoidTolls,
+                                              isAvoidHighways: isAvoidHighways,
+                                              isAvoidFerries: isAvoidFerries,
+                                              waypointsLatLgn: waypointsLatLgn,
+                                              destinationLatLgn:
+                                                  mapData.destinationLocation!,
+                                              itemClick: (index) {
+                                                //changeState("Navigation");
+                                              })
                                         ]),
                                       ),
                                     ),
@@ -1496,9 +1558,9 @@ Future<void> placeClickLatLng(LatLng position) async {
                                       );
                                     },
                                   )
-                                : (state == stateMap["Loading"]!)
+                                : (state == stateMap["Loading Can Route"]!)
                                     ?
-                                    // Bottom sheet loading
+                                    // Bottom sheet loading can route
                                     DraggableScrollableSheet(
                                         controller: _dragableController,
                                         initialChildSize:
@@ -1521,11 +1583,26 @@ Future<void> placeClickLatLng(LatLng position) async {
                                                 child:
                                                     Column(children: <Widget>[
                                                   const Pill(),
-                                                  // SizedBox(
-                                                  //   height: 100,
-                                                  // ),
-                                                  CircularProgressIndicator(
-                                                    color: Colors.green,
+                                                  const SizedBox(
+                                                    height: 30,
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      const CircularProgressIndicator(
+                                                        color: Colors.green,
+                                                      ),
+                                                      FilledButton(
+                                                        onPressed: () {
+                                                          calcRoute(
+                                                              from: mapData
+                                                                  .departureLocation!,
+                                                              to: mapData
+                                                                  .destinationLocation!);
+                                                        },
+                                                        child: const Text(
+                                                            "Chỉ đường"),
+                                                      ),
+                                                    ],
                                                   )
                                                 ]),
                                               ),
@@ -1533,10 +1610,158 @@ Future<void> placeClickLatLng(LatLng position) async {
                                           );
                                         },
                                       )
-                                    :
+                                    : (state == stateMap["Add Waypoint"]!)
+                                        ?
+                                        // Bottom sheet add waypoint
+                                        DraggableScrollableSheet(
+                                            controller: _dragableController,
+                                            initialChildSize:
+                                                defaultBottomSheetHeight / 1000,
+                                            minChildSize: 0.15,
+                                            maxChildSize: 1,
+                                            builder: (BuildContext context,
+                                                ScrollController
+                                                    scrollController) {
+                                              return ClipRRect(
+                                                borderRadius:
+                                                    const BorderRadius.only(
+                                                  topLeft:
+                                                      Radius.circular(24.0),
+                                                  topRight:
+                                                      Radius.circular(24.0),
+                                                ),
+                                                child: Container(
+                                                  color: Colors.white,
+                                                  child: SingleChildScrollView(
+                                                      primary: false,
+                                                      controller:
+                                                          scrollController,
+                                                      child: Column(
+                                                          children: <Widget>[
+                                                            const Pill(),
+                                                            Column(
+                                                              children: [
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    SizedBox(
+                                                                      width: 80,
+                                                                      height:
+                                                                          40,
+                                                                      child: IconButton(
+                                                                          onPressed: () {
+                                                                            setState(() {
+                                                                              waypointsLatLgn.removeLast();
+                                                                              myMarker.removeLast();
+                                                                            });
+                                                                          },
+                                                                          icon: SvgPicture.asset("assets/icons/remove.svg")),
+                                                                    ),
+                                                                    ElevatedButton(
+                                                                        onPressed:
+                                                                            () {
+                                                                          changeState(
+                                                                              "Route Planning");
+                                                                        },
+                                                                        child: Text(
+                                                                            "Áp dụng")),
+                                                                    SizedBox(
+                                                                        width:
+                                                                            80,
+                                                                        height:
+                                                                            40,
+                                                                        child: IconButton(
+                                                                            onPressed: () {
+                                                                              setState(() {
+                                                                                getCenterLatLng().then((centerLatLng) {
+                                                                                  waypointsLatLgn.add(centerLatLng);
+                                                                                  myMarker.add(Marker(
+                                                                                    markerId: MarkerId(centerLatLng.toString()),
+                                                                                    icon: defaultMarker,
+                                                                                    position: centerLatLng,
+                                                                                  ));
+                                                                                });
+                                                                              });
+                                                                            },
+                                                                            icon: SvgPicture.asset("assets/icons/add.svg")))
+                                                                  ],
+                                                                ),
+                                                                TextButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      setState(
+                                                                          () {
+                                                                        waypointsLatLgn
+                                                                            .clear();
+                                                                      });
+                                                                    },
+                                                                    child: Text(
+                                                                        "Xóa tất cả")),
+                                                                WaypointList(
+                                                                  waypoints:
+                                                                      waypointsLatLgn,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ])),
+                                                ),
+                                              );
+                                            },
+                                          )
+                                        : (state == stateMap["Loading"]!)
+                                            ?
+                                            // Bottom sheet loading
+                                            DraggableScrollableSheet(
+                                                controller: _dragableController,
+                                                initialChildSize:
+                                                    defaultBottomSheetHeight /
+                                                        1000,
+                                                minChildSize: 0.15,
+                                                maxChildSize: 1,
+                                                builder: (BuildContext context,
+                                                    ScrollController
+                                                        scrollController) {
+                                                  return ClipRRect(
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(24.0),
+                                                      topRight:
+                                                          Radius.circular(24.0),
+                                                    ),
+                                                    child: Container(
+                                                      color: Colors.white,
+                                                      child:
+                                                          SingleChildScrollView(
+                                                        primary: false,
+                                                        controller:
+                                                            scrollController,
+                                                        child: Column(
+                                                            children: <Widget>[
+                                                              const Pill(),
+                                                              // SizedBox(
+                                                              //   height: 100,
+                                                              // ),
+                                                              LoadingIndicator(
+                                                                color: Colors
+                                                                    .green,
+                                                                onPressed: () {
+                                                                  changeState(
+                                                                      "Search Results");
+                                                                },
+                                                              ),
+                                                            ]),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            :
 
-                                    // Bottom sheet none
-                                    const SizedBox.shrink(),
+                                            // Bottom sheet none
+                                            const SizedBox.shrink(),
           )
         ],
       ),
@@ -1551,23 +1776,48 @@ class MapData {
   LatLng? destinationLocation;
   String? destinationLocationName;
 
-  MapData(
-      {this.currentLocation,
-      this.departureLocation,
-      this.destinationLocation,
-      this.departureLocationName = "Vị trí của bạn",
-      this.destinationLocationName,
-      });
+  MapData({
+    this.currentLocation,
+    this.departureLocation,
+    this.destinationLocation,
+    this.departureLocationName = "Vị trí của bạn",
+    this.destinationLocationName,
+  });
 
   void changeDestinationLocation(LatLng latLng) {
     destinationLocation = latLng;
+    logWithTag("Destination location changed to: $latLng", tag: "MapData");
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        tag: "MapData");
     // Future<String?> placeString = convertLatLngToAddress(latLng);
     // placeString.then((value) {
     //   destinationLocationName = value ?? "Không có chi tiết";
     //   logWithTag("Destination location changed to: $value + $latLng",
     //       tag: "MapData");
     // });
+  }
 
+  void changeDepartureLocation(LatLng from) {
+    departureLocation = from;
+    logWithTag("Departure location changed to: $from", tag: "MapData");
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        tag: "MapData");
 
+    // Future<String?> placeString = convertLatLngToAddress(from);
+    // placeString.then((value) {
+    //   departureLocationName = value ?? "Không có chi tiết";
+    //   logWithTag("Departure location changed to: $value + $from",
+    //       tag: "MapData");
+    // });
+  }
+
+  void changeCurrentLocation(LatLng value) {
+    currentLocation = value;
+    logWithTag("Current location changed to: $value", tag: "MapData");
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        tag: "MapData");
   }
 }

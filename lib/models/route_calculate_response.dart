@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:voyageventure/utils.dart';
 
 class RouteResponse_ {
   List<Route_> routes;
@@ -61,7 +62,7 @@ class Leg_ {
   Polyline_ polyline;
   Location_ startLocation;
   Location_ endLocation;
-  List<Step_> steps;
+  List<Step_>? steps;
 
   Leg_(
       {required this.distanceMeters, required this.duration, required this.staticDuration, required this.polyline, required this.startLocation, required this.endLocation, required this.steps});
@@ -74,9 +75,10 @@ class Leg_ {
       polyline: Polyline_.fromJson(json['polyline']),
       startLocation: Location_.fromJson(json['startLocation']),
       endLocation: Location_.fromJson(json['endLocation']),
-      steps: (json['steps'] as List)
-          .map((item) => Step_.fromJson(item))
-          .toList(),
+      steps: null,
+      // steps: (json['steps'] as List)
+      //     .map((item) => Step_.fromJson(item))
+      //     .toList(),
     );
   }
 
@@ -117,7 +119,7 @@ class Leg_ {
   String getDifferenceDuration() {
     int durationInt = int.parse(duration.replaceAll('s', ''));
     int staticDurationInt = int.parse(staticDuration.replaceAll('s', ''));
-    int difference = durationInt - staticDurationInt;
+    int difference = (durationInt - staticDurationInt).abs();
     return convertDurationToMinutesOrHoursAndMinutes(difference.toString());
   }
 
@@ -130,7 +132,7 @@ class Leg_ {
   Location_ getEndLocation() {
     return endLocation;
   }
-  List<Step_> getSteps() {
+  List<Step_>? getSteps() {
     return steps;
   }
 
@@ -151,7 +153,7 @@ class Polyline_ {
     );
   }
 
-  List<LatLng> decodedPolyline() {
+  static List<LatLng> decodePolyline(encodedPolyline) {
     List<LatLng> points = <LatLng>[];
     int index = 0, len = encodedPolyline.length;
     int lat = 0, lng = 0;

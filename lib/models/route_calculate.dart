@@ -61,7 +61,8 @@ Future<List<LatLng>?> computeRoutes({
     }),
   );
 
-  logWithTag(response.body.toString(), tag: 'computeRoutes');
+  logWithTag("response.body.toString()", tag: 'computeRoutes');
+  //logWithTag(response.body.toString(), tag: 'computeRoutes');
 
   if (response.statusCode == 200) {
     //Map<String, dynamic> values = jsonDecode(response.body);
@@ -70,8 +71,9 @@ Future<List<LatLng>?> computeRoutes({
     RouteResponse_ routeResponse = RouteResponse_.fromJson(parsed);
     Route_ route = routeResponse.routes[0];
     List<LatLng> polylinePoints =
-        route.legs[0].polyline.decodedPolyline();
-    logWithTag(route.toString(), tag: 'computeRoutes');
+        Polyline_.decodePolyline(route.legs[0].polyline.encodedPolyline);
+    //logWithTag(route.toString(), tag: 'computeRoutes');
+    logWithTag("route.toString()", tag: 'computeRoutes');
     return polylinePoints;
   }
   print("Error: ${response.body}");
@@ -94,45 +96,48 @@ Future<List<Route_>?> computeRoutesReturnRoute_({
   logWithTag('computeRoutes', tag: 'computeRoutes');
 
   departureTime ??= DateTime.now().add(const Duration(minutes: 5)).toUtc().toIso8601String();
-  final response = await http.post(
-    Uri.parse('https://routes.googleapis.com/directions/v2:computeRoutes'),
-    headers: <String, String>{
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': dotenv.env['MAPS_API_KEY1']!,
-      //'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline',
-      'X-Goog-FieldMask': '*',
+  Map<String, dynamic> requestBody = {
+  'origin': {
+    'location': {
+      'latLng': {
+        'latitude': from.latitude,
+        'longitude': from.longitude,
+      },
     },
-    body: jsonEncode(<String, dynamic>{
-      'origin': {
-        'location': {
-          'latLng': {
-            'latitude': from.latitude,
-            'longitude': from.longitude,
-          },
-        },
+  },
+  'destination': {
+    'location': {
+      'latLng': {
+        'latitude': to.latitude,
+        'longitude': to.longitude,
       },
-      'destination': {
-        'location': {
-          'latLng': {
-            'latitude': to.latitude,
-            'longitude': to.longitude,
-          },
-        },
-      },
-      //'extraComputations': ["TRAFFIC_ON_POLYLINE"],
-      'travelMode': travelMode,
-      'routingPreference': routingPreference,
-      'departureTime': departureTime,
-      'computeAlternativeRoutes': computeAlternativeRoutes,
-      'routeModifiers': {
-        'avoidTolls': avoidTolls,
-        'avoidHighways': avoidHighways,
-        'avoidFerries': avoidFerries,
-      },
-      'languageCode': languageCode,
-      'units': units,
-    }),
-  );
+    },
+  },
+  'travelMode': travelMode,
+  'departureTime': departureTime,
+  'computeAlternativeRoutes': computeAlternativeRoutes,
+  'routeModifiers': {
+    'avoidTolls': avoidTolls,
+    'avoidHighways': avoidHighways,
+    'avoidFerries': avoidFerries,
+  },
+  'languageCode': languageCode,
+  'units': units,
+};
+
+if (travelMode != "WALK" && travelMode != "TRANSIT") {
+  requestBody['routingPreference'] = routingPreference;
+}
+
+final response = await http.post(
+  Uri.parse('https://routes.googleapis.com/directions/v2:computeRoutes'),
+  headers: <String, String>{
+    'Content-Type': 'application/json',
+    'X-Goog-Api-Key': dotenv.env['MAPS_API_KEY1']!,
+    'X-Goog-FieldMask': '*',
+  },
+  body: jsonEncode(requestBody),
+);
 
   logWithTag(response.body.toString(), tag: 'computeRoutes');
 

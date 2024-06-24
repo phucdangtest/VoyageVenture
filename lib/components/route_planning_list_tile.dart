@@ -5,15 +5,14 @@ import 'package:voyageventure/utils.dart';
 
 class RoutePlanningListTile extends StatelessWidget {
   late Leg_ leg;
-
-  RoutePlanningListTile({super.key, required this.leg});
+  late String travelMode;
+  RoutePlanningListTile({super.key, required this.leg, required String this.travelMode});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border(
@@ -39,7 +38,7 @@ class RoutePlanningListTile extends StatelessWidget {
                         style: TextStyle(fontSize: 12, color: Colors.green),
                       )
                     : Text(
-                        "Bao gồm " + leg.getDifferenceDuration(),
+                        "Chậm hơn ${leg.getDifferenceDuration()} so với bình thường",
                         style: TextStyle(
                             fontSize: 12,
                             color: Colors.red,
@@ -49,9 +48,22 @@ class RoutePlanningListTile extends StatelessWidget {
                     style: TextStyle(fontSize: 12, color: Colors.black)),
                 Row(
                   children: [
-                    SvgPicture.asset(
-                      "assets/icons/car.svg",
-                    ),
+                    travelMode == "DRIVE"
+                        ? SvgPicture.asset(
+                            "assets/icons/car.svg",
+                          )
+                        : travelMode == "WALK"
+                            ? SvgPicture.asset(
+                                "assets/icons/walk.svg",
+                              )
+                            : travelMode == "TWO_WHEELER"
+                                ? SvgPicture.asset(
+                                    "assets/icons/motor.svg",
+                                  )
+                                : SvgPicture.asset(
+                                    "assets/icons/public_transport.svg",
+                                  ),
+
                     SizedBox(width: 5),
                     Text(
                       leg.getDistanceMetersInKm(),
