@@ -5,6 +5,9 @@
             // Location list
             // Location button
 
+// Center image to add waypoint
+
+
 // On top search bar
     //Top search bar - Departure
             //Bottom search bar - Destination

@@ -51,6 +51,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //GeoLocation
   MapData mapData = MapData();
   bool isHaveLastSessionLocation = false;
+  LatLng centerLocation = LatLng(10.7981542, 106.6614047);
 
   void animateToPosition(LatLng position, {double zoom = 13}) async {
     logWithTag("Animate to position: $position", tag: "MyHomeScreen");
@@ -102,11 +103,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   List<bool> isChange = [false, false, false, false, false];
   bool isCalcRouteFromCurrentLocation = true;
   List<LatLng> waypointsLatLgn = [
-    LatLng(10.7981542, 106.6614047),
-    LatLng(10.8022349, 106.6695118),
-    LatLng(10.8114795, 106.6548157),
-    LatLng(10.8798036, 106.8052206),
   ];
+  List<String> waypointNames = [];
 
   //Test
 
@@ -606,17 +604,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     });
   }
 
-  Future<LatLng> getCenterLatLng() async {
-    GoogleMapController controller = await _mapsController.future;
-    final screenCenter = ScreenCoordinate(
-        x: MediaQuery.of(context).size.width ~/ 2,
-        y: MediaQuery.of(context).size.height ~/ 2);
-    final centerLatLng = await controller.getLatLng(screenCenter);
-
-    logWithTag("Center LatLng: $centerLatLng", tag: "Add waypoint");
-    return centerLatLng;
-  }
-
 /*
  * End of functions
  */
@@ -701,6 +688,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
+
           // Maps
           GoogleMap(
             initialCameraPosition: (isHaveLastSessionLocation ==
@@ -723,6 +711,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             },
             onMapCreated: (GoogleMapController controller) {
               _mapsController.complete(controller);
+            },
+            onCameraMove: (CameraPosition position) {
+              centerLocation = position.target;
             },
             polylines: {if (polyline != null) polyline!},
             zoomControlsEnabled: false,
@@ -866,6 +857,18 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               ],
             ),
           ),
+          // Center image to add waypoint
+          Visibility(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 27.0 , right: 14.0),
+                  child: SizedBox(
+                    width: 35,
+                    height: 35,
+                      child: SvgPicture.asset("assets/icons/waypoint.svg")),
+                ),
+              ),
+              visible: state == stateMap["Add Waypoint"]),
 
           // On top search bar
           Positioned(
@@ -1020,7 +1023,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 120,
                                         height: 45,
                                         margin: const EdgeInsets.only(
-                                            top: 10.0, right: 10.0),
+                                            top: 10.0, right: 10.0, left: 65),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius:
@@ -1654,6 +1657,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                           onPressed: () {
                                                                             setState(() {
                                                                               waypointsLatLgn.removeLast();
+                                                                              waypointNames.removeLast();
                                                                               myMarker.removeLast();
                                                                             });
                                                                           },
@@ -1675,14 +1679,17 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                         child: IconButton(
                                                                             onPressed: () {
                                                                               setState(() {
-                                                                                getCenterLatLng().then((centerLatLng) {
-                                                                                  waypointsLatLgn.add(centerLatLng);
-                                                                                  myMarker.add(Marker(
-                                                                                    markerId: MarkerId(centerLatLng.toString()),
-                                                                                    icon: defaultMarker,
-                                                                                    position: centerLatLng,
-                                                                                  ));
+                                                                                waypointsLatLgn.add(centerLocation);
+                                                                                convertLatLngToAddress(centerLocation, isCutoff: true).then((value) {
+                                                                                  setState(() {
+                                                                                    waypointNames.add(value);
+                                                                                  });
                                                                                 });
+                                                                                myMarker.add(Marker(
+                                                                                  markerId: MarkerId(centerLocation.toString()),
+                                                                                  icon: defaultMarker,
+                                                                                  position: centerLocation,
+                                                                                ));
                                                                               });
                                                                             },
                                                                             icon: SvgPicture.asset("assets/icons/add.svg")))
@@ -1695,6 +1702,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                           () {
                                                                         waypointsLatLgn
                                                                             .clear();
+                                                                        myMarker.removeWhere((marker) => marker.icon != mainMarker);
                                                                       });
                                                                     },
                                                                     child: Text(
@@ -1702,6 +1710,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                 WaypointList(
                                                                   waypoints:
                                                                       waypointsLatLgn,
+                                                                  waypointsName: waypointNames,
                                                                 ),
                                                               ],
                                                             ),

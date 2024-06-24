@@ -99,15 +99,26 @@ Future<LatLng> getCurrentLocationLatLng() async {
   return LatLng(position.latitude, position.longitude);
 }
 
-Future<String> convertLatLngToAddress(LatLng latlng) async {
+Future<String> convertLatLngToAddress(LatLng latlng, {bool isCutoff = false}) async {
   double lat = latlng.latitude;
   double lng = latlng.longitude;
   try {
     List<Placemark> placeMarks = await placemarkFromCoordinates(lat, lng);
-    return '${placeMarks[0].name}, ${placeMarks[0].street}, ${placeMarks[0]
+    String place = '${placeMarks[0].name}, ${placeMarks[0]
         .subLocality}, ${placeMarks[0].locality}, ${placeMarks[0]
         .administrativeArea}, ${placeMarks[0].country}, ${placeMarks[0]
         .postalCode}';
+    // String place = '${placeMarks[0].name}, ${placeMarks[0].street}, ${placeMarks[0]
+    //     .subLocality}, ${placeMarks[0].locality}, ${placeMarks[0]
+    //     .administrativeArea}, ${placeMarks[0].country}, ${placeMarks[0]
+    //     .postalCode}';
+    //
+    if (isCutoff) {
+      String displayText = place.length > 30 ? place.substring(0, 30) + '...' : place;
+      return displayText;
+    } else {
+      return place;
+    }
   } catch (e) {
     print('Failed to convert LatLng to address: $e');
     return '';
@@ -124,6 +135,9 @@ Future<String> convertLatLngToAddress(LatLng latlng) async {
     }
   }
 
-  String LatLngToString(LatLng latLng) {
+  String LatLngToString(LatLng latLng, {bool isCutoff = true}) {
+  if (isCutoff) {
+    return '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}';
+  }
     return '${latLng.latitude}, ${latLng.longitude}';
   }
