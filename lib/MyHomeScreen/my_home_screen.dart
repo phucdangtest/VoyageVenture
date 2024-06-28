@@ -90,9 +90,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   //Route
   List<Route_> routes = [];
-  Future<List<LatLng>?> polylinePoints = Future.value(null);
+ // Future<List<LatLng>?> polylinePoints = Future.value(null);
   Polyline? polyline;
-  String encodedPolyline = "";
+  List<LatLng> polylinePointsList = [];
   String travelMode = "DRIVE";
   String routingPreference = "TRAFFIC_AWARE";
   bool isTrafficAware = true;
@@ -480,12 +480,20 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   void drawRoute() {
     if (routes.isNotEmpty) {
       setState(() {
-        encodedPolyline = routes[0].legs[0].polyline.encodedPolyline;
+        // Concat all the encoded polyline from all leg
+        polylinePointsList = [];
+        for (int i = 0; i < routes[0].legs.length; i++) {
+          polylinePointsList.addAll(Polyline_.decodePolyline(
+              routes[0].legs[i].polyline.encodedPolyline));
+        }
+
+
+        //encodedPolyline = routes[0].legs[0].polyline.encodedPolyline;
         polyline = Polyline(
             polylineId: const PolylineId("route"),
             color: Colors.green,
             width: 8,
-            points: Polyline_.decodePolyline(encodedPolyline));
+            points: polylinePointsList);
       });
     }
   }
@@ -516,12 +524,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         computeAlternativeRoutes: isComputeAlternativeRoutes,
         avoidTolls: isAvoidTolls,
         avoidHighways: isAvoidHighways,
-        avoidFerries: isAvoidFerries))!;
+        avoidFerries: isAvoidFerries,
+        waypoints: waypointsLatLgn))!;
     drawRoute();
     changeState("Route Planning");
     mapData.changeDepartureLocation(from);
     mapData.changeDestinationLocation(to);
   }
+
+
 
   Future<void> placeMarkAndRoute(
       {required bool isShowPlaceHorizontalListFromSearch,
@@ -1666,8 +1677,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                     ElevatedButton(
                                                                         onPressed:
                                                                             () {
-                                                                          changeState(
-                                                                              "Route Planning");
+
+                                                                          calcRouteFromDepToDes();
                                                                         },
                                                                         child: Text(
                                                                             "Áp dụng")),
