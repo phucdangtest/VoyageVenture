@@ -90,9 +90,28 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   //Route
   List<Route_> routes = [];
- // Future<List<LatLng>?> polylinePoints = Future.value(null);
-  Polyline? polyline;
+
+  // Future<List<LatLng>?> polylinePoints = Future.value(null);
+  List<Polyline> polylines = [];
   List<LatLng> polylinePointsList = [];
+  List<Color> polylineColors = [
+    Colors.green,
+    Colors.blue,
+    Colors.purple,
+    Colors.red,
+    Colors.orange,
+    Colors.yellow,
+    Colors.pink,
+    Colors.teal,
+    Colors.brown,
+    Colors.cyan,
+    Colors.indigo,
+    Colors.lime,
+    Colors.amber,
+    Colors.deepOrange,
+    Colors.deepPurple,
+    Colors.lightBlue,
+  ];
   String travelMode = "DRIVE";
   String routingPreference = "TRAFFIC_AWARE";
   bool isTrafficAware = true;
@@ -102,8 +121,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   bool isAvoidFerries = false;
   List<bool> isChange = [false, false, false, false, false];
   bool isCalcRouteFromCurrentLocation = true;
-  List<LatLng> waypointsLatLgn = [
-  ];
+  List<LatLng> waypointsLatLgn = [];
   List<String> waypointNames = [];
 
   //Test
@@ -276,7 +294,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
     if (stateString == "Search Results") {
       isShowPlaceHorizontalList = true;
-      polyline = null;
+      polylines.clear();
       travelMode = "TWO_WHEELER";
       //Todo remove after test waypoint
       //waypointsLatLgn = [];
@@ -477,30 +495,45 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     return null;
   }
 
-  void drawRoute() {
-    if (routes.isNotEmpty) {
-      setState(() {
-        // Concat all the encoded polyline from all leg
-        polylinePointsList = [];
-        for (int i = 0; i < routes[0].legs.length; i++) {
-          polylinePointsList.addAll(Polyline_.decodePolyline(
-              routes[0].legs[i].polyline.encodedPolyline));
+void drawRoute() {
+  if (routes.isNotEmpty) {
+    setState(() {
+      polylines = [];
+      for (int i = 0; i < routes[0].legs.length; i++) {
+        List<LatLng> legPoints = Polyline_.decodePolyline(
+            routes[0].legs[i].polyline.encodedPolyline);
+
+        int width;
+        switch (i % 3) {
+          case 0:
+            width = 8;
+            break;
+          case 1:
+            width = 6;
+            break;
+          case 2:
+            width = 4;
+            break;
+          default:
+            width = 8;
         }
 
-
-        //encodedPolyline = routes[0].legs[0].polyline.encodedPolyline;
-        polyline = Polyline(
-            polylineId: const PolylineId("route"),
-            color: Colors.green,
-            width: 8,
-            points: polylinePointsList);
-      });
-    }
+        polylines.add(
+          Polyline(
+            polylineId: PolylineId(i.toString()),
+            color: polylineColors[i % polylineColors.length], // Use a different color for each leg
+            width: width, // Use different widths for each polyline
+            points: legPoints, // Add all points of the leg to the polyline
+          ),
+        );
+      }
+    });
   }
+}
 
   void clearRoute() {
     setState(() {
-      polyline = null;
+      polylines.clear();
     });
   }
 
@@ -531,8 +564,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     mapData.changeDepartureLocation(from);
     mapData.changeDestinationLocation(to);
   }
-
-
 
   Future<void> placeMarkAndRoute(
       {required bool isShowPlaceHorizontalListFromSearch,
@@ -699,7 +730,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-
           // Maps
           GoogleMap(
             initialCameraPosition: (isHaveLastSessionLocation ==
@@ -726,7 +756,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             onCameraMove: (CameraPosition position) {
               centerLocation = position.target;
             },
-            polylines: {if (polyline != null) polyline!},
+            polylines: polylines.toSet(),
             zoomControlsEnabled: false,
           ),
 
@@ -872,10 +902,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           Visibility(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 27.0 , right: 14.0),
+                  padding: const EdgeInsets.only(bottom: 27.0, right: 14.0),
                   child: SizedBox(
-                    width: 35,
-                    height: 35,
+                      width: 35,
+                      height: 35,
                       child: SvgPicture.asset("assets/icons/waypoint.svg")),
                 ),
               ),
@@ -1677,7 +1707,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                     ElevatedButton(
                                                                         onPressed:
                                                                             () {
-
                                                                           calcRouteFromDepToDes();
                                                                         },
                                                                         child: Text(
@@ -1713,7 +1742,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                           () {
                                                                         waypointsLatLgn
                                                                             .clear();
-                                                                        myMarker.removeWhere((marker) => marker.icon != mainMarker);
+                                                                        myMarker.removeWhere((marker) =>
+                                                                            marker.icon !=
+                                                                            mainMarker);
                                                                       });
                                                                     },
                                                                     child: Text(
@@ -1721,7 +1752,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                 WaypointList(
                                                                   waypoints:
                                                                       waypointsLatLgn,
-                                                                  waypointsName: waypointNames,
+                                                                  waypointsName:
+                                                                      waypointNames,
                                                                 ),
                                                               ],
                                                             ),
