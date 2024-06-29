@@ -83,6 +83,30 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   BitmapDescriptor mainMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+
+  List<BitmapDescriptor> waypointMarkers = [
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue), //A
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose), //H
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen), //No letter
+  ];
+
+  List<String> waypointMarkersSource = [
+   "assets/icons/waypoints/a.svg",
+    "assets/icons/waypoints/b.svg",
+    "assets/icons/waypoints/c.svg",
+    "assets/icons/waypoints/d.svg",
+    "assets/icons/waypoints/e.svg",
+    "assets/icons/waypoints/f.svg",
+    "assets/icons/waypoints/g.svg",
+    "assets/icons/waypoints/h.svg",
+    "assets/icons/marker_waypoint.svg",
+  ];
   Timer? _debounce;
   bool isShowPlaceHorizontalList = false; // show the location search component
   bool isShowPlaceHorizontalListFromSearch =
@@ -94,24 +118,18 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   // Future<List<LatLng>?> polylinePoints = Future.value(null);
   List<Polyline> polylines = [];
   List<LatLng> polylinePointsList = [];
-  List<Color> polylineColors = [
-    Colors.green,
-    Colors.blue,
-    Colors.purple,
-    Colors.red,
-    Colors.orange,
-    Colors.yellow,
-    Colors.pink,
-    Colors.teal,
-    Colors.brown,
-    Colors.cyan,
-    Colors.indigo,
-    Colors.lime,
-    Colors.amber,
-    Colors.deepOrange,
-    Colors.deepPurple,
-    Colors.lightBlue,
-  ];
+List<Color> polylineColors = [
+  Colors.green[700]!,
+  Colors.blue[700]!,
+  Colors.yellow[700]!,
+  Colors.purple[700]!,
+  Colors.orange[700]!,
+  Colors.brown[700]!,
+  Colors.cyan[700]!,
+  Colors.lime[700]!,
+  Colors.teal[700]!,
+  Colors.indigo[700]!,
+];
   String travelMode = "DRIVE";
   String routingPreference = "TRAFFIC_AWARE";
   bool isTrafficAware = true;
@@ -415,6 +433,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     mapData.changeDestinationLocation(position);
     setState(() {
       myMarker = [];
+      waypointsLatLgn = [];
+      waypointNames = [];
       final markerId = MarkerId("0");
       Marker marker = Marker(
         markerId: markerId,
@@ -529,7 +549,15 @@ void drawRoute() {
       }
     });
   }
+  showAllMarkerInfo();
 }
+
+  Future<void> showAllMarkerInfo() async {
+    GoogleMapController controller = await _mapsController.future;
+    for (final marker in myMarker) {
+      controller.showMarkerInfoWindow(marker.markerId);
+    }
+  }
 
   void clearRoute() {
     setState(() {
@@ -690,6 +718,17 @@ void drawRoute() {
         mainMarker = bitmapDescriptor;
       });
     });
+
+    for (int i = 0; i < waypointMarkers.length; i++) {
+      BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+          waypointMarkersSource[i], const Size(45, 45))
+          .then((bitmapDescriptor) {
+        setState(() {
+          waypointMarkers[i] = bitmapDescriptor;
+        });
+      });
+    }
+
 
     //Todo: Remove after test
     // searchPlaceAndUpdate("Đại học CNTT");
@@ -1727,7 +1766,9 @@ void drawRoute() {
                                                                                 });
                                                                                 myMarker.add(Marker(
                                                                                   markerId: MarkerId(centerLocation.toString()),
-                                                                                  icon: defaultMarker,
+                                                                                  icon: (myMarker.length < waypointMarkers.length)?
+                                                                                  waypointMarkers[(myMarker.length - 1)]:
+                                                                                  waypointMarkers[waypointMarkers.length - 1],
                                                                                   position: centerLocation,
                                                                                 ));
                                                                               });

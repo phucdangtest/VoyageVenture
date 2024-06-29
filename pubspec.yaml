@@ -101,6 +101,15 @@ flutter:
     - assets/icons/add.svg
     - assets/icons/remove.svg
     - assets/icons/waypoint.svg
+    - assets/icons/marker_waypoint.svg
+    - assets/icons/waypoints/a.svg
+    - assets/icons/waypoints/b.svg
+    - assets/icons/waypoints/c.svg
+    - assets/icons/waypoints/d.svg
+    - assets/icons/waypoints/e.svg
+    - assets/icons/waypoints/f.svg
+    - assets/icons/waypoints/g.svg
+    - assets/icons/waypoints/h.svg
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

@@ -53,6 +53,36 @@ class Route_ {
   int getLegsCount() {
     return legs.length;
   }
+
+  int getCombinedDistanceMeters() {
+    int combinedDistanceMeters = 0;
+    for (Leg_ leg in legs) {
+      combinedDistanceMeters += leg.distanceMeters;
+    }
+    return combinedDistanceMeters;
+  }
+
+  String getCombinedDistanceMetersInKm() {
+    return (getCombinedDistanceMeters() / 1000).toStringAsFixed(1) + ' km';
+  }
+
+  String getCombinedDuration() {
+    int combinedDuration = 0;
+    for (Leg_ leg in legs) {
+      combinedDuration += int.parse(leg.duration.replaceAll('s', ''));
+    }
+    return combinedDuration.toString();
+  }
+
+  String getCombinedStaticDuration() {
+    int combinedStaticDuration = 0;
+    for (Leg_ leg in legs) {
+      combinedStaticDuration += int.parse(leg.staticDuration.replaceAll('s', ''));
+    }
+    return combinedStaticDuration.toString();
+  }
+
+
 }
 
 class Leg_ {

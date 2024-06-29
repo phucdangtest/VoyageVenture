@@ -4,9 +4,10 @@ import 'package:voyageventure/models/route_calculate_response.dart';
 import 'package:voyageventure/utils.dart';
 
 class RoutePlanningListTile extends StatelessWidget {
-  late Leg_ leg;
+  late Route_ route;
   late String travelMode;
-  RoutePlanningListTile({super.key, required this.leg, required String this.travelMode});
+  RoutePlanningListTile({super.key, required this.route, required String this.travelMode});
+
 
   @override
   Widget build(BuildContext context) {
