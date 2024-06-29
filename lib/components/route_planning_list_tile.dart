@@ -29,17 +29,17 @@ class RoutePlanningListTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  leg.getStaticDurationFormat(),
+                  route.getCombinedStaticDurationFormat(),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(width: 5),
-                leg.getDifferenceDuration().startsWith("0")
+                route.getCombinedDifferenceDuration().startsWith("0")
                     ? Text(
                         "Giao thông thưa thớt ",
                         style: TextStyle(fontSize: 12, color: Colors.green),
                       )
                     : Text(
-                        "Chậm hơn ${leg.getDifferenceDuration()} so với bình thường",
+                        "Chậm hơn ${route.getCombinedDifferenceDuration()} so với bình thường",
                         style: TextStyle(
                             fontSize: 12,
                             color: Colors.red,
@@ -67,7 +67,7 @@ class RoutePlanningListTile extends StatelessWidget {
 
                     SizedBox(width: 5),
                     Text(
-                      leg.getDistanceMetersInKm(),
+                      route.getCombinedDistanceMetersInKm(),
                       style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey,

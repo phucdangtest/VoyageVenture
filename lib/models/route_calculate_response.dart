@@ -82,6 +82,17 @@ class Route_ {
     return combinedStaticDuration.toString();
   }
 
+  String getCombinedStaticDurationFormat() {
+    return Leg_.convertDurationToMinutesOrHoursAndMinutes(getCombinedStaticDuration());
+  }
+
+  String getCombinedDifferenceDuration() {
+    int combinedDuration = int.parse(getCombinedDuration());
+    int combinedStaticDuration = int.parse(getCombinedStaticDuration());
+    int difference = (combinedDuration - combinedStaticDuration).abs();
+    return Leg_.convertDurationToMinutesOrHoursAndMinutes(difference.toString());
+  }
+
 
 }
 
@@ -128,7 +139,7 @@ class Leg_ {
     return convertDurationToMinutesOrHoursAndMinutes(duration);
   }
 
-  String convertDurationToMinutesOrHoursAndMinutes(String durationString) {
+  static String convertDurationToMinutesOrHoursAndMinutes(String durationString) {
     int duration = int.parse(durationString.replaceAll('s', ''));
     int hours = duration ~/ 3600;
     int minutes = (duration % 3600) ~/ 60;
