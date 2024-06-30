@@ -178,9 +178,31 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
                   return null;
                 },
               ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () async {
+                    try {
+                      await FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Email đặt lại mật khẩu đã được gửi!'),
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Vui lòng nhập Email rồi nhấn nút Quên mật khẩu!'),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text('Quên mật khẩu?'),
+                ),
+              ),
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
+                  padding: const EdgeInsets.only(top: 10.0),
                   child: ElevatedButton(
                     onPressed: () => _handleLoginSignup(context),
                     child: Text(_isSignup ? 'Đăng ký' : 'Đăng nhập'),

@@ -7,6 +7,7 @@ import 'dart:math'; // Import math library for acos function
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:voyageventure/features/current_location.dart';
+import 'package:voyageventure/location_signuplogin.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,7 +25,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
+
   List<LatLng> friendLocations = [];
+
+
 
   Future<void> addFriendByEmail(String email) async {
     final firestore = FirebaseFirestore.instance;
@@ -84,6 +88,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       setState(() {
         friendLocations
             .add(LatLng(friendLocation.latitude, friendLocation.longitude));
+
       });
     }
   }
@@ -137,6 +142,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ElevatedButton(
               onPressed: changePassword,
               child: Text('Change Password'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                // Navigate to login page or main page
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginSignupPage()), // Replace LoginPage() with your login page widget
+                );
+              },
+              child: Text('Đăng xuất'),
             ),
           ],
         ),
