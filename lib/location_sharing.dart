@@ -106,6 +106,8 @@ class _LocationSharingState extends State<LocationSharing> {
   void initState() {
     super.initState();
     setInitialLocation();
+    updateFriendLocations();
+
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     firestore.collection('user').get().then((QuerySnapshot querySnapshot) {
@@ -133,35 +135,17 @@ class _LocationSharingState extends State<LocationSharing> {
   }
 
   void addFriendMarkers() {
-    //int i=0;
-    for (final location in friendLocations) {
-      myMarker.add(Marker(
-        markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-        position: location,
-      ));
-      // print(i++);
-      // printFriendMarkerIds();
-    }
+    setState(() {
+      myMarker.clear();
+      for (final location in friendLocations) {
+        myMarker.add(Marker(
+          markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+          position: location,
+        ));
+      }
+    });
   }
 
-  // void clearFriendMarkers() {
-  //   Set<Marker> markersToRemove = {};
-  //
-  //   for (final marker in myMarker) {
-  //     if (marker.markerId.value.startsWith('friend')) {
-  //       markersToRemove.add(marker);
-  //     }
-  //   }
-  //
-  //   myMarker.removeAll(markersToRemove);
-  // }
-  // void printFriendMarkerIds() {
-  //   for (final marker in myMarker) {
-  //     if (marker.markerId.value.startsWith('friend_')) {
-  //       print(marker.markerId.value);
-  //     }
-  //   }
-  // }
   Future<void> updateFriendLocations() async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
     final userRef = firestore.collection('users').doc(userId);
@@ -170,20 +154,18 @@ class _LocationSharingState extends State<LocationSharing> {
         .map((item) => item.toString())
         .toList();
 
-    setState(() {
-      myMarker.clear();
-      friendLocations.clear();
-    });
-
     for (final friendId in friends) {
       final friendRef = firestore.collection('users').doc(friendId);
       final friendDoc = await friendRef.get();
       final friendLocation = friendDoc.get('location') as GeoPoint;
 
+      setState(() {
+        friendLocations.clear();
+      });
+
       friendLocations
           .add(LatLng(friendLocation.latitude, friendLocation.longitude));
       addFriendMarkers();
-      // Add new friend locations
     }
   }
 
@@ -204,7 +186,6 @@ class _LocationSharingState extends State<LocationSharing> {
           ),
         ));
 
-        // Update user location in Firestore
         await userRef.update({
           'location': GeoPoint(position.latitude, position.longitude),
         });
@@ -248,9 +229,9 @@ class _LocationSharingState extends State<LocationSharing> {
           for (final friendLocation in friendLocations) {
             if (distanceBetween(position, friendLocation)) {
               setState(() {
-                _showWhiteBox = !_showWhiteBox; // Toggle _showWhiteBox
+                _showWhiteBox = !_showWhiteBox;
                 if (_showWhiteBox) {
-                  _selectedLocation = position; // Store tapped location
+                  _selectedLocation = position;
                 }
               });
             }
@@ -262,38 +243,61 @@ class _LocationSharingState extends State<LocationSharing> {
       Positioned(
         top: 20.0,
         right: 20.0,
-        child: FloatingActionButton(
-          onPressed: () async {
+        child: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Text("Có lỗi: ${snapshot.error}");
+            }
+
             if (isLoggedIn) {
               updateFriendLocations();
-              final userId = FirebaseAuth.instance.currentUser!.uid;
-              final userRef = firestore.collection('users').doc(userId);
-              final userDoc = await userRef.get();
-              final friends = (userDoc.get('friends') as List<dynamic>)
-                  .map((item) => item.toString())
-                  .toList();
-              for (final friendId in friends) {
-                final friendRef = firestore.collection('users').doc(friendId);
-                final friendDoc = await friendRef.get();
-                final friendLocation = friendDoc.get('location') as GeoPoint;
-
-                setState(() {
-                  friendLocations.add(LatLng(
-                      friendLocation.latitude, friendLocation.longitude));
-                  addFriendMarkers();
-                });
-              }
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => UserProfilePage()),
-                );
-            } else {
-              isLoggedIn = true;
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => LoginSignupPage()));
             }
+            ;
+
+            return FloatingActionButton(
+              onPressed: () async {
+                if (isLoggedIn) {
+                  updateFriendLocations();
+                  final userId = FirebaseAuth.instance.currentUser!.uid;
+                  final userRef = firestore.collection('users').doc(userId);
+                  final userDoc = await userRef.get();
+                  final friends = (userDoc.get('friends') as List<dynamic>)
+                      .map((item) => item.toString())
+                      .toList();
+                  for (final friendId in friends) {
+                    final friendRef =
+                        firestore.collection('users').doc(friendId);
+                    final friendDoc = await friendRef.get();
+                    final friendLocation =
+                        friendDoc.get('location') as GeoPoint;
+
+                    setState(() {
+                      friendLocations.add(LatLng(
+                          friendLocation.latitude, friendLocation.longitude));
+                      addFriendMarkers();
+                    });
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserProfilePage()),
+                  );
+                } else {
+                  isLoggedIn = true;
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LoginSignupPage()));
+                  updateFriendLocations();
+                }
+              },
+              child: const Icon(Icons.login),
+            );
           },
-          child: const Icon(Icons.login),
         ),
       ),
       Positioned(
