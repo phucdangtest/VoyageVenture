@@ -1578,18 +1578,28 @@ void drawRoute() {
                                               label: Text('Thêm điểm dừng'),
                                             ),
                                           ),
-                                          RoutePlanningList(
-                                              routes: routes,
-                                              travelMode: travelMode,
-                                              isAvoidTolls: isAvoidTolls,
-                                              isAvoidHighways: isAvoidHighways,
-                                              isAvoidFerries: isAvoidFerries,
-                                              waypointsLatLgn: waypointsLatLgn,
-                                              destinationLatLgn:
-                                                  mapData.destinationLocation!,
-                                              itemClick: (index) {
-                                                //changeState("Navigation");
-                                              })
+                                          RoutePlanningListTile(
+                                            route: routes[0],
+                                            travelMode: travelMode,
+                                            isAvoidTolls: isAvoidTolls,
+                                            isAvoidHighways: isAvoidHighways,
+                                            isAvoidFerries: isAvoidFerries,
+                                            waypointsLatLgn: waypointsLatLgn,
+                                            destinationLatLgn: mapData.destinationLocation!,
+
+                                          )
+                                          // RoutePlanningList(
+                                          //     routes: routes,
+                                          //     travelMode: travelMode,
+                                          //     isAvoidTolls: isAvoidTolls,
+                                          //     isAvoidHighways: isAvoidHighways,
+                                          //     isAvoidFerries: isAvoidFerries,
+                                          //     waypointsLatLgn: waypointsLatLgn,
+                                          //     destinationLatLgn:
+                                          //         mapData.destinationLocation!,
+                                          //     itemClick: (index) {
+                                          //       //changeState("Navigation");
+                                          //     })
                                         ]),
                                       ),
                                     ),
@@ -1717,6 +1727,7 @@ void drawRoute() {
                                                   color: Colors.white,
                                                   child: SingleChildScrollView(
                                                       primary: false,
+
                                                       controller:
                                                           scrollController,
                                                       child: Column(
@@ -1795,6 +1806,7 @@ void drawRoute() {
                                                                       waypointsLatLgn,
                                                                   waypointsName:
                                                                       waypointNames,
+                                                                  controller:  _listviewScrollController,
                                                                 ),
                                                               ],
                                                             ),

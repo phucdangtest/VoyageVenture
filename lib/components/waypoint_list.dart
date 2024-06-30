@@ -7,8 +7,9 @@ class WaypointList extends StatefulWidget {
   List<LatLng> waypoints;
 
   List<String> waypointsName;
+  ScrollController controller;
 
-  WaypointList({super.key, required this.waypoints, required this.waypointsName});
+  WaypointList({super.key, required this.waypoints, required this.waypointsName, required this.controller});
 
   @override
   State<WaypointList> createState() => _WaypointListState();
@@ -26,6 +27,7 @@ class _WaypointListState extends State<WaypointList> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      controller: widget.controller,
       itemCount: widget.waypoints.length,
       shrinkWrap: true,
       itemBuilder: (context, index) {

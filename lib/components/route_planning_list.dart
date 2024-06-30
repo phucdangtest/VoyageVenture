@@ -123,10 +123,12 @@ class _RoutePlanningListState extends State<RoutePlanningList> {
                 shrinkWrap: true,
                 itemCount: 1,
                 itemBuilder: (context, index) {
-                  return RoutePlanningListTile(
-                      route: widget.routes[0],
-                      travelMode: widget.travelMode);
-                },
+                  return Placeholder();
+                }
+                //   return RoutePlanningListTile(
+                //       route: widget.routes[0],
+                //       travelMode: widget.travelMode);
+                // },
               ),
             ),
           )
