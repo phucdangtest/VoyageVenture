@@ -133,35 +133,35 @@ class _LocationSharingState extends State<LocationSharing> {
   }
 
   void addFriendMarkers() {
-    int i=0;
+    //int i=0;
     for (final location in friendLocations) {
       myMarker.add(Marker(
         markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
         position: location,
       ));
-      print(i++);
-      printFriendMarkerIds();
+      // print(i++);
+      // printFriendMarkerIds();
     }
   }
 
-  void clearFriendMarkers() {
-    Set<Marker> markersToRemove = {};
-
-    for (final marker in myMarker) {
-      if (marker.markerId.value.startsWith('friend')) {
-        markersToRemove.add(marker);
-      }
-    }
-
-    myMarker.removeAll(markersToRemove);
-  }
-  void printFriendMarkerIds() {
-    for (final marker in myMarker) {
-      if (marker.markerId.value.startsWith('friend_')) {
-        print(marker.markerId.value);
-      }
-    }
-  }
+  // void clearFriendMarkers() {
+  //   Set<Marker> markersToRemove = {};
+  //
+  //   for (final marker in myMarker) {
+  //     if (marker.markerId.value.startsWith('friend')) {
+  //       markersToRemove.add(marker);
+  //     }
+  //   }
+  //
+  //   myMarker.removeAll(markersToRemove);
+  // }
+  // void printFriendMarkerIds() {
+  //   for (final marker in myMarker) {
+  //     if (marker.markerId.value.startsWith('friend_')) {
+  //       print(marker.markerId.value);
+  //     }
+  //   }
+  // }
   Future<void> updateFriendLocations() async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
     final userRef = firestore.collection('users').doc(userId);
@@ -171,7 +171,7 @@ class _LocationSharingState extends State<LocationSharing> {
         .toList();
 
     setState(() {
-      clearFriendMarkers();
+      myMarker.clear();
       friendLocations.clear();
     });
 
@@ -180,45 +180,45 @@ class _LocationSharingState extends State<LocationSharing> {
       final friendDoc = await friendRef.get();
       final friendLocation = friendDoc.get('location') as GeoPoint;
 
-      friendLocations.add(LatLng(
-          friendLocation.latitude, friendLocation.longitude));
+      friendLocations
+          .add(LatLng(friendLocation.latitude, friendLocation.longitude));
       addFriendMarkers();
       // Add new friend locations
     }
   }
 
   void trackLocation() {
-  final geolocator = GeolocatorPlatform.instance;
-  final userId = FirebaseAuth.instance.currentUser!.uid;
-  final userRef = firestore.collection('users').doc(userId);
+    final geolocator = GeolocatorPlatform.instance;
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final userRef = firestore.collection('users').doc(userId);
 
-  _positionStream = geolocator.getPositionStream().listen(
-    (Position position) async {
-      final GoogleMapController controller = await _mapsController.future;
-      final double currentZoomLevel =
-          await controller.getZoomLevel(); // Get current zoom level
-      controller.animateCamera(CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(position.latitude, position.longitude),
-          zoom: currentZoomLevel,
-        ),
-      ));
-
-      // Update user location in Firestore
-      await userRef.update({
-        'location': GeoPoint(position.latitude, position.longitude),
-      });
-
-      setState(() {
-        myMarker.clear();
-        myMarker.add(Marker(
-          markerId: const MarkerId('myMarker'),
-          position: LatLng(position.latitude, position.longitude),
+    _positionStream = geolocator.getPositionStream().listen(
+      (Position position) async {
+        final GoogleMapController controller = await _mapsController.future;
+        final double currentZoomLevel =
+            await controller.getZoomLevel(); // Get current zoom level
+        controller.animateCamera(CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: currentZoomLevel,
+          ),
         ));
-      });
-    },
-  );
-}
+
+        // Update user location in Firestore
+        await userRef.update({
+          'location': GeoPoint(position.latitude, position.longitude),
+        });
+
+        setState(() {
+          myMarker.clear();
+          myMarker.add(Marker(
+            markerId: const MarkerId('myMarker'),
+            position: LatLng(position.latitude, position.longitude),
+          ));
+        });
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -265,6 +265,7 @@ class _LocationSharingState extends State<LocationSharing> {
         child: FloatingActionButton(
           onPressed: () async {
             if (isLoggedIn) {
+              updateFriendLocations();
               final userId = FirebaseAuth.instance.currentUser!.uid;
               final userRef = firestore.collection('users').doc(userId);
               final userDoc = await userRef.get();
@@ -282,10 +283,10 @@ class _LocationSharingState extends State<LocationSharing> {
                   addFriendMarkers();
                 });
               }
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => UserProfilePage()),
-              );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserProfilePage()),
+                );
             } else {
               isLoggedIn = true;
               Navigator.push(context,
