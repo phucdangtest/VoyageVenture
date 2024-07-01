@@ -25,10 +25,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
-
   List<LatLng> friendLocations = [];
-
-
 
   Future<void> addFriendByEmail(String email) async {
     final firestore = FirebaseFirestore.instance;
@@ -82,25 +79,52 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       // Declare and assign a value to location2 before using it
       final friendData = await friendRef.get();
-      final friendLocation = friendData.get(
-          'location');
+      final friendLocation = friendData.get('location');
 
       setState(() {
         friendLocations
             .add(LatLng(friendLocation.latitude, friendLocation.longitude));
-
       });
     }
   }
 
-  Future<void> updatePhoneNumber() async {
-    // Logic to update phone number
-  }
+ Future<void> updatePhoneNumber(String phoneNumber) async {
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final User? user = auth.currentUser;
 
-  Future<void> changePassword() async {
-    // Logic to change password
-  }
+  // Create a PhoneAuthCredential
+  final PhoneAuthCredential credential = PhoneAuthProvider.credential(
+    verificationId: 'your-verification-id',
+    smsCode: 'your-sms-code',
+  );
 
+  // Update the phone number
+  if (user != null) {
+    await user.updatePhoneNumber(credential);
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã cập nhật số điện thoại!'),
+        ));
+  } else {
+    print('No user is currently signed in.');
+  }
+}
+
+Future<void> changePassword(String newPassword) async {
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final User? user = auth.currentUser;
+
+  // Update the password
+  if (user != null) {
+    await user.updatePassword(newPassword);
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã đổi password!'),
+        ));
+  } else {
+    print('Không có.');
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,34 +149,41 @@ class _UserProfilePageState extends State<UserProfilePage> {
             TextFormField(
               controller: _phoneController,
               decoration: const InputDecoration(
-                labelText: 'New Phone Number',
+                labelText: 'Số Điện Thoại',
               ),
             ),
             ElevatedButton(
-              onPressed: updatePhoneNumber,
-              child: Text('Update Phone Number'),
+              onPressed: () => updatePhoneNumber(_phoneController.text),
+              child: Text('Cập Nhật'),
             ),
             TextFormField(
               controller: _passwordController,
               decoration: const InputDecoration(
-                labelText: 'New Password',
+                labelText: 'Password',
               ),
               obscureText: true,
             ),
             ElevatedButton(
-              onPressed: changePassword,
-              child: Text('Change Password'),
+              onPressed: () => changePassword(_passwordController.text),
+              child: Text('Thay Đổi'),
             ),
-            ElevatedButton(
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                // Navigate to login page or main page
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginSignupPage()), // Replace LoginPage() with your login page widget
-                );
-              },
-              child: Text('Đăng xuất'),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 40.0), // Thêm padding ở dưới
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    // Navigate to login page or main page
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LoginSignupPage()),
+                    );
+                  },
+                  child: Text('Đăng xuất'),
+                ),
+              ),
             ),
           ],
         ),

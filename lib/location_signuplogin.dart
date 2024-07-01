@@ -69,61 +69,63 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
   }
 
   // Login/Signup logic using FirebaseAuth (replace with your implementation)
-  Future<void> _handleLoginSignup(BuildContext context) async {
-    // Validate email and password (replace with your validation logic)
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+ Future<void> _handleLoginSignup(BuildContext context) async {
+  // Validate email and password (replace with your validation logic)
+  if (!_formKey.currentState!.validate()) {
+    return;
+  }
 
-    String email = _emailController.text;
-    String password = _passwordController.text;
+  String email = _emailController.text;
+  String password = _passwordController.text;
 
-    try {
-      final FirebaseAuth auth = FirebaseAuth.instance;
+  try {
+    final FirebaseAuth auth = FirebaseAuth.instance;
 
-      if (_isSignup) {
-        // Create user
-        UserCredential authResult = await auth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        final User user = authResult.user!;
-        GeoPoint location = await getCurrentLocation();
-        await createUserProfile(
-            user.uid, user.displayName ?? '', user.email ?? '', location);
+    if (_isSignup) {
+      // Create user
+      UserCredential authResult = await auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final User user = authResult.user!;
+      GeoPoint location = await getCurrentLocation();
+      await createUserProfile(
+          user.uid, user.displayName ?? '', user.email ?? '', location);
 
-        authResult = await auth.signInWithEmailAndPassword(
-            email: email,
-            password: password,
-        );
-        final User usernew = authResult.user!;
-        await updateUserProfile(user.uid, location);
+      // Send email verification
+      await user.sendEmailVerification();
 
-      } else {
-        // Login existing user
-        UserCredential authResult = await auth.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        final User user = authResult.user!;
-        GeoPoint location = await getCurrentLocation();
-        await updateUserProfile(user.uid, location);
-      }
-
-      // Handle successful login/signup
-      // (e.g., navigate back to main location sharing screen)
-      Navigator.pop(context); // Close login/signup page
-      final snackBar = SnackBar(
-        content:
-            Text(_isSignup ? 'Đăng ký thành công!' : 'Đăng nhập thành công!'),
-        backgroundColor: Colors.green,
-        action: SnackBarAction(
-          label: 'Đóng',
-          onPressed: () {},
+      // Show a message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Email xác thực đã được gửi. Vui lòng kiểm tra hòm thư của bạn.'),
         ),
       );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    } on FirebaseAuthException catch (e) {
+    } else {
+      // Login existing user
+      UserCredential authResult = await auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final User user = authResult.user!;
+      GeoPoint location = await getCurrentLocation();
+      await updateUserProfile(user.uid, location);
+    }
+
+    // Handle successful login/signup
+    // (e.g., navigate back to main location sharing screen)
+    Navigator.pop(context); // Close login/signup page
+    final snackBar = SnackBar(
+      content:
+          Text(_isSignup ? 'Đăng ký thành công!' : 'Đăng nhập thành công!'),
+      backgroundColor: Colors.green,
+      action: SnackBarAction(
+        label: 'Đóng',
+        onPressed: () {},
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' && !_isSignup) {
         print('No user found for the provided email.');
         // Show an error message to the user (e.g., "Tài khoản không tồn tại")
