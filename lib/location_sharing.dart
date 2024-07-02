@@ -66,43 +66,43 @@ class _LocationSharingState extends State<LocationSharing> {
     });
   }
 
-  Future<void> updateUserProfile(String userId, GeoPoint newLocation) async {
-    // Get a reference to the document with the user ID
-    final userRef = firestore.collection('users').doc(userId);
-
-    // Get the current document
-    final doc = await userRef.get();
-
-    // Get the current location
-    final GeoPoint currentLocation = doc.get('location');
-
-    // Update user data
-    await userRef.update({
-      'lastLocation': currentLocation,
-      'location': newLocation,
-      'lastup': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
-    });
-  }
+  // Future<void> updateUserProfile(String userId, GeoPoint newLocation) async {
+  //   // Get a reference to the document with the user ID
+  //   final userRef = firestore.collection('users').doc(userId);
+  //
+  //   // Get the current document
+  //   final doc = await userRef.get();
+  //
+  //   // Get the current location
+  //   final GeoPoint currentLocation = doc.get('location');
+  //
+  //   // Update user data
+  //   await userRef.update({
+  //     'lastLocation': currentLocation,
+  //     'location': newLocation,
+  //     'lastup': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
+  //   });
+  // }
 
 // Function to retrieve a user's friends (consider implementing pagination for large friend lists)
-  Future<void> getFriends(String userId1, String userId2) async {
-    // Get a reference to the user documents
-    final userRef1 = firestore.collection('users').doc(userId1);
-    final userRef2 = firestore.collection('users').doc(userId2);
-
-    // Get the current documents
-    final doc1 = await userRef1.get();
-    final doc2 = await userRef2.get();
-
-    // Get the current locations
-    final GeoPoint currentLocation1 = doc1.get('location');
-    final GeoPoint currentLocation2 = doc2.get('location');
-
-    // Update user data
-    await userRef1.update({});
-
-    await userRef2.update({});
-  }
+//   Future<void> getFriends(String userId1, String userId2) async {
+//     // Get a reference to the user documents
+//     final userRef1 = firestore.collection('users').doc(userId1);
+//     final userRef2 = firestore.collection('users').doc(userId2);
+//
+//     // Get the current documents
+//     final doc1 = await userRef1.get();
+//     final doc2 = await userRef2.get();
+//
+//     // Get the current locations
+//     final GeoPoint currentLocation1 = doc1.get('location');
+//     final GeoPoint currentLocation2 = doc2.get('location');
+//
+//     // Update user data
+//     await userRef1.update({});
+//
+//     await userRef2.update({});
+//   }
 
   @override
   void initState() {
