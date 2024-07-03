@@ -86,19 +86,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
 
   List<BitmapDescriptor> waypointMarkers = [
-    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue), //A
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+    //A
     BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
     BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
     BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
     BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
     BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
     BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
-    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose), //H
-    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen), //No letter
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+    //H
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    //No letter
   ];
 
   List<String> waypointMarkersSource = [
-   "assets/icons/waypoints/a.svg",
+    "assets/icons/waypoints/a.svg",
     "assets/icons/waypoints/b.svg",
     "assets/icons/waypoints/c.svg",
     "assets/icons/waypoints/d.svg",
@@ -119,18 +122,18 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   // Future<List<LatLng>?> polylinePoints = Future.value(null);
   List<Polyline> polylines = [];
   List<LatLng> polylinePointsList = [];
-List<Color> polylineColors = [
-  Colors.green[700]!,
-  Colors.blue[700]!,
-  Colors.yellow[700]!,
-  Colors.purple[700]!,
-  Colors.orange[700]!,
-  Colors.brown[700]!,
-  Colors.cyan[700]!,
-  Colors.lime[700]!,
-  Colors.teal[700]!,
-  Colors.indigo[700]!,
-];
+  List<Color> polylineColors = [
+    Colors.green[700]!,
+    Colors.blue[700]!,
+    Colors.yellow[700]!,
+    Colors.purple[700]!,
+    Colors.orange[700]!,
+    Colors.brown[700]!,
+    Colors.cyan[700]!,
+    Colors.lime[700]!,
+    Colors.teal[700]!,
+    Colors.indigo[700]!,
+  ];
   String travelMode = "DRIVE";
   String routingPreference = "TRAFFIC_AWARE";
   bool isTrafficAware = true;
@@ -342,7 +345,7 @@ List<Color> polylineColors = [
             if (searchList != null) {
               placeSearchList = searchList;
               for (int i = 0; i < placeSearchList.length; i++) {
-                placeSearchList[i].getPhotoUrls(400, 400).then((photoUrls) {
+                placeSearchList[i].getPhotoUrls(500, 500).then((photoUrls) {
                   setState(() {
                     placeSearchList[i].photoUrls = photoUrls;
                     logWithTag("Photo URL: ${photoUrls}",
@@ -438,6 +441,7 @@ List<Color> polylineColors = [
     animateToPositionNoZoom(
       LatLng(position.latitude, position.longitude),
     );
+    isShowPlaceHorizontalList = false;
     changeState("Loading Can Route");
     mapData.changeDestinationLocationLatLgn(position);
     setState(() {
@@ -457,7 +461,7 @@ List<Color> polylineColors = [
       var value = await placeSearchSingle(placeString);
       if (value != null) {
         markedPlace = value;
-        mapData.changeDestinationAddressAndPlaceName(value);
+        mapData.changeDestinationAddressAndPlaceNameAndImage(value);
         if (state == stateMap["Loading Can Route"]!)
           changeState("Search Results");
       } else if (state == stateMap["Loading Can Route"]!)
@@ -479,7 +483,7 @@ List<Color> polylineColors = [
         mapData.changeDestinationLocationLatLgn(LatLng(
             placeSearchList[index].location.latitude,
             placeSearchList[index].location.longitude));
-        mapData.changeDestinationAddressAndPlaceName(placeSearchList[index]);
+        mapData.changeDestinationAddressAndPlaceNameAndImage(placeSearchList[index]);
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
@@ -503,7 +507,7 @@ List<Color> polylineColors = [
     if (value != null) {
       mapData.changeDestinationLocationLatLgn(
           LatLng(value.location.latitude, value.location.longitude));
-      mapData.changeDestinationAddressAndPlaceName(value);
+      mapData.changeDestinationAddressAndPlaceNameAndImage(value);
       animateToPosition(
         LatLng(value.location.latitude, value.location.longitude),
       );
@@ -527,42 +531,44 @@ List<Color> polylineColors = [
     return null;
   }
 
-void drawRoute() {
-  if (routes.isNotEmpty) {
-    setState(() {
-      polylines = [];
-      for (int i = 0; i < routes[0].legs.length; i++) {
-        List<LatLng> legPoints = Polyline_.decodePolyline(
-            routes[0].legs[i].polyline.encodedPolyline);
+  void drawRoute() {
+    if (routes.isNotEmpty) {
+      setState(() {
+        polylines = [];
+        for (int i = 0; i < routes[0].legs.length; i++) {
+          List<LatLng> legPoints = Polyline_.decodePolyline(
+              routes[0].legs[i].polyline.encodedPolyline);
 
-        int width;
-        switch (i % 3) {
-          case 0:
-            width = 8;
-            break;
-          case 1:
-            width = 6;
-            break;
-          case 2:
-            width = 4;
-            break;
-          default:
-            width = 8;
+          int width;
+          switch (i % 3) {
+            case 0:
+              width = 8;
+              break;
+            case 1:
+              width = 6;
+              break;
+            case 2:
+              width = 4;
+              break;
+            default:
+              width = 8;
+          }
+
+          polylines.add(
+            Polyline(
+              polylineId: PolylineId(i.toString()),
+              color: polylineColors[i % polylineColors.length],
+              // Use a different color for each leg
+              width: width,
+              // Use different widths for each polyline
+              points: legPoints, // Add all points of the leg to the polyline
+            ),
+          );
         }
-
-        polylines.add(
-          Polyline(
-            polylineId: PolylineId(i.toString()),
-            color: polylineColors[i % polylineColors.length], // Use a different color for each leg
-            width: width, // Use different widths for each polyline
-            points: legPoints, // Add all points of the leg to the polyline
-          ),
-        );
-      }
-    });
+      });
+    }
+    //showAllMarkerInfo();
   }
-  //showAllMarkerInfo();
-}
 
   // Future<void> showAllMarkerInfo() async {
   //   GoogleMapController controller = await _mapsController.future;
@@ -583,7 +589,8 @@ void drawRoute() {
     if (mapData.departureLocation != null &&
         mapData.destinationLocationLatLgn != null)
       calcRoute(
-          from: mapData.departureLocation!, to: mapData.destinationLocationLatLgn!);
+          from: mapData.departureLocation!,
+          to: mapData.destinationLocationLatLgn!);
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
@@ -669,7 +676,7 @@ void drawRoute() {
           markerId: marker.markerId,
           icon: defaultMarker,
           position: marker.position,
-         //infoWindow: marker.infoWindow,
+          //infoWindow: marker.infoWindow,
         );
         myMarker[i] = newMarker;
       }
@@ -734,14 +741,13 @@ void drawRoute() {
 
     for (int i = 0; i < waypointMarkers.length; i++) {
       BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
-          waypointMarkersSource[i], const Size(45, 45))
+              waypointMarkersSource[i], const Size(45, 45))
           .then((bitmapDescriptor) {
         setState(() {
           waypointMarkers[i] = bitmapDescriptor;
         });
       });
     }
-
 
     //Todo: Remove after test
     // searchPlaceAndUpdate("Đại học CNTT");
@@ -858,101 +864,108 @@ void drawRoute() {
                   margin: const EdgeInsets.only(top: 5),
                   child:
                       //List from place autocomplete
-                  AnimatedOpacity(
-                      opacity: isShowPlaceHorizontalList ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 500),
-                      child: SizedBox(
-                        height: 90.0,
-                        width: (MediaQuery.of(context).size.width),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: isShowPlaceHorizontalListFromSearch
-                              ? placeSearchList.length
-                              : placeAutoList.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              margin:
-                                  const EdgeInsets.only(left: 5.0, right: 5),
-                              child: GestureDetector(
-                                onTap: () {
-                                  placeOnclickFromList(
-                                      isShowPlaceHorizontalListFromSearch:
-                                          isShowPlaceHorizontalListFromSearch,
-                                      index: index);
+                      AnimatedOpacity(
+                          opacity: isShowPlaceHorizontalList ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 500),
+                          child: SizedBox(
+                            height: 90.0,
+                            width: (MediaQuery.of(context).size.width),
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: isShowPlaceHorizontalListFromSearch
+                                  ? placeSearchList.length
+                                  : placeAutoList.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  margin: const EdgeInsets.only(
+                                      left: 5.0, right: 5),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      placeOnclickFromList(
+                                          isShowPlaceHorizontalListFromSearch:
+                                              isShowPlaceHorizontalListFromSearch,
+                                          index: index);
 
-                                  if (myMarker.length > 1) {
-                                    changeMainMarker(index);
-                                  }
-                                },
-                                onLongPress: () async {
-                                  await placeMarkAndRoute(
-                                      isShowPlaceHorizontalListFromSearch:
-                                          isShowPlaceHorizontalListFromSearch,
-                                      index: index);
-                                  drawRoute();
-                                },
-                                child: Container(
-                                  //margin: EdgeInsets.only(
-                                  // left: 10.0, top: 10.0, bottom: 10.0),
-                                  padding: const EdgeInsets.all(10.0),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: <Widget>[
-                                      if (isShowPlaceHorizontalListFromSearch)
-                                        Image.network(
-                                          placeSearchList[index].photoUrls ??
-                                              "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
-                                          width: 50,
-                                          height: 50,
-                                        ),
-
-
-                                      const SizedBox(width: 10.0),
-                                      SizedBox(
-                                        width: 140,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: <Widget>[
-                                            Text(
-                                              getMainText(
-                                                  isShowPlaceHorizontalListFromSearch,
-                                                  index),
-                                              style: const TextStyle(
-                                                fontSize: 16.0,
-                                                fontWeight: FontWeight.bold,
-                                                overflow: TextOverflow.ellipsis,
+                                      if (myMarker.length > 1) {
+                                        changeMainMarker(index);
+                                      }
+                                    },
+                                    onLongPress: () async {
+                                      await placeMarkAndRoute(
+                                          isShowPlaceHorizontalListFromSearch:
+                                              isShowPlaceHorizontalListFromSearch,
+                                          index: index);
+                                      drawRoute();
+                                    },
+                                    child: Container(
+                                      //margin: EdgeInsets.only(
+                                      // left: 10.0, top: 10.0, bottom: 10.0),
+                                      padding: const EdgeInsets.all(10.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          if (isShowPlaceHorizontalListFromSearch)
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(5.0),
+                                              child: Image.network(
+                                                placeSearchList[index]
+                                                        .photoUrls ??
+                                                    "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                                width: 60,
+                                                height: 80,
+                                                fit: BoxFit.cover,
                                               ),
                                             ),
-                                            Text(
-                                              getSecondaryText(
-                                                  isShowPlaceHorizontalListFromSearch,
-                                                  index),
-                                              style: const TextStyle(
-                                                  fontSize: 14.0,
-                                                  color: Colors.grey,
-                                                  overflow:
-                                                      TextOverflow.ellipsis),
+                                          const SizedBox(width: 10.0),
+                                          SizedBox(
+                                            width: 140,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: <Widget>[
+                                                Text(
+                                                  getMainText(
+                                                      isShowPlaceHorizontalListFromSearch,
+                                                      index),
+                                                  style: const TextStyle(
+                                                    fontSize: 16.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  getSecondaryText(
+                                                      isShowPlaceHorizontalListFromSearch,
+                                                      index),
+                                                  style: const TextStyle(
+                                                      fontSize: 14.0,
+                                                      color: Colors.grey,
+                                                      overflow: TextOverflow
+                                                          .ellipsis),
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      )),
+                                );
+                              },
+                            ),
+                          )),
                 ),
               ],
             ),
@@ -1506,21 +1519,67 @@ void drawRoute() {
                               child: SingleChildScrollView(
                                 primary: false,
                                 controller: scrollController,
-                                child: Column(children: <Widget>[
-                                  const Pill(),
-                                  FilledButton(
-                                    onPressed: () {
-                                      // placeMarkAndRoute(
-                                      //     isShowPlaceHorizontalListFromSearch:
-                                      //         isShowPlaceHorizontalListFromSearch,
-                                      //     index: 0);
-                                      calcRouteFromDepToDes();
-                                    },
-                                    child: const Text("Chỉ đường"),
-                                  ),
-                                  Text(mapData.destinationLocationAddress.toString()),
-                                  Text(mapData.destinationLocationPlaceName.toString()),
-                                ]),
+                                child: Container(
+                                  padding: const EdgeInsets.only(
+                                      left: 20.0, right: 20.0),
+                                  child: Column(children: <Widget>[
+                                    const Pill(),
+                                    Row(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                          BorderRadius.circular(5.0),
+                                          child: Image.network(
+                                            mapData.destinationLocationPhotoUrl ?? "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                            width: 80,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        SizedBox(width: 20),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                mapData.destinationLocationPlaceName
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                overflow: TextOverflow.visible,
+                                              ),
+                                              Text(
+                                                mapData.destinationLocationAddress
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 14,
+                                                ),
+                                                overflow: TextOverflow.visible,
+                                                
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    FilledButton(
+
+                                      onPressed: () {
+                                        // placeMarkAndRoute(
+                                        //     isShowPlaceHorizontalListFromSearch:
+                                        //         isShowPlaceHorizontalListFromSearch,
+                                        //     index: 0);
+                                        calcRouteFromDepToDes();
+                                      },
+                                      child: const Text("Chỉ đường"),
+                                    ),
+                                  ]),
+                                ),
                               ),
                             ),
                           );
@@ -1607,8 +1666,8 @@ void drawRoute() {
                                             isAvoidHighways: isAvoidHighways,
                                             isAvoidFerries: isAvoidFerries,
                                             waypointsLatLgn: waypointsLatLgn,
-                                            destinationLatLgn: mapData.destinationLocationLatLgn!,
-
+                                            destinationLatLgn: mapData
+                                                .destinationLocationLatLgn!,
                                           )
                                           // RoutePlanningList(
                                           //     routes: routes,
@@ -1749,7 +1808,6 @@ void drawRoute() {
                                                   color: Colors.white,
                                                   child: SingleChildScrollView(
                                                       primary: false,
-
                                                       controller:
                                                           scrollController,
                                                       child: Column(
@@ -1799,9 +1857,7 @@ void drawRoute() {
                                                                                 });
                                                                                 myMarker.add(Marker(
                                                                                   markerId: MarkerId(centerLocation.toString()),
-                                                                                  icon: (myMarker.length < waypointMarkers.length)?
-                                                                                  waypointMarkers[(myMarker.length - 1)]:
-                                                                                  waypointMarkers[waypointMarkers.length - 1],
+                                                                                  icon: (myMarker.length < waypointMarkers.length) ? waypointMarkers[(myMarker.length - 1)] : waypointMarkers[waypointMarkers.length - 1],
                                                                                   position: centerLocation,
                                                                                 ));
                                                                               });
@@ -1828,7 +1884,9 @@ void drawRoute() {
                                                                       waypointsLatLgn,
                                                                   waypointsName:
                                                                       waypointNames,
-                                                                  controller:  _listviewScrollController,
+                                                                  controller:
+                                                                      _listviewScrollController,
+                                                                  markerList: myMarker,
                                                                 ),
                                                               ],
                                                             ),
@@ -1903,6 +1961,7 @@ class MapData {
   LatLng? destinationLocationLatLgn;
   String? destinationLocationAddress;
   String? destinationLocationPlaceName;
+  String? destinationLocationPhotoUrl;
 
   MapData({
     this.currentLocation,
@@ -1911,6 +1970,7 @@ class MapData {
     this.departureLocationName = "Vị trí của bạn",
     this.destinationLocationAddress,
     this.destinationLocationPlaceName,
+    this.destinationLocationPhotoUrl,
   });
 
   void changeDestinationLocationLatLgn(LatLng latLng) {
@@ -1960,12 +2020,16 @@ class MapData {
     logWithTag("Destination location name changed to: $value", tag: "MapData");
   }
 
-  void changeDestinationAddressAndPlaceName(PlaceSearch_ place)
-  {
+  void changeDestinationAddressAndPlaceNameAndImage(PlaceSearch_ place) {
     destinationLocationAddress = place.formattedAddress;
     destinationLocationPlaceName = place.displayName?.text;
+    destinationLocationPhotoUrl = place.photoUrls;
     logWithTag(place.toString(), tag: "MapData info");
-    logWithTag("Destination location name changed to: $destinationLocationPlaceName", tag: "MapData");
-    logWithTag("Destination location address changed to: $destinationLocationAddress", tag: "MapData");
+    logWithTag(
+        "Destination location name changed to: $destinationLocationPlaceName",
+        tag: "MapData");
+    logWithTag(
+        "Destination location address changed to: $destinationLocationAddress",
+        tag: "MapData");
   }
 }
