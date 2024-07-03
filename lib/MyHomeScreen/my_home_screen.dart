@@ -1497,7 +1497,8 @@ void drawRoute() {
                                       calcRouteFromDepToDes();
                                     },
                                     child: const Text("Chỉ đường"),
-                                  )
+                                  ),
+                                  Text(mapData.destinationLocationName.toString()),
                                 ]),
                               ),
                             ),

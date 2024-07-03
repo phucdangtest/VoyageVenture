@@ -177,12 +177,6 @@ class _RoutePlanningListTileState extends State<RoutePlanningListTile> {
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(
-            bottom: BorderSide(
-              color: Color.fromARGB(255, 246, 245, 245),
-              width: 1.0,
-            ),
-          ),
         ),
         child: Row(
           children: [

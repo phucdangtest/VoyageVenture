@@ -99,25 +99,46 @@ Future<LatLng> getCurrentLocationLatLng() async {
   return LatLng(position.latitude, position.longitude);
 }
 
+int countValidFields(Placemark placemark) {
+  int count = 0;
+  //if (placemark.name?.isNotEmpty ?? false) count++;
+  if (placemark.street?.isNotEmpty ?? false) count++;
+ // if (placemark.isoCountryCode?.isNotEmpty ?? false) count++;
+  if (placemark.country?.isNotEmpty ?? false) count++;
+ // if (placemark.postalCode?.isNotEmpty ?? false) count++;
+  if (placemark.administrativeArea?.isNotEmpty ?? false) count++;
+  if (placemark.subAdministrativeArea?.isNotEmpty ?? false) count++;
+  if (placemark.locality?.isNotEmpty ?? false) count++;
+  if (placemark.subLocality?.isNotEmpty ?? false) count++;
+  if (placemark.thoroughfare?.isNotEmpty ?? false) count++;
+  //if (placemark.subThoroughfare?.isNotEmpty ?? false) count++;
+  return count;
+}
+
 Future<String> convertLatLngToAddress(LatLng latlng, {bool isCutoff = false}) async {
   double lat = latlng.latitude;
   double lng = latlng.longitude;
   try {
     List<Placemark> placeMarks = await placemarkFromCoordinates(lat, lng);
-    String place = '${placeMarks[0].name}, ${placeMarks[0]
-        .subLocality}, ${placeMarks[0].locality}, ${placeMarks[0]
-        .administrativeArea}, ${placeMarks[0].country}, ${placeMarks[0]
-        .postalCode}';
-    // String place = '${placeMarks[0].name}, ${placeMarks[0].street}, ${placeMarks[0]
-    //     .subLocality}, ${placeMarks[0].locality}, ${placeMarks[0]
-    //     .administrativeArea}, ${placeMarks[0].country}, ${placeMarks[0]
-    //     .postalCode}';
-    //
+    placeMarks.sort((a, b) => countValidFields(b).compareTo(countValidFields(a)));
+    
+    var addressParts = [
+      placeMarks[0].street,
+      placeMarks[0].subLocality,
+      placeMarks[0].locality,
+      placeMarks[0].subAdministrativeArea,
+      placeMarks[0].administrativeArea,
+      placeMarks[0].country
+    ].where((s) => s?.isNotEmpty ?? false).join(', ');
+
+
     if (isCutoff) {
-      String displayText = place.length > 30 ? place.substring(0, 30) + '...' : place;
+      String displayText = addressParts.length > 30 ? addressParts.substring(0, 30) + '...' : addressParts;
+      logWithTag('Address: $displayText', tag: 'convertLatLngToAddress');
       return displayText;
     } else {
-      return place;
+      logWithTag('Address: $addressParts', tag: 'convertLatLngToAddress');
+      return addressParts;
     }
   } catch (e) {
     print('Failed to convert LatLng to address: $e');
