@@ -14,6 +14,7 @@ import 'package:voyageventure/components/navigation_list_tile.dart';
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/components/waypoint_list.dart';
 import 'package:voyageventure/constants.dart';
+import 'package:voyageventure/models/fetch_photo_url.dart';
 import 'package:voyageventure/models/route_calculate_response.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
@@ -293,7 +294,7 @@ List<Color> polylineColors = [
                         tag: "SearchLocationScreen");
                     calcRoute(
                         from: mapData.departureLocation!,
-                        to: mapData.destinationLocation!);
+                        to: mapData.destinationLocationLatLgn!);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -341,16 +342,24 @@ List<Color> polylineColors = [
             if (searchList != null) {
               placeSearchList = searchList;
               for (int i = 0; i < placeSearchList.length; i++) {
+                placeSearchList[i].getPhotoUrls(400, 400).then((photoUrls) {
+                  setState(() {
+                    placeSearchList[i].photoUrls = photoUrls;
+                    logWithTag("Photo URL: ${photoUrls}",
+                        tag: "Change photourl");
+                  });
+                });
+                ;
                 final markerId = MarkerId(placeSearchList[i].id!);
                 Marker marker = Marker(
                   markerId: markerId,
                   icon: (i == 0) ? mainMarker : defaultMarker,
                   position: LatLng(placeSearchList[i].location.latitude,
                       placeSearchList[i].location.longitude),
-                  infoWindow: InfoWindow(
-                    title: placeSearchList[i].displayName?.text,
-                    snippet: placeSearchList[i].formattedAddress,
-                  ),
+                  // infoWindow: InfoWindow(
+                  //   title: placeSearchList[i].displayName?.text,
+                  //   snippet: placeSearchList[i].formattedAddress,
+                  // ),
                 );
                 myMarker.add(marker);
               }
@@ -430,7 +439,7 @@ List<Color> polylineColors = [
       LatLng(position.latitude, position.longitude),
     );
     changeState("Loading Can Route");
-    mapData.changeDestinationLocation(position);
+    mapData.changeDestinationLocationLatLgn(position);
     setState(() {
       myMarker = [];
       waypointsLatLgn = [];
@@ -448,6 +457,7 @@ List<Color> polylineColors = [
       var value = await placeSearchSingle(placeString);
       if (value != null) {
         markedPlace = value;
+        mapData.changeDestinationAddressAndPlaceName(value);
         if (state == stateMap["Loading Can Route"]!)
           changeState("Search Results");
       } else if (state == stateMap["Loading Can Route"]!)
@@ -466,9 +476,10 @@ List<Color> polylineColors = [
     changeState("Search Results");
     if (isShowPlaceHorizontalListFromSearch) {
       try {
-        mapData.changeDestinationLocation(LatLng(
+        mapData.changeDestinationLocationLatLgn(LatLng(
             placeSearchList[index].location.latitude,
             placeSearchList[index].location.longitude));
+        mapData.changeDestinationAddressAndPlaceName(placeSearchList[index]);
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
@@ -490,8 +501,9 @@ List<Color> polylineColors = [
     var value = await placeSearchSingle(
         placeAutoList[index].structuredFormat?.mainText?.text ?? "");
     if (value != null) {
-      mapData.changeDestinationLocation(
+      mapData.changeDestinationLocationLatLgn(
           LatLng(value.location.latitude, value.location.longitude));
+      mapData.changeDestinationAddressAndPlaceName(value);
       animateToPosition(
         LatLng(value.location.latitude, value.location.longitude),
       );
@@ -502,10 +514,10 @@ List<Color> polylineColors = [
           markerId: markerId,
           icon: mainMarker,
           position: LatLng(value.location.latitude, value.location.longitude),
-          infoWindow: InfoWindow(
-            title: value.displayName?.text,
-            snippet: value.formattedAddress,
-          ),
+          // infoWindow: InfoWindow(
+          //   title: value.displayName?.text,
+          //   snippet: value.formattedAddress,
+          // ),
         );
         myMarker.add(marker);
       });
@@ -549,15 +561,15 @@ void drawRoute() {
       }
     });
   }
-  showAllMarkerInfo();
+  //showAllMarkerInfo();
 }
 
-  Future<void> showAllMarkerInfo() async {
-    GoogleMapController controller = await _mapsController.future;
-    for (final marker in myMarker) {
-      controller.showMarkerInfoWindow(marker.markerId);
-    }
-  }
+  // Future<void> showAllMarkerInfo() async {
+  //   GoogleMapController controller = await _mapsController.future;
+  //   for (final marker in myMarker) {
+  //     controller.showMarkerInfoWindow(marker.markerId);
+  //   }
+  // }
 
   void clearRoute() {
     setState(() {
@@ -569,9 +581,9 @@ void drawRoute() {
     //Todo remove after test waypoint
     //waypointsLatLgn = [];
     if (mapData.departureLocation != null &&
-        mapData.destinationLocation != null)
+        mapData.destinationLocationLatLgn != null)
       calcRoute(
-          from: mapData.departureLocation!, to: mapData.destinationLocation!);
+          from: mapData.departureLocation!, to: mapData.destinationLocationLatLgn!);
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
@@ -590,7 +602,8 @@ void drawRoute() {
     drawRoute();
     changeState("Route Planning");
     mapData.changeDepartureLocation(from);
-    mapData.changeDestinationLocation(to);
+    mapData.changeDestinationLocationLatLgn(to);
+    // Todo: mapdata
   }
 
   Future<void> placeMarkAndRoute(
@@ -601,7 +614,7 @@ void drawRoute() {
         isShowPlaceHorizontalListFromSearch;
     myMarker.removeWhere((marker) => marker.icon != mainMarker);
     if (isShowPlaceHorizontalListFromSearch) {
-      mapData.destinationLocation = LatLng(
+      mapData.destinationLocationLatLgn = LatLng(
           placeSearchList[index].location.latitude,
           placeSearchList[index].location.longitude);
       try {
@@ -630,10 +643,10 @@ void drawRoute() {
           markerId: markerId,
           icon: mainMarker,
           position: LatLng(value.location.latitude, value.location.longitude),
-          infoWindow: InfoWindow(
-            title: value.displayName?.text,
-            snippet: value.formattedAddress,
-          ),
+          // infoWindow: InfoWindow(
+          //   title: value.displayName?.text,
+          //   snippet: value.formattedAddress,
+          // ),
         );
         myMarker.add(marker);
       });
@@ -656,7 +669,7 @@ void drawRoute() {
           markerId: marker.markerId,
           icon: defaultMarker,
           position: marker.position,
-          infoWindow: marker.infoWindow,
+         //infoWindow: marker.infoWindow,
         );
         myMarker[i] = newMarker;
       }
@@ -667,7 +680,7 @@ void drawRoute() {
       markerId: markerAtIndex.markerId,
       icon: mainMarker,
       position: markerAtIndex.position,
-      infoWindow: markerAtIndex.infoWindow,
+      //infoWindow: markerAtIndex.infoWindow,
     );
     setState(() {
       myMarker[index] = newMarkerAtIndex;
@@ -843,7 +856,9 @@ void drawRoute() {
                 // Location list
                 Container(
                   margin: const EdgeInsets.only(top: 5),
-                  child: AnimatedOpacity(
+                  child:
+                      //List from place autocomplete
+                  AnimatedOpacity(
                       opacity: isShowPlaceHorizontalList ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 500),
                       child: SizedBox(
@@ -864,6 +879,7 @@ void drawRoute() {
                                       isShowPlaceHorizontalListFromSearch:
                                           isShowPlaceHorizontalListFromSearch,
                                       index: index);
+
                                   if (myMarker.length > 1) {
                                     changeMainMarker(index);
                                   }
@@ -888,11 +904,15 @@ void drawRoute() {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.center,
                                     children: <Widget>[
-                                      Image.network(
-                                        "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
-                                        width: 50,
-                                        height: 50,
-                                      ),
+                                      if (isShowPlaceHorizontalListFromSearch)
+                                        Image.network(
+                                          placeSearchList[index].photoUrls ??
+                                              "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
+                                          width: 50,
+                                          height: 50,
+                                        ),
+
+
                                       const SizedBox(width: 10.0),
                                       SizedBox(
                                         width: 140,
@@ -1498,7 +1518,8 @@ void drawRoute() {
                                     },
                                     child: const Text("Chỉ đường"),
                                   ),
-                                  Text(mapData.destinationLocationName.toString()),
+                                  Text(mapData.destinationLocationAddress.toString()),
+                                  Text(mapData.destinationLocationPlaceName.toString()),
                                 ]),
                               ),
                             ),
@@ -1534,7 +1555,7 @@ void drawRoute() {
                                                 from:
                                                     mapData.departureLocation!,
                                                 to: mapData
-                                                    .destinationLocation!);
+                                                    .destinationLocationLatLgn!);
                                           },
                                           child: const Text("Chỉ đường"),
                                         ),
@@ -1586,7 +1607,7 @@ void drawRoute() {
                                             isAvoidHighways: isAvoidHighways,
                                             isAvoidFerries: isAvoidFerries,
                                             waypointsLatLgn: waypointsLatLgn,
-                                            destinationLatLgn: mapData.destinationLocation!,
+                                            destinationLatLgn: mapData.destinationLocationLatLgn!,
 
                                           )
                                           // RoutePlanningList(
@@ -1691,7 +1712,7 @@ void drawRoute() {
                                                               from: mapData
                                                                   .departureLocation!,
                                                               to: mapData
-                                                                  .destinationLocation!);
+                                                                  .destinationLocationLatLgn!);
                                                         },
                                                         child: const Text(
                                                             "Chỉ đường"),
@@ -1879,22 +1900,24 @@ class MapData {
   LatLng? currentLocation;
   LatLng? departureLocation;
   String departureLocationName;
-  LatLng? destinationLocation;
-  String? destinationLocationName;
+  LatLng? destinationLocationLatLgn;
+  String? destinationLocationAddress;
+  String? destinationLocationPlaceName;
 
   MapData({
     this.currentLocation,
     this.departureLocation,
-    this.destinationLocation,
+    this.destinationLocationLatLgn,
     this.departureLocationName = "Vị trí của bạn",
-    this.destinationLocationName,
+    this.destinationLocationAddress,
+    this.destinationLocationPlaceName,
   });
 
-  void changeDestinationLocation(LatLng latLng) {
-    destinationLocation = latLng;
+  void changeDestinationLocationLatLgn(LatLng latLng) {
+    destinationLocationLatLgn = latLng;
     logWithTag("Destination location changed to: $latLng", tag: "MapData");
     logWithTag(
-        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
         tag: "MapData");
     // Future<String?> placeString = convertLatLngToAddress(latLng);
     // placeString.then((value) {
@@ -1908,7 +1931,7 @@ class MapData {
     departureLocation = from;
     logWithTag("Departure location changed to: $from", tag: "MapData");
     logWithTag(
-        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
         tag: "MapData");
 
     // Future<String?> placeString = convertLatLngToAddress(from);
@@ -1923,7 +1946,26 @@ class MapData {
     currentLocation = value;
     logWithTag("Current location changed to: $value", tag: "MapData");
     logWithTag(
-        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
         tag: "MapData");
+  }
+
+  void changeDestinationLocationAddress(String value) {
+    destinationLocationAddress = value;
+    logWithTag("Destination location name changed to: $value", tag: "MapData");
+  }
+
+  void changeDestinationLocationPlaceName(String value) {
+    destinationLocationPlaceName = value;
+    logWithTag("Destination location name changed to: $value", tag: "MapData");
+  }
+
+  void changeDestinationAddressAndPlaceName(PlaceSearch_ place)
+  {
+    destinationLocationAddress = place.formattedAddress;
+    destinationLocationPlaceName = place.displayName?.text;
+    logWithTag(place.toString(), tag: "MapData info");
+    logWithTag("Destination location name changed to: $destinationLocationPlaceName", tag: "MapData");
+    logWithTag("Destination location address changed to: $destinationLocationAddress", tag: "MapData");
   }
 }

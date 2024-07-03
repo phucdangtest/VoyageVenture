@@ -3,6 +3,8 @@
 // Horizontal list and location button
     //Column:
             // Location list
+                    //List from place autocomplete
+
             // Location button
 
 // Center image to add waypoint
