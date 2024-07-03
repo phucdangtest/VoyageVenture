@@ -36,7 +36,13 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
         )
         : Column(
             children: [
-              Text("Không tìm thấy đường đi"),
+              Text("Không tìm thấy đường đi",
+                style: const TextStyle(
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8.0),
               ElevatedButton(
                 onPressed: widget.onPressed,
                 child: Text("Trở về"),

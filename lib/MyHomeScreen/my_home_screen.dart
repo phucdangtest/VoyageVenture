@@ -345,14 +345,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             if (searchList != null) {
               placeSearchList = searchList;
               for (int i = 0; i < placeSearchList.length; i++) {
-                String id = placeSearchList[i].id!;
-                PlaceSearch_.getPhotoUrls(id, 500, 500).then((photoUrls) {
-                  setState(() {
-                    placeSearchList[i].photoUrls = photoUrls;
-                    logWithTag("Photo URL: ${photoUrls}",
-                        tag: "Change photourl");
+                if (placeSearchList[i].id != null) {
+                  PlaceSearch_.getPhotoUrls(placeSearchList[i].id!, 500, 500).then((photoUrls) {
+                    setState(() {
+                      placeSearchList[i].photoUrls = photoUrls;
+                      logWithTag("Photo URL: ${photoUrls}",
+                          tag: "Change photourl");
+                    });
                   });
-                });
+                }
                 ;
                 final markerId = MarkerId(placeSearchList[i].id!);
                 Marker marker = Marker(
@@ -460,17 +461,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     try {
       String placeString = await convertLatLngToAddress(position);
       var value = await placeSearchSingle(placeString);
-      PlaceSearch_.getPhotoUrls(value!.id!, 400, 400).then((photoUrls) {
-        value.photoUrls = photoUrls;
-        setState(() {
-          mapData.changeDestinationImage(photoUrls);
+      if (value != null) {
+        PlaceSearch_.getPhotoUrls(value.id!, 400, 400).then((photoUrls) {
+          value.photoUrls = photoUrls;
+          setState(() {
+            mapData.changeDestinationImage(photoUrls);
+          });
         });
-      });
-      markedPlace = value;
-      mapData.changeDestinationAddressAndPlaceNameAndImage(value);
-      if (state == stateMap["Loading Can Route"]!)
-        changeState("Search Results");
-        } catch (e) {
+        markedPlace = value;
+        mapData.changeDestinationAddressAndPlaceNameAndImage(value);
+        if (state == stateMap["Loading Can Route"]!)
+          changeState("Search Results");
+      }
+      else if (state == stateMap["Loading Can Route"]!)
+        changeState("Search Results None");
+
+    } catch (e) {
       logWithTag("Error, place click from map: $e",
           tag: "SearchLocationScreen");
     }
@@ -828,21 +834,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
             bottom:
-                isShowPlaceHorizontalList // use this to compensate the height of the location show panel when it showed,
+                 // use this to compensate the height of the location show panel when it showed,
                     // do not need to use this of use visibility widget, but that widget does not have animation
-                    ? ((bottomSheetTop == null)
+                     ((bottomSheetTop == null)
                         ? (MediaQuery.of(context).size.height *
                                 defaultBottomSheetHeight /
                                 1000) +
                             10
                         : bottomSheetTop! + 10)
-                    : ((bottomSheetTop == null)
-                        ? (MediaQuery.of(context).size.height *
-                                defaultBottomSheetHeight /
-                                1000) +
-                            10 -
-                            90 // 90 is the height of the location show panel
-                        : bottomSheetTop! + 10 - 90),
+                    ,
             // 90 is the height of the location show panel
 
             right: 0,
@@ -869,9 +869,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   margin: const EdgeInsets.only(top: 5),
                   child:
                       //List from place autocomplete
-                      AnimatedOpacity(
-                          opacity: isShowPlaceHorizontalList ? 1.0 : 0.0,
-                          duration: const Duration(milliseconds: 500),
+                      Visibility(
+                          visible: isShowPlaceHorizontalList,
                           child: SizedBox(
                             height: 90.0,
                             width: (MediaQuery.of(context).size.width),
@@ -1576,12 +1575,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         ),
                                       ],
                                     ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        backgroundColor:
-                                            Color.fromARGB(255,68,190,195), // Text color
-                                      ),
+                                    FilledButton(
                                       onPressed: () {
                                         calcRouteFromDepToDes();
                                       },
@@ -1623,9 +1617,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             children: [
                                               ClipRRect(
                                                 borderRadius:
-                                                BorderRadius.circular(5.0),
+                                                    BorderRadius.circular(5.0),
                                                 child: Image.network(
-                                                      "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                                  "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
                                                   width: 80,
                                                   height: 100,
                                                   fit: BoxFit.cover,
@@ -1635,48 +1629,55 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                               Expanded(
                                                 child: Column(
                                                   crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       "Địa điểm không xác định",
                                                       style: const TextStyle(
-                                                        fontFamily: "SF Pro Display",
+                                                        fontFamily:
+                                                            "SF Pro Display",
                                                         color: Colors.black,
                                                         fontSize: 18,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
-                                                      overflow: TextOverflow.visible,
+                                                      overflow:
+                                                          TextOverflow.visible,
                                                     ),
                                                     Text(
-                                                      mapData
-                                                          .destinationLocationLatLgn!.latitude.toString().substring(0, 8) + ", " + mapData.destinationLocationLatLgn!.longitude.toString().substring(0, 8),
+                                                      mapData.destinationLocationLatLgn!
+                                                              .latitude
+                                                              .toString()
+                                                              .substring(0, 8) +
+                                                          ", " +
+                                                          mapData
+                                                              .destinationLocationLatLgn!
+                                                              .longitude
+                                                              .toString()
+                                                              .substring(0, 8),
                                                       style: const TextStyle(
-                                                        fontFamily: "SF Pro Display",
+                                                        fontFamily:
+                                                            "SF Pro Display",
                                                         color: Colors.grey,
                                                         fontSize: 14,
                                                       ),
-                                                      overflow: TextOverflow.visible,
+                                                      overflow:
+                                                          TextOverflow.visible,
                                                     ),
                                                   ],
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              foregroundColor: Colors.white,
-                                              backgroundColor:
-                                              Color.fromARGB(255,68,190,195), // Text color
-                                            ),
+                                          FilledButton(
                                             onPressed: () {
                                               calcRoute(
-                                                  from:
-                                                  mapData.departureLocation!,
+                                                  from: mapData
+                                                      .departureLocation!,
                                                   to: mapData
                                                       .destinationLocationLatLgn!);
                                             },
                                             child: const Text("Chỉ đường"),
-
                                           ),
                                         ]),
                                       ),
@@ -1821,10 +1822,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                   const SizedBox(
                                                     height: 30,
                                                   ),
-                                                  Row(
+                                                  Column(
                                                     children: [
                                                       const CircularProgressIndicator(
                                                         color: Colors.green,
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 34,
                                                       ),
                                                       FilledButton(
                                                         onPressed: () {
@@ -1988,9 +1992,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                         child: Column(
                                                             children: <Widget>[
                                                               const Pill(),
-                                                              // SizedBox(
-                                                              //   height: 100,
-                                                              // ),
+                                                              SizedBox(
+                                                                height: 40,
+                                                              ),
                                                               LoadingIndicator(
                                                                 color: Colors
                                                                     .green,
