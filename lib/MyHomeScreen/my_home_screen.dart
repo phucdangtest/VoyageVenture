@@ -345,7 +345,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             if (searchList != null) {
               placeSearchList = searchList;
               for (int i = 0; i < placeSearchList.length; i++) {
-                placeSearchList[i].getPhotoUrls(500, 500).then((photoUrls) {
+                String id = placeSearchList[i].id!;
+                PlaceSearch_.getPhotoUrls(id, 500, 500).then((photoUrls) {
                   setState(() {
                     placeSearchList[i].photoUrls = photoUrls;
                     logWithTag("Photo URL: ${photoUrls}",
@@ -459,14 +460,17 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     try {
       String placeString = await convertLatLngToAddress(position);
       var value = await placeSearchSingle(placeString);
-      if (value != null) {
-        markedPlace = value;
-        mapData.changeDestinationAddressAndPlaceNameAndImage(value);
-        if (state == stateMap["Loading Can Route"]!)
-          changeState("Search Results");
-      } else if (state == stateMap["Loading Can Route"]!)
-        changeState("Search Results None");
-    } catch (e) {
+      PlaceSearch_.getPhotoUrls(value!.id!, 400, 400).then((photoUrls) {
+        value.photoUrls = photoUrls;
+        setState(() {
+          mapData.changeDestinationImage(photoUrls);
+        });
+      });
+      markedPlace = value;
+      mapData.changeDestinationAddressAndPlaceNameAndImage(value);
+      if (state == stateMap["Loading Can Route"]!)
+        changeState("Search Results");
+        } catch (e) {
       logWithTag("Error, place click from map: $e",
           tag: "SearchLocationScreen");
     }
@@ -483,7 +487,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         mapData.changeDestinationLocationLatLgn(LatLng(
             placeSearchList[index].location.latitude,
             placeSearchList[index].location.longitude));
-        mapData.changeDestinationAddressAndPlaceNameAndImage(placeSearchList[index]);
+        mapData.changeDestinationAddressAndPlaceNameAndImage(
+            placeSearchList[index]);
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
@@ -1528,9 +1533,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                       children: [
                                         ClipRRect(
                                           borderRadius:
-                                          BorderRadius.circular(5.0),
+                                              BorderRadius.circular(5.0),
                                           child: Image.network(
-                                            mapData.destinationLocationPhotoUrl ?? "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                            mapData.destinationLocationPhotoUrl ??
+                                                "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
                                             width: 80,
                                             height: 100,
                                             fit: BoxFit.cover,
@@ -1543,9 +1549,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                mapData.destinationLocationPlaceName
+                                                mapData
+                                                    .destinationLocationPlaceName
                                                     .toString(),
                                                 style: const TextStyle(
+                                                  fontFamily: "SF Pro Display",
                                                   color: Colors.black,
                                                   fontSize: 18,
                                                   fontWeight: FontWeight.bold,
@@ -1553,31 +1561,32 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 overflow: TextOverflow.visible,
                                               ),
                                               Text(
-                                                mapData.destinationLocationAddress
+                                                mapData
+                                                    .destinationLocationAddress
                                                     .toString(),
                                                 style: const TextStyle(
+                                                  fontFamily: "SF Pro Display",
                                                   color: Colors.grey,
                                                   fontSize: 14,
                                                 ),
                                                 overflow: TextOverflow.visible,
-                                                
                                               ),
                                             ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                    FilledButton(
-
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                        backgroundColor:
+                                            Color.fromARGB(255,68,190,195), // Text color
+                                      ),
                                       onPressed: () {
-                                        // placeMarkAndRoute(
-                                        //     isShowPlaceHorizontalListFromSearch:
-                                        //         isShowPlaceHorizontalListFromSearch,
-                                        //     index: 0);
                                         calcRouteFromDepToDes();
                                       },
                                       child: const Text("Chỉ đường"),
-                                    ),
+                                    )
                                   ]),
                                 ),
                               ),
@@ -1605,20 +1614,72 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                     child: SingleChildScrollView(
                                       primary: false,
                                       controller: scrollController,
-                                      child: Column(children: <Widget>[
-                                        const Pill(),
-                                        const Center(child: Text('Không tên')),
-                                        FilledButton(
-                                          onPressed: () {
-                                            calcRoute(
-                                                from:
-                                                    mapData.departureLocation!,
-                                                to: mapData
-                                                    .destinationLocationLatLgn!);
-                                          },
-                                          child: const Text("Chỉ đường"),
-                                        ),
-                                      ]),
+                                      child: Container(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0, right: 20.0),
+                                        child: Column(children: <Widget>[
+                                          const Pill(),
+                                          Row(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                BorderRadius.circular(5.0),
+                                                child: Image.network(
+                                                      "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                                  width: 80,
+                                                  height: 100,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              SizedBox(width: 20),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "Địa điểm không xác định",
+                                                      style: const TextStyle(
+                                                        fontFamily: "SF Pro Display",
+                                                        color: Colors.black,
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                      overflow: TextOverflow.visible,
+                                                    ),
+                                                    Text(
+                                                      mapData
+                                                          .destinationLocationLatLgn!.latitude.toString().substring(0, 8) + ", " + mapData.destinationLocationLatLgn!.longitude.toString().substring(0, 8),
+                                                      style: const TextStyle(
+                                                        fontFamily: "SF Pro Display",
+                                                        color: Colors.grey,
+                                                        fontSize: 14,
+                                                      ),
+                                                      overflow: TextOverflow.visible,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              foregroundColor: Colors.white,
+                                              backgroundColor:
+                                              Color.fromARGB(255,68,190,195), // Text color
+                                            ),
+                                            onPressed: () {
+                                              calcRoute(
+                                                  from:
+                                                  mapData.departureLocation!,
+                                                  to: mapData
+                                                      .destinationLocationLatLgn!);
+                                            },
+                                            child: const Text("Chỉ đường"),
+
+                                          ),
+                                        ]),
+                                      ),
                                     )),
                               );
                             },
@@ -1886,7 +1947,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                       waypointNames,
                                                                   controller:
                                                                       _listviewScrollController,
-                                                                  markerList: myMarker,
+                                                                  markerList:
+                                                                      myMarker,
                                                                 ),
                                                               ],
                                                             ),
@@ -2031,5 +2093,10 @@ class MapData {
     logWithTag(
         "Destination location address changed to: $destinationLocationAddress",
         tag: "MapData");
+  }
+
+  void changeDestinationImage(String value) {
+    destinationLocationPhotoUrl = value;
+    logWithTag("Destination location image changed to: $value", tag: "MapData");
   }
 }

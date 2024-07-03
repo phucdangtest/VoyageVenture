@@ -8,14 +8,17 @@ Future<List<String>> fetchPhotoUrls(String placeID) async {
   if (response.statusCode == 200) {
     var jsonResponse = jsonDecode(response.body);
     List<String> photoUrls = [];
+    if (jsonResponse['photos'] != null) {
+      for (var photo in jsonResponse['photos']) {
+        photoUrls.add(photo['name']);
+      }
+      return photoUrls;
 
-    for (var photo in jsonResponse['photos']) {
-      photoUrls.add(photo['name']);
     }
-
+    else
+      return photoUrls;
     //logWithTag(photoUrls.toString(), tag: 'fetchPhotoUrls of $placeID');
 
-    return photoUrls;
   } else {
     throw Exception('Failed to load photos');
   }
