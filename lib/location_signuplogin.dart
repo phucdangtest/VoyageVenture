@@ -75,7 +75,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
       return;
     }
 
-    String email = _emailController.text;
+    String email = _emailController.text.replaceAll(' ', '');
     String password = _passwordController.text;
 
     try {
@@ -160,6 +160,10 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
                   if (value == null || value.isEmpty) {
                     return 'Vui lòng nhập email';
                   }
+                  if (!value.contains('@')) {
+                    return 'Email không hợp lệ';
+                  }
+
                   return null;
                 },
               ),

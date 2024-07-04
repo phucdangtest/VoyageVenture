@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -15,6 +16,7 @@ import 'location_signuplogin.dart';
 import 'location_userprofile.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class LocationSharing extends StatefulWidget {
   const LocationSharing({super.key});
@@ -36,8 +38,8 @@ bool distanceBetween(LatLng position1, LatLng position2) {
 
 class _LocationSharingState extends State<LocationSharing> {
   CameraPosition _initialLocation =
-  const CameraPosition(target: LatLng(0.0, 0.0));
-  final Set<Marker> myMarker = {};
+      const CameraPosition(target: LatLng(0.0, 0.0));
+  List<Marker> myMarker = [];
   GoogleMapController? _controller;
   bool _showWhiteBox = false; // State variable to control box visibility
   LatLng? _selectedLocation;
@@ -47,10 +49,12 @@ class _LocationSharingState extends State<LocationSharing> {
   late StreamSubscription<Position> _positionStream;
 
   List<LatLng> friendLocations = [];
+  List<String> friendID = [];
+  List<String> friendImage = [];
+  List<Uint8List> friendImageBytes = [];
 
-  FirebaseFirestore get firestore =>
-      FirebaseFirestore
-          .instance; // Function to add a user to the Firestore database
+  FirebaseFirestore get firestore => FirebaseFirestore
+      .instance; // Function to add a user to the Firestore database
   Future<void> addUser(String userId, String name, GeoPoint location) async {
     // Create a new document with the user ID
     final userRef = firestore.collection('users').doc(userId);
@@ -65,6 +69,31 @@ class _LocationSharingState extends State<LocationSharing> {
       // Empty friends array
     });
   }
+
+  Future<Uint8List> fetchImageBytes(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      // Handle error: throw exception, show error message etc.
+      throw Exception('Failed to download image');
+    }
+  }
+
+  Future<Marker> createMarkerWithNetworkImage(
+      LatLng position,
+      String imageUrl,
+      ) async {
+    final imageBytes = await fetchImageBytes(imageUrl);
+    final bitmapDescriptor = BitmapDescriptor.fromBytes(imageBytes);
+    return Marker(
+      markerId: MarkerId(imageUrl), // Unique ID for each marker
+      position: position,
+      icon: bitmapDescriptor,
+    );
+  }
+
+
 
   // Future<void> updateUserProfile(String userId, GeoPoint newLocation) async {
   //   // Get a reference to the document with the user ID
@@ -112,12 +141,12 @@ class _LocationSharingState extends State<LocationSharing> {
 
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    firestore.collection('user').get().then((QuerySnapshot querySnapshot) {
-      logWithTag("Get data from firestore", tag: "LocationSharing");
-      DocumentSnapshot documentSnapshot = querySnapshot.docs.first;
-      String Email = documentSnapshot.get('Email');
-      logWithTag("Data: ${Email}", tag: "LocationSharing");
-    });
+    // firestore.collection('user').get().then((QuerySnapshot querySnapshot) {
+    //   logWithTag("Get data from firestore", tag: "LocationSharing");
+    //   DocumentSnapshot documentSnapshot = querySnapshot.docs.first;
+    //   String Email = documentSnapshot.get('Email');
+    //   logWithTag("Data: ${Email}", tag: "LocationSharing");
+    // });
 
     //addFriendMarkers(); // Add markers for friend locations
     //trackLocation();
@@ -129,64 +158,92 @@ class _LocationSharingState extends State<LocationSharing> {
       target: LatLng(position.latitude, position.longitude),
       zoom: 13,
     );
-    myMarker.add(Marker(
-      markerId: const MarkerId('myMarker'),
-      position: LatLng(position.latitude, position.longitude),
-    ));
+    //Khong can marker cua minh
+    // myMarker.add(Marker(
+    //   markerId: const MarkerId('myMarker'),
+    //   position: LatLng(position.latitude, position.longitude),
+    // ));
+
     setState(() {}); // Update UI
   }
 
   void addFriendMarkers() {
-    setState(() {
       myMarker.clear();
       for (final location in friendLocations) {
-        myMarker.add(Marker(
+        // myMarker.add(Marker(
+        //   markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+        //   icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        //   position: location,
+        // ));
+        //createMarkerWithNetworkImage( location, friendImage[friendLocations.indexOf(location)]).then((marker) {
+        Marker marker = Marker(
           markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
           position: location,
-        ));
+        );
+        setState(() {
+        myMarker.add(marker);
+        });
       }
-    });
+      //   logWithTag("Add friend marker ${location.toString()}", tag: "LocationSharing");
+      // }
+      // for (int i = 0; i < friendLocations.length; i++) {
+      //   fetchImageBytes(friendImage[i]).then((imageBytes) {
+      //     myMarker.add(createMarkerWithNetworkImage(
+      //         friendID[i], friendLocations[i], imageBytes));
+      //   });
+      // }
   }
 
   Future<void> updateFriendLocations() async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final userRef = firestore.collection('users').doc(userId);
-    final userDoc = await userRef.get();
-    final friends = (userDoc.get('friends') as List<dynamic>)
-        .map((item) => item.toString())
-        .toList();
+    if (FirebaseAuth.instance.currentUser != null) {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final userRef = firestore.collection('users').doc(userId);
+      final userDoc = await userRef.get();
+      final friends = (userDoc.get('friends') as List<dynamic>)
+          .map((item) => item.toString())
+          .toList();
 
-    List<LatLng> newFriendLocations = [];
+      List<LatLng> newFriendLocations = [];
+      List<String> newFriendID = [];
+      List<String> newFriendImage = [];
 
-    for (final friendId in friends) {
-      final friendRef = firestore.collection('users').doc(friendId);
-      final friendDoc = await friendRef.get();
-      final friendLocation = friendDoc.get('location') as GeoPoint;
+      for (final friendId in friends) {
+        final friendRef = firestore.collection('users').doc(friendId);
+        final friendDoc = await friendRef.get();
+        final friendLocation = friendDoc.get('location') as GeoPoint;
+        String friendImage = friendDoc.get('ImageUrl').toString();
+        newFriendID.add(friendId);
 
-      newFriendLocations.add(
-          LatLng(friendLocation.latitude, friendLocation.longitude));
-    }
+        newFriendLocations
+            .add(LatLng(friendLocation.latitude, friendLocation.longitude));
+        newFriendImage.add(friendImage);
+      }
 
-    // Compare new list with current list
-    if (!listEquals(friendLocations, newFriendLocations)) {
-      friendLocations.clear();
-      setState(() {
-        friendLocations = newFriendLocations;
-        addFriendMarkers();
-      });
+      // Compare new list with current list
+
+        friendLocations.clear();
+        setState(() {
+          friendLocations = newFriendLocations;
+          friendID = newFriendID;
+          friendImage = newFriendImage;
+          addFriendMarkers();
+        });
+
     }
   }
 
-    void trackLocation() {
+  void trackLocation() {
+    if (FirebaseAuth.instance.currentUser != null) {
       final geolocator = GeolocatorPlatform.instance;
       final userId = FirebaseAuth.instance.currentUser!.uid;
       final userRef = firestore.collection('users').doc(userId);
 
       _positionStream = geolocator.getPositionStream().listen(
-            (Position position) async {
+        (Position position) async {
           final GoogleMapController controller = await _mapsController.future;
           final double currentZoomLevel =
-          await controller.getZoomLevel(); // Get current zoom level
+              await controller.getZoomLevel(); // Get current zoom level
           controller.animateCamera(CameraUpdate.newCameraPosition(
             CameraPosition(
               target: LatLng(position.latitude, position.longitude),
@@ -208,168 +265,161 @@ class _LocationSharingState extends State<LocationSharing> {
         },
       );
     }
+  }
 
-    @override
-    void dispose() {
-      super.dispose();
-      _positionStream.cancel();
-    }
+  @override
+  void dispose() {
+    super.dispose();
+    _positionStream.cancel();
+  }
 
-    final GoogleSignIn googleSignIn = GoogleSignIn();
-    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
-    bool isLoggedIn = false;
+  bool isLoggedIn = false;
 
-    @override
-    Widget build(BuildContext context) {
-      return Scaffold(
-          body: Stack(children: <Widget>[
-            GoogleMap(
-              initialCameraPosition: _initialLocation,
-              mapType: MapType.normal,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              markers: myMarker.toSet(),
-              onMapCreated: (GoogleMapController controller) {
-                _mapsController.complete(controller);
-              },
-              onTap: (LatLng position) {
-                for (final friendLocation in friendLocations) {
-                  if (distanceBetween(position, friendLocation)) {
-                    setState(() {
-                      _showWhiteBox = !_showWhiteBox;
-                      if (_showWhiteBox) {
-                        _selectedLocation = position;
-                      }
-                    });
-                  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Stack(children: <Widget>[
+      GoogleMap(
+        initialCameraPosition: _initialLocation,
+        mapType: MapType.normal,
+        myLocationEnabled: true,
+        myLocationButtonEnabled: false,
+        markers: myMarker.toSet(),
+        onMapCreated: (GoogleMapController controller) {
+          _mapsController.complete(controller);
+        },
+        onTap: (LatLng position) {
+          for (final friendLocation in friendLocations) {
+            if (distanceBetween(position, friendLocation)) {
+              setState(() {
+                _showWhiteBox = !_showWhiteBox;
+                if (_showWhiteBox) {
+                  _selectedLocation = position;
                 }
-              },
-              polylines: {if (route != null) route!},
-              zoomControlsEnabled: false,
-            ),
-            StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseAuth.instance.currentUser != null
-                  ? FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .snapshots()
-                  : null,
-              builder:
-                  (BuildContext context,
-                  AsyncSnapshot<DocumentSnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return Text("Có lỗi: ${snapshot.error}");
-                }
+              });
+            }
+          }
+        },
+        polylines: {if (route != null) route!},
+        zoomControlsEnabled: false,
+      ),
+      StreamBuilder<QuerySnapshot>(
+        stream: FirebaseAuth.instance.currentUser != null
+            ? FirebaseFirestore.instance
+                .collection('users')
+                .snapshots()
+            : null,
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Text('Something went wrong');
+          }
 
+          if (isLoggedIn) {
+            updateFriendLocations();
+          }
+
+          return Positioned(
+            top: 20.0,
+            right: 20.0,
+            child: FloatingActionButton(
+              onPressed: () async {
                 if (isLoggedIn) {
                   updateFriendLocations();
+                  // final userId = FirebaseAuth.instance.currentUser!.uid;
+                  // final userRef = firestore.collection('users').doc(
+                  //     userId);
+                  // final userDoc = await userRef.get();
+                  // final friends = (userDoc.get('friends') as List<
+                  //     dynamic>)
+                  //     .map((item) => item.toString())
+                  //     .toList();
+                  // for (final friendId in friends) {
+                  //   final friendRef =
+                  //   firestore.collection('users').doc(friendId);
+                  //   final friendDoc = await friendRef.get();
+                  //   final friendLocation =
+                  //   friendDoc.get('location') as GeoPoint;
+                  //
+                  //   setState(() {
+                  //     friendLocations.add(LatLng(
+                  //         friendLocation.latitude,
+                  //         friendLocation.longitude));
+                  //     addFriendMarkers();
+                  //   });
+                  //}
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserProfilePage()),
+                  );
+                } else {
+                  isLoggedIn = true;
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LoginSignupPage()));
+                  updateFriendLocations();
                 }
-
-                return Positioned(
-                  top: 20.0,
-                  right: 20.0,
-                  child: FloatingActionButton(
-                    onPressed: () async {
-                      if (isLoggedIn) {
-                        updateFriendLocations();
-                        // final userId = FirebaseAuth.instance.currentUser!.uid;
-                        // final userRef = firestore.collection('users').doc(
-                        //     userId);
-                        // final userDoc = await userRef.get();
-                        // final friends = (userDoc.get('friends') as List<
-                        //     dynamic>)
-                        //     .map((item) => item.toString())
-                        //     .toList();
-                        // for (final friendId in friends) {
-                        //   final friendRef =
-                        //   firestore.collection('users').doc(friendId);
-                        //   final friendDoc = await friendRef.get();
-                        //   final friendLocation =
-                        //   friendDoc.get('location') as GeoPoint;
-                        //
-                        //   setState(() {
-                        //     friendLocations.add(LatLng(
-                        //         friendLocation.latitude,
-                        //         friendLocation.longitude));
-                        //     addFriendMarkers();
-                        //   });
-                        //}
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UserProfilePage()),
-                        );
-                      } else {
-                        isLoggedIn = true;
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LoginSignupPage()));
-                        updateFriendLocations();
-                      }
-                    },
-                    child: const Icon(Icons.login),
-                  ),
-                );
               },
+              child: const Icon(Icons.login),
             ),
-            Positioned(
-              bottom: 20,
-              left: 20,
-              right: 20,
-              child: Visibility(
-                visible: _showWhiteBox,
-                child: Container(
-                  height: 120,
-                  width: MediaQuery
-                      .of(context)
-                      .size
-                      .width,
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            child: Text('MAI HÂN',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18.0,
-                                )), // Bold and 18px font size
-                          ),
-                          Spacer(),
-                        ],
-                      ),
-                      SizedBox(height: 20.0),
-                      const Expanded(
-                        child: Text(
-                            '255 Biscayne Blvd Way, Miami, FL 33131, United States'),
-                      ),
-                    ],
-                  ),
+          );
+        },
+      ),
+      Positioned(
+        bottom: 20,
+        left: 20,
+        right: 20,
+        child: Visibility(
+          visible: _showWhiteBox,
+          child: Container(
+            height: 120,
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      child: Text('MAI HÂN',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.0,
+                          )), // Bold and 18px font size
+                    ),
+                    Spacer(),
+                  ],
                 ),
-              ),
+                SizedBox(height: 20.0),
+                const Expanded(
+                  child: Text(
+                      '255 Biscayne Blvd Way, Miami, FL 33131, United States'),
+                ),
+              ],
             ),
-            FloatingActionButton(
-              onPressed: () async {
-                Position position = await getCurrentLocation();
-                final GoogleMapController controller = await _mapsController
-                    .future;
-                final double currentZoomLevel = await controller.getZoomLevel();
-                controller.animateCamera(CameraUpdate.newCameraPosition(
-                  CameraPosition(
-                    target: LatLng(position.latitude, position.longitude),
-                    zoom: currentZoomLevel,
-                  ),
-                ));
-              },
-              child: const Icon(Icons.center_focus_strong),
+          ),
+        ),
+      ),
+      FloatingActionButton(
+        onPressed: () async {
+          Position position = await getCurrentLocation();
+          final GoogleMapController controller = await _mapsController.future;
+          final double currentZoomLevel = await controller.getZoomLevel();
+          controller.animateCamera(CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(position.latitude, position.longitude),
+              zoom: currentZoomLevel,
             ),
-          ]));
-    }
+          ));
+        },
+        child: const Icon(Icons.center_focus_strong),
+      ),
+    ]));
   }
+}
