@@ -27,10 +27,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 68,190,195) ),
         useMaterial3: true,
       ),
-      home: LocationSharing(),
+      home: MyHomeScreen(),
 
 
     );

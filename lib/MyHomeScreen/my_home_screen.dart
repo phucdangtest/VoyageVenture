@@ -14,6 +14,7 @@ import 'package:voyageventure/components/navigation_list_tile.dart';
 import 'package:voyageventure/components/misc_widget.dart';
 import 'package:voyageventure/components/waypoint_list.dart';
 import 'package:voyageventure/constants.dart';
+import 'package:voyageventure/models/fetch_photo_url.dart';
 import 'package:voyageventure/models/route_calculate_response.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
@@ -51,6 +52,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //GeoLocation
   MapData mapData = MapData();
   bool isHaveLastSessionLocation = false;
+  LatLng centerLocation = LatLng(10.7981542, 106.6614047);
 
   void animateToPosition(LatLng position, {double zoom = 13}) async {
     logWithTag("Animate to position: $position", tag: "MyHomeScreen");
@@ -82,6 +84,33 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   BitmapDescriptor mainMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+
+  List<BitmapDescriptor> waypointMarkers = [
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+    //A
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+    //H
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    //No letter
+  ];
+
+  List<String> waypointMarkersSource = [
+    "assets/icons/waypoints/a.svg",
+    "assets/icons/waypoints/b.svg",
+    "assets/icons/waypoints/c.svg",
+    "assets/icons/waypoints/d.svg",
+    "assets/icons/waypoints/e.svg",
+    "assets/icons/waypoints/f.svg",
+    "assets/icons/waypoints/g.svg",
+    "assets/icons/waypoints/h.svg",
+    "assets/icons/marker_waypoint.svg",
+  ];
   Timer? _debounce;
   bool isShowPlaceHorizontalList = false; // show the location search component
   bool isShowPlaceHorizontalListFromSearch =
@@ -89,9 +118,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   //Route
   List<Route_> routes = [];
-  Future<List<LatLng>?> polylinePoints = Future.value(null);
-  Polyline? polyline;
-  String encodedPolyline = "";
+
+  // Future<List<LatLng>?> polylinePoints = Future.value(null);
+  List<Polyline> polylines = [];
+  List<LatLng> polylinePointsList = [];
+  List<Color> polylineColors = [
+    Colors.green[700]!,
+    Colors.blue[700]!,
+    Colors.yellow[700]!,
+    Colors.purple[700]!,
+    Colors.orange[700]!,
+    Colors.brown[700]!,
+    Colors.cyan[700]!,
+    Colors.lime[700]!,
+    Colors.teal[700]!,
+    Colors.indigo[700]!,
+  ];
   String travelMode = "DRIVE";
   String routingPreference = "TRAFFIC_AWARE";
   bool isTrafficAware = true;
@@ -101,12 +143,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   bool isAvoidFerries = false;
   List<bool> isChange = [false, false, false, false, false];
   bool isCalcRouteFromCurrentLocation = true;
-  List<LatLng> waypointsLatLgn = [
-    LatLng(10.7981542, 106.6614047),
-    LatLng(10.8022349, 106.6695118),
-    LatLng(10.8114795, 106.6548157),
-    LatLng(10.8798036, 106.8052206),
-  ];
+  List<LatLng> waypointsLatLgn = [];
+  List<String> waypointNames = [];
 
   //Test
 
@@ -259,7 +297,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                         tag: "SearchLocationScreen");
                     calcRoute(
                         from: mapData.departureLocation!,
-                        to: mapData.destinationLocation!);
+                        to: mapData.destinationLocationLatLgn!);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -278,7 +316,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
     if (stateString == "Search Results") {
       isShowPlaceHorizontalList = true;
-      polyline = null;
+      polylines.clear();
       travelMode = "TWO_WHEELER";
       //Todo remove after test waypoint
       //waypointsLatLgn = [];
@@ -307,16 +345,26 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             if (searchList != null) {
               placeSearchList = searchList;
               for (int i = 0; i < placeSearchList.length; i++) {
+                if (placeSearchList[i].id != null) {
+                  PlaceSearch_.getPhotoUrls(placeSearchList[i].id!, 500, 500).then((photoUrls) {
+                    setState(() {
+                      placeSearchList[i].photoUrls = photoUrls;
+                      logWithTag("Photo URL: ${photoUrls}",
+                          tag: "Change photourl");
+                    });
+                  });
+                }
+                ;
                 final markerId = MarkerId(placeSearchList[i].id!);
                 Marker marker = Marker(
                   markerId: markerId,
                   icon: (i == 0) ? mainMarker : defaultMarker,
                   position: LatLng(placeSearchList[i].location.latitude,
                       placeSearchList[i].location.longitude),
-                  infoWindow: InfoWindow(
-                    title: placeSearchList[i].displayName?.text,
-                    snippet: placeSearchList[i].formattedAddress,
-                  ),
+                  // infoWindow: InfoWindow(
+                  //   title: placeSearchList[i].displayName?.text,
+                  //   snippet: placeSearchList[i].formattedAddress,
+                  // ),
                 );
                 myMarker.add(marker);
               }
@@ -395,10 +443,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     animateToPositionNoZoom(
       LatLng(position.latitude, position.longitude),
     );
+    isShowPlaceHorizontalList = false;
     changeState("Loading Can Route");
-    mapData.changeDestinationLocation(position);
+    mapData.changeDestinationLocationLatLgn(position);
     setState(() {
       myMarker = [];
+      waypointsLatLgn = [];
+      waypointNames = [];
       final markerId = MarkerId("0");
       Marker marker = Marker(
         markerId: markerId,
@@ -411,11 +462,20 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       String placeString = await convertLatLngToAddress(position);
       var value = await placeSearchSingle(placeString);
       if (value != null) {
+        PlaceSearch_.getPhotoUrls(value.id!, 400, 400).then((photoUrls) {
+          value.photoUrls = photoUrls;
+          setState(() {
+            mapData.changeDestinationImage(photoUrls);
+          });
+        });
         markedPlace = value;
+        mapData.changeDestinationAddressAndPlaceNameAndImage(value);
         if (state == stateMap["Loading Can Route"]!)
           changeState("Search Results");
-      } else if (state == stateMap["Loading Can Route"]!)
+      }
+      else if (state == stateMap["Loading Can Route"]!)
         changeState("Search Results None");
+
     } catch (e) {
       logWithTag("Error, place click from map: $e",
           tag: "SearchLocationScreen");
@@ -430,9 +490,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     changeState("Search Results");
     if (isShowPlaceHorizontalListFromSearch) {
       try {
-        mapData.changeDestinationLocation(LatLng(
+        mapData.changeDestinationLocationLatLgn(LatLng(
             placeSearchList[index].location.latitude,
             placeSearchList[index].location.longitude));
+        mapData.changeDestinationAddressAndPlaceNameAndImage(
+            placeSearchList[index]);
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
@@ -454,8 +516,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     var value = await placeSearchSingle(
         placeAutoList[index].structuredFormat?.mainText?.text ?? "");
     if (value != null) {
-      mapData.changeDestinationLocation(
+      mapData.changeDestinationLocationLatLgn(
           LatLng(value.location.latitude, value.location.longitude));
+      mapData.changeDestinationAddressAndPlaceNameAndImage(value);
       animateToPosition(
         LatLng(value.location.latitude, value.location.longitude),
       );
@@ -466,10 +529,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           markerId: markerId,
           icon: mainMarker,
           position: LatLng(value.location.latitude, value.location.longitude),
-          infoWindow: InfoWindow(
-            title: value.displayName?.text,
-            snippet: value.formattedAddress,
-          ),
+          // infoWindow: InfoWindow(
+          //   title: value.displayName?.text,
+          //   snippet: value.formattedAddress,
+          // ),
         );
         myMarker.add(marker);
       });
@@ -482,19 +545,52 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   void drawRoute() {
     if (routes.isNotEmpty) {
       setState(() {
-        encodedPolyline = routes[0].legs[0].polyline.encodedPolyline;
-        polyline = Polyline(
-            polylineId: const PolylineId("route"),
-            color: Colors.green,
-            width: 8,
-            points: Polyline_.decodePolyline(encodedPolyline));
+        polylines = [];
+        for (int i = 0; i < routes[0].legs.length; i++) {
+          List<LatLng> legPoints = Polyline_.decodePolyline(
+              routes[0].legs[i].polyline.encodedPolyline);
+
+          int width;
+          switch (i % 3) {
+            case 0:
+              width = 8;
+              break;
+            case 1:
+              width = 6;
+              break;
+            case 2:
+              width = 4;
+              break;
+            default:
+              width = 8;
+          }
+
+          polylines.add(
+            Polyline(
+              polylineId: PolylineId(i.toString()),
+              color: polylineColors[i % polylineColors.length],
+              // Use a different color for each leg
+              width: width,
+              // Use different widths for each polyline
+              points: legPoints, // Add all points of the leg to the polyline
+            ),
+          );
+        }
       });
     }
+    //showAllMarkerInfo();
   }
+
+  // Future<void> showAllMarkerInfo() async {
+  //   GoogleMapController controller = await _mapsController.future;
+  //   for (final marker in myMarker) {
+  //     controller.showMarkerInfoWindow(marker.markerId);
+  //   }
+  // }
 
   void clearRoute() {
     setState(() {
-      polyline = null;
+      polylines.clear();
     });
   }
 
@@ -502,9 +598,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     //Todo remove after test waypoint
     //waypointsLatLgn = [];
     if (mapData.departureLocation != null &&
-        mapData.destinationLocation != null)
+        mapData.destinationLocationLatLgn != null)
       calcRoute(
-          from: mapData.departureLocation!, to: mapData.destinationLocation!);
+          from: mapData.departureLocation!,
+          to: mapData.destinationLocationLatLgn!);
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
@@ -518,11 +615,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         computeAlternativeRoutes: isComputeAlternativeRoutes,
         avoidTolls: isAvoidTolls,
         avoidHighways: isAvoidHighways,
-        avoidFerries: isAvoidFerries))!;
+        avoidFerries: isAvoidFerries,
+        waypoints: waypointsLatLgn))!;
     drawRoute();
     changeState("Route Planning");
     mapData.changeDepartureLocation(from);
-    mapData.changeDestinationLocation(to);
+    mapData.changeDestinationLocationLatLgn(to);
+    // Todo: mapdata
   }
 
   Future<void> placeMarkAndRoute(
@@ -533,7 +632,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         isShowPlaceHorizontalListFromSearch;
     myMarker.removeWhere((marker) => marker.icon != mainMarker);
     if (isShowPlaceHorizontalListFromSearch) {
-      mapData.destinationLocation = LatLng(
+      mapData.destinationLocationLatLgn = LatLng(
           placeSearchList[index].location.latitude,
           placeSearchList[index].location.longitude);
       try {
@@ -562,10 +661,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           markerId: markerId,
           icon: mainMarker,
           position: LatLng(value.location.latitude, value.location.longitude),
-          infoWindow: InfoWindow(
-            title: value.displayName?.text,
-            snippet: value.formattedAddress,
-          ),
+          // infoWindow: InfoWindow(
+          //   title: value.displayName?.text,
+          //   snippet: value.formattedAddress,
+          // ),
         );
         myMarker.add(marker);
       });
@@ -588,7 +687,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
           markerId: marker.markerId,
           icon: defaultMarker,
           position: marker.position,
-          infoWindow: marker.infoWindow,
+          //infoWindow: marker.infoWindow,
         );
         myMarker[i] = newMarker;
       }
@@ -599,22 +698,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       markerId: markerAtIndex.markerId,
       icon: mainMarker,
       position: markerAtIndex.position,
-      infoWindow: markerAtIndex.infoWindow,
+      //infoWindow: markerAtIndex.infoWindow,
     );
     setState(() {
       myMarker[index] = newMarkerAtIndex;
     });
-  }
-
-  Future<LatLng> getCenterLatLng() async {
-    GoogleMapController controller = await _mapsController.future;
-    final screenCenter = ScreenCoordinate(
-        x: MediaQuery.of(context).size.width ~/ 2,
-        y: MediaQuery.of(context).size.height ~/ 2);
-    final centerLatLng = await controller.getLatLng(screenCenter);
-
-    logWithTag("Center LatLng: $centerLatLng", tag: "Add waypoint");
-    return centerLatLng;
   }
 
 /*
@@ -661,6 +749,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         mainMarker = bitmapDescriptor;
       });
     });
+
+    for (int i = 0; i < waypointMarkers.length; i++) {
+      BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+              waypointMarkersSource[i], const Size(45, 45))
+          .then((bitmapDescriptor) {
+        setState(() {
+          waypointMarkers[i] = bitmapDescriptor;
+        });
+      });
+    }
 
     //Todo: Remove after test
     // searchPlaceAndUpdate("Đại học CNTT");
@@ -724,7 +822,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             onMapCreated: (GoogleMapController controller) {
               _mapsController.complete(controller);
             },
-            polylines: {if (polyline != null) polyline!},
+            onCameraMove: (CameraPosition position) {
+              centerLocation = position.target;
+            },
+            polylines: polylines.toSet(),
             zoomControlsEnabled: false,
           ),
 
@@ -733,21 +834,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
             bottom:
-                isShowPlaceHorizontalList // use this to compensate the height of the location show panel when it showed,
+                 // use this to compensate the height of the location show panel when it showed,
                     // do not need to use this of use visibility widget, but that widget does not have animation
-                    ? ((bottomSheetTop == null)
+                     ((bottomSheetTop == null)
                         ? (MediaQuery.of(context).size.height *
                                 defaultBottomSheetHeight /
                                 1000) +
                             10
                         : bottomSheetTop! + 10)
-                    : ((bottomSheetTop == null)
-                        ? (MediaQuery.of(context).size.height *
-                                defaultBottomSheetHeight /
-                                1000) +
-                            10 -
-                            90 // 90 is the height of the location show panel
-                        : bottomSheetTop! + 10 - 90),
+                    ,
             // 90 is the height of the location show panel
 
             right: 0,
@@ -772,100 +867,125 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 // Location list
                 Container(
                   margin: const EdgeInsets.only(top: 5),
-                  child: AnimatedOpacity(
-                      opacity: isShowPlaceHorizontalList ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 500),
-                      child: SizedBox(
-                        height: 90.0,
-                        width: (MediaQuery.of(context).size.width),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: isShowPlaceHorizontalListFromSearch
-                              ? placeSearchList.length
-                              : placeAutoList.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              margin:
-                                  const EdgeInsets.only(left: 5.0, right: 5),
-                              child: GestureDetector(
-                                onTap: () {
-                                  placeOnclickFromList(
-                                      isShowPlaceHorizontalListFromSearch:
-                                          isShowPlaceHorizontalListFromSearch,
-                                      index: index);
-                                  if (myMarker.length > 1) {
-                                    changeMainMarker(index);
-                                  }
-                                },
-                                onLongPress: () async {
-                                  await placeMarkAndRoute(
-                                      isShowPlaceHorizontalListFromSearch:
-                                          isShowPlaceHorizontalListFromSearch,
-                                      index: index);
-                                  drawRoute();
-                                },
-                                child: Container(
-                                  //margin: EdgeInsets.only(
-                                  // left: 10.0, top: 10.0, bottom: 10.0),
-                                  padding: const EdgeInsets.all(10.0),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: <Widget>[
-                                      Image.network(
-                                        "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
-                                        width: 50,
-                                        height: 50,
+                  child:
+                      //List from place autocomplete
+                      Visibility(
+                          visible: isShowPlaceHorizontalList,
+                          child: SizedBox(
+                            height: 90.0,
+                            width: (MediaQuery.of(context).size.width),
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: isShowPlaceHorizontalListFromSearch
+                                  ? placeSearchList.length
+                                  : placeAutoList.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  margin: const EdgeInsets.only(
+                                      left: 5.0, right: 5),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      placeOnclickFromList(
+                                          isShowPlaceHorizontalListFromSearch:
+                                              isShowPlaceHorizontalListFromSearch,
+                                          index: index);
+
+                                      if (myMarker.length > 1) {
+                                        changeMainMarker(index);
+                                      }
+                                    },
+                                    onLongPress: () async {
+                                      await placeMarkAndRoute(
+                                          isShowPlaceHorizontalListFromSearch:
+                                              isShowPlaceHorizontalListFromSearch,
+                                          index: index);
+                                      drawRoute();
+                                    },
+                                    child: Container(
+                                      //margin: EdgeInsets.only(
+                                      // left: 10.0, top: 10.0, bottom: 10.0),
+                                      padding: const EdgeInsets.all(10.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                       ),
-                                      const SizedBox(width: 10.0),
-                                      SizedBox(
-                                        width: 140,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: <Widget>[
-                                            Text(
-                                              getMainText(
-                                                  isShowPlaceHorizontalListFromSearch,
-                                                  index),
-                                              style: const TextStyle(
-                                                fontSize: 16.0,
-                                                fontWeight: FontWeight.bold,
-                                                overflow: TextOverflow.ellipsis,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          if (isShowPlaceHorizontalListFromSearch)
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(5.0),
+                                              child: Image.network(
+                                                placeSearchList[index]
+                                                        .photoUrls ??
+                                                    "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                                width: 60,
+                                                height: 80,
+                                                fit: BoxFit.cover,
                                               ),
                                             ),
-                                            Text(
-                                              getSecondaryText(
-                                                  isShowPlaceHorizontalListFromSearch,
-                                                  index),
-                                              style: const TextStyle(
-                                                  fontSize: 14.0,
-                                                  color: Colors.grey,
-                                                  overflow:
-                                                      TextOverflow.ellipsis),
+                                          const SizedBox(width: 10.0),
+                                          SizedBox(
+                                            width: 140,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: <Widget>[
+                                                Text(
+                                                  getMainText(
+                                                      isShowPlaceHorizontalListFromSearch,
+                                                      index),
+                                                  style: const TextStyle(
+                                                    fontSize: 16.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  getSecondaryText(
+                                                      isShowPlaceHorizontalListFromSearch,
+                                                      index),
+                                                  style: const TextStyle(
+                                                      fontSize: 14.0,
+                                                      color: Colors.grey,
+                                                      overflow: TextOverflow
+                                                          .ellipsis),
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      )),
+                                );
+                              },
+                            ),
+                          )),
                 ),
               ],
             ),
           ),
+          // Center image to add waypoint
+          Visibility(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 27.0, right: 14.0),
+                  child: SizedBox(
+                      width: 35,
+                      height: 35,
+                      child: SvgPicture.asset("assets/icons/waypoint.svg")),
+                ),
+              ),
+              visible: state == stateMap["Add Waypoint"]),
 
           // On top search bar
           Positioned(
@@ -1020,7 +1140,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 120,
                                         height: 45,
                                         margin: const EdgeInsets.only(
-                                            top: 10.0, right: 10.0),
+                                            top: 10.0, right: 10.0, left: 65),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius:
@@ -1403,19 +1523,66 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               child: SingleChildScrollView(
                                 primary: false,
                                 controller: scrollController,
-                                child: Column(children: <Widget>[
-                                  const Pill(),
-                                  FilledButton(
-                                    onPressed: () {
-                                      // placeMarkAndRoute(
-                                      //     isShowPlaceHorizontalListFromSearch:
-                                      //         isShowPlaceHorizontalListFromSearch,
-                                      //     index: 0);
-                                      calcRouteFromDepToDes();
-                                    },
-                                    child: const Text("Chỉ đường"),
-                                  )
-                                ]),
+                                child: Container(
+                                  padding: const EdgeInsets.only(
+                                      left: 20.0, right: 20.0),
+                                  child: Column(children: <Widget>[
+                                    const Pill(),
+                                    Row(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(5.0),
+                                          child: Image.network(
+                                            mapData.destinationLocationPhotoUrl ??
+                                                "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                            width: 80,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        SizedBox(width: 20),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                mapData
+                                                    .destinationLocationPlaceName
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  fontFamily: "SF Pro Display",
+                                                  color: Colors.black,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                overflow: TextOverflow.visible,
+                                              ),
+                                              Text(
+                                                mapData
+                                                    .destinationLocationAddress
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  fontFamily: "SF Pro Display",
+                                                  color: Colors.grey,
+                                                  fontSize: 14,
+                                                ),
+                                                overflow: TextOverflow.visible,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    FilledButton(
+                                      onPressed: () {
+                                        calcRouteFromDepToDes();
+                                      },
+                                      child: const Text("Chỉ đường"),
+                                    )
+                                  ]),
+                                ),
                               ),
                             ),
                           );
@@ -1441,20 +1608,79 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                     child: SingleChildScrollView(
                                       primary: false,
                                       controller: scrollController,
-                                      child: Column(children: <Widget>[
-                                        const Pill(),
-                                        const Center(child: Text('Không tên')),
-                                        FilledButton(
-                                          onPressed: () {
-                                            calcRoute(
-                                                from:
-                                                    mapData.departureLocation!,
-                                                to: mapData
-                                                    .destinationLocation!);
-                                          },
-                                          child: const Text("Chỉ đường"),
-                                        ),
-                                      ]),
+                                      child: Container(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0, right: 20.0),
+                                        child: Column(children: <Widget>[
+                                          const Pill(),
+                                          Row(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                child: Image.network(
+                                                  "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                                  width: 80,
+                                                  height: 100,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              SizedBox(width: 20),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "Địa điểm không xác định",
+                                                      style: const TextStyle(
+                                                        fontFamily:
+                                                            "SF Pro Display",
+                                                        color: Colors.black,
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.visible,
+                                                    ),
+                                                    Text(
+                                                      mapData.destinationLocationLatLgn!
+                                                              .latitude
+                                                              .toString()
+                                                              .substring(0, 8) +
+                                                          ", " +
+                                                          mapData
+                                                              .destinationLocationLatLgn!
+                                                              .longitude
+                                                              .toString()
+                                                              .substring(0, 8),
+                                                      style: const TextStyle(
+                                                        fontFamily:
+                                                            "SF Pro Display",
+                                                        color: Colors.grey,
+                                                        fontSize: 14,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.visible,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          FilledButton(
+                                            onPressed: () {
+                                              calcRoute(
+                                                  from: mapData
+                                                      .departureLocation!,
+                                                  to: mapData
+                                                      .destinationLocationLatLgn!);
+                                            },
+                                            child: const Text("Chỉ đường"),
+                                          ),
+                                        ]),
+                                      ),
                                     )),
                               );
                             },
@@ -1495,18 +1721,28 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                               label: Text('Thêm điểm dừng'),
                                             ),
                                           ),
-                                          RoutePlanningList(
-                                              routes: routes,
-                                              travelMode: travelMode,
-                                              isAvoidTolls: isAvoidTolls,
-                                              isAvoidHighways: isAvoidHighways,
-                                              isAvoidFerries: isAvoidFerries,
-                                              waypointsLatLgn: waypointsLatLgn,
-                                              destinationLatLgn:
-                                                  mapData.destinationLocation!,
-                                              itemClick: (index) {
-                                                //changeState("Navigation");
-                                              })
+                                          RoutePlanningListTile(
+                                            route: routes[0],
+                                            travelMode: travelMode,
+                                            isAvoidTolls: isAvoidTolls,
+                                            isAvoidHighways: isAvoidHighways,
+                                            isAvoidFerries: isAvoidFerries,
+                                            waypointsLatLgn: waypointsLatLgn,
+                                            destinationLatLgn: mapData
+                                                .destinationLocationLatLgn!,
+                                          )
+                                          // RoutePlanningList(
+                                          //     routes: routes,
+                                          //     travelMode: travelMode,
+                                          //     isAvoidTolls: isAvoidTolls,
+                                          //     isAvoidHighways: isAvoidHighways,
+                                          //     isAvoidFerries: isAvoidFerries,
+                                          //     waypointsLatLgn: waypointsLatLgn,
+                                          //     destinationLatLgn:
+                                          //         mapData.destinationLocation!,
+                                          //     itemClick: (index) {
+                                          //       //changeState("Navigation");
+                                          //     })
                                         ]),
                                       ),
                                     ),
@@ -1586,10 +1822,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                   const SizedBox(
                                                     height: 30,
                                                   ),
-                                                  Row(
+                                                  Column(
                                                     children: [
                                                       const CircularProgressIndicator(
                                                         color: Colors.green,
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 34,
                                                       ),
                                                       FilledButton(
                                                         onPressed: () {
@@ -1597,7 +1836,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                               from: mapData
                                                                   .departureLocation!,
                                                               to: mapData
-                                                                  .destinationLocation!);
+                                                                  .destinationLocationLatLgn!);
                                                         },
                                                         child: const Text(
                                                             "Chỉ đường"),
@@ -1654,6 +1893,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                           onPressed: () {
                                                                             setState(() {
                                                                               waypointsLatLgn.removeLast();
+                                                                              waypointNames.removeLast();
                                                                               myMarker.removeLast();
                                                                             });
                                                                           },
@@ -1662,8 +1902,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                     ElevatedButton(
                                                                         onPressed:
                                                                             () {
-                                                                          changeState(
-                                                                              "Route Planning");
+                                                                          calcRouteFromDepToDes();
                                                                         },
                                                                         child: Text(
                                                                             "Áp dụng")),
@@ -1675,14 +1914,17 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                         child: IconButton(
                                                                             onPressed: () {
                                                                               setState(() {
-                                                                                getCenterLatLng().then((centerLatLng) {
-                                                                                  waypointsLatLgn.add(centerLatLng);
-                                                                                  myMarker.add(Marker(
-                                                                                    markerId: MarkerId(centerLatLng.toString()),
-                                                                                    icon: defaultMarker,
-                                                                                    position: centerLatLng,
-                                                                                  ));
+                                                                                waypointsLatLgn.add(centerLocation);
+                                                                                convertLatLngToAddress(centerLocation, isCutoff: true).then((value) {
+                                                                                  setState(() {
+                                                                                    waypointNames.add(value);
+                                                                                  });
                                                                                 });
+                                                                                myMarker.add(Marker(
+                                                                                  markerId: MarkerId(centerLocation.toString()),
+                                                                                  icon: (myMarker.length < waypointMarkers.length) ? waypointMarkers[(myMarker.length - 1)] : waypointMarkers[waypointMarkers.length - 1],
+                                                                                  position: centerLocation,
+                                                                                ));
                                                                               });
                                                                             },
                                                                             icon: SvgPicture.asset("assets/icons/add.svg")))
@@ -1695,6 +1937,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                           () {
                                                                         waypointsLatLgn
                                                                             .clear();
+                                                                        myMarker.removeWhere((marker) =>
+                                                                            marker.icon !=
+                                                                            mainMarker);
                                                                       });
                                                                     },
                                                                     child: Text(
@@ -1702,6 +1947,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                                 WaypointList(
                                                                   waypoints:
                                                                       waypointsLatLgn,
+                                                                  waypointsName:
+                                                                      waypointNames,
+                                                                  controller:
+                                                                      _listviewScrollController,
+                                                                  markerList:
+                                                                      myMarker,
                                                                 ),
                                                               ],
                                                             ),
@@ -1741,9 +1992,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                         child: Column(
                                                             children: <Widget>[
                                                               const Pill(),
-                                                              // SizedBox(
-                                                              //   height: 100,
-                                                              // ),
+                                                              SizedBox(
+                                                                height: 40,
+                                                              ),
                                                               LoadingIndicator(
                                                                 color: Colors
                                                                     .green,
@@ -1773,22 +2024,26 @@ class MapData {
   LatLng? currentLocation;
   LatLng? departureLocation;
   String departureLocationName;
-  LatLng? destinationLocation;
-  String? destinationLocationName;
+  LatLng? destinationLocationLatLgn;
+  String? destinationLocationAddress;
+  String? destinationLocationPlaceName;
+  String? destinationLocationPhotoUrl;
 
   MapData({
     this.currentLocation,
     this.departureLocation,
-    this.destinationLocation,
+    this.destinationLocationLatLgn,
     this.departureLocationName = "Vị trí của bạn",
-    this.destinationLocationName,
+    this.destinationLocationAddress,
+    this.destinationLocationPlaceName,
+    this.destinationLocationPhotoUrl,
   });
 
-  void changeDestinationLocation(LatLng latLng) {
-    destinationLocation = latLng;
+  void changeDestinationLocationLatLgn(LatLng latLng) {
+    destinationLocationLatLgn = latLng;
     logWithTag("Destination location changed to: $latLng", tag: "MapData");
     logWithTag(
-        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
         tag: "MapData");
     // Future<String?> placeString = convertLatLngToAddress(latLng);
     // placeString.then((value) {
@@ -1802,7 +2057,7 @@ class MapData {
     departureLocation = from;
     logWithTag("Departure location changed to: $from", tag: "MapData");
     logWithTag(
-        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
         tag: "MapData");
 
     // Future<String?> placeString = convertLatLngToAddress(from);
@@ -1817,7 +2072,35 @@ class MapData {
     currentLocation = value;
     logWithTag("Current location changed to: $value", tag: "MapData");
     logWithTag(
-        "All data: $currentLocation, $departureLocation, $destinationLocation",
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
         tag: "MapData");
+  }
+
+  void changeDestinationLocationAddress(String value) {
+    destinationLocationAddress = value;
+    logWithTag("Destination location name changed to: $value", tag: "MapData");
+  }
+
+  void changeDestinationLocationPlaceName(String value) {
+    destinationLocationPlaceName = value;
+    logWithTag("Destination location name changed to: $value", tag: "MapData");
+  }
+
+  void changeDestinationAddressAndPlaceNameAndImage(PlaceSearch_ place) {
+    destinationLocationAddress = place.formattedAddress;
+    destinationLocationPlaceName = place.displayName?.text;
+    destinationLocationPhotoUrl = place.photoUrls;
+    logWithTag(place.toString(), tag: "MapData info");
+    logWithTag(
+        "Destination location name changed to: $destinationLocationPlaceName",
+        tag: "MapData");
+    logWithTag(
+        "Destination location address changed to: $destinationLocationAddress",
+        tag: "MapData");
+  }
+
+  void changeDestinationImage(String value) {
+    destinationLocationPhotoUrl = value;
+    logWithTag("Destination location image changed to: $value", tag: "MapData");
   }
 }

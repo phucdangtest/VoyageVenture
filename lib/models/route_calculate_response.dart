@@ -53,6 +53,47 @@ class Route_ {
   int getLegsCount() {
     return legs.length;
   }
+
+  int getCombinedDistanceMeters() {
+    int combinedDistanceMeters = 0;
+    for (Leg_ leg in legs) {
+      combinedDistanceMeters += leg.distanceMeters;
+    }
+    return combinedDistanceMeters;
+  }
+
+  String getCombinedDistanceMetersInKm() {
+    return (getCombinedDistanceMeters() / 1000).toStringAsFixed(1) + ' km';
+  }
+
+  String getCombinedDuration() {
+    int combinedDuration = 0;
+    for (Leg_ leg in legs) {
+      combinedDuration += int.parse(leg.duration.replaceAll('s', ''));
+    }
+    return combinedDuration.toString();
+  }
+
+  String getCombinedStaticDuration() {
+    int combinedStaticDuration = 0;
+    for (Leg_ leg in legs) {
+      combinedStaticDuration += int.parse(leg.staticDuration.replaceAll('s', ''));
+    }
+    return combinedStaticDuration.toString();
+  }
+
+  String getCombinedStaticDurationFormat() {
+    return Leg_.convertDurationToMinutesOrHoursAndMinutes(getCombinedStaticDuration());
+  }
+
+  String getCombinedDifferenceDuration() {
+    int combinedDuration = int.parse(getCombinedDuration());
+    int combinedStaticDuration = int.parse(getCombinedStaticDuration());
+    int difference = (combinedDuration - combinedStaticDuration).abs();
+    return Leg_.convertDurationToMinutesOrHoursAndMinutes(difference.toString());
+  }
+
+
 }
 
 class Leg_ {
@@ -98,7 +139,7 @@ class Leg_ {
     return convertDurationToMinutesOrHoursAndMinutes(duration);
   }
 
-  String convertDurationToMinutesOrHoursAndMinutes(String durationString) {
+  static String convertDurationToMinutesOrHoursAndMinutes(String durationString) {
     int duration = int.parse(durationString.replaceAll('s', ''));
     int hours = duration ~/ 3600;
     int minutes = (duration % 3600) ~/ 60;

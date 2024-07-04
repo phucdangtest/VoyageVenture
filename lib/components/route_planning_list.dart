@@ -121,12 +121,14 @@ class _RoutePlanningListState extends State<RoutePlanningList> {
               height: 500,
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: widget.routes[0].getLegsCount(),
+                itemCount: 1,
                 itemBuilder: (context, index) {
-                  return RoutePlanningListTile(
-                      leg: widget.routes[0].getLeg(index),
-                      travelMode: widget.travelMode);
-                },
+                  return Placeholder();
+                }
+                //   return RoutePlanningListTile(
+                //       route: widget.routes[0],
+                //       travelMode: widget.travelMode);
+                // },
               ),
             ),
           )
