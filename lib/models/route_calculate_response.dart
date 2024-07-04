@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:voyageventure/utils.dart';
 
 class RouteResponse_ {
   List<Route_> routes;
@@ -52,6 +53,47 @@ class Route_ {
   int getLegsCount() {
     return legs.length;
   }
+
+  int getCombinedDistanceMeters() {
+    int combinedDistanceMeters = 0;
+    for (Leg_ leg in legs) {
+      combinedDistanceMeters += leg.distanceMeters;
+    }
+    return combinedDistanceMeters;
+  }
+
+  String getCombinedDistanceMetersInKm() {
+    return (getCombinedDistanceMeters() / 1000).toStringAsFixed(1) + ' km';
+  }
+
+  String getCombinedDuration() {
+    int combinedDuration = 0;
+    for (Leg_ leg in legs) {
+      combinedDuration += int.parse(leg.duration.replaceAll('s', ''));
+    }
+    return combinedDuration.toString();
+  }
+
+  String getCombinedStaticDuration() {
+    int combinedStaticDuration = 0;
+    for (Leg_ leg in legs) {
+      combinedStaticDuration += int.parse(leg.staticDuration.replaceAll('s', ''));
+    }
+    return combinedStaticDuration.toString();
+  }
+
+  String getCombinedStaticDurationFormat() {
+    return Leg_.convertDurationToMinutesOrHoursAndMinutes(getCombinedStaticDuration());
+  }
+
+  String getCombinedDifferenceDuration() {
+    int combinedDuration = int.parse(getCombinedDuration());
+    int combinedStaticDuration = int.parse(getCombinedStaticDuration());
+    int difference = (combinedDuration - combinedStaticDuration).abs();
+    return Leg_.convertDurationToMinutesOrHoursAndMinutes(difference.toString());
+  }
+
+
 }
 
 class Leg_ {
@@ -61,7 +103,7 @@ class Leg_ {
   Polyline_ polyline;
   Location_ startLocation;
   Location_ endLocation;
-  List<Step_> steps;
+  List<Step_>? steps;
 
   Leg_(
       {required this.distanceMeters, required this.duration, required this.staticDuration, required this.polyline, required this.startLocation, required this.endLocation, required this.steps});
@@ -74,9 +116,10 @@ class Leg_ {
       polyline: Polyline_.fromJson(json['polyline']),
       startLocation: Location_.fromJson(json['startLocation']),
       endLocation: Location_.fromJson(json['endLocation']),
-      steps: (json['steps'] as List)
-          .map((item) => Step_.fromJson(item))
-          .toList(),
+      steps: null,
+      // steps: (json['steps'] as List)
+      //     .map((item) => Step_.fromJson(item))
+      //     .toList(),
     );
   }
 
@@ -96,7 +139,7 @@ class Leg_ {
     return convertDurationToMinutesOrHoursAndMinutes(duration);
   }
 
-  String convertDurationToMinutesOrHoursAndMinutes(String durationString) {
+  static String convertDurationToMinutesOrHoursAndMinutes(String durationString) {
     int duration = int.parse(durationString.replaceAll('s', ''));
     int hours = duration ~/ 3600;
     int minutes = (duration % 3600) ~/ 60;
@@ -117,7 +160,7 @@ class Leg_ {
   String getDifferenceDuration() {
     int durationInt = int.parse(duration.replaceAll('s', ''));
     int staticDurationInt = int.parse(staticDuration.replaceAll('s', ''));
-    int difference = durationInt - staticDurationInt;
+    int difference = (durationInt - staticDurationInt).abs();
     return convertDurationToMinutesOrHoursAndMinutes(difference.toString());
   }
 
@@ -130,7 +173,7 @@ class Leg_ {
   Location_ getEndLocation() {
     return endLocation;
   }
-  List<Step_> getSteps() {
+  List<Step_>? getSteps() {
     return steps;
   }
 
@@ -151,7 +194,7 @@ class Polyline_ {
     );
   }
 
-  List<LatLng> decodedPolyline() {
+  static List<LatLng> decodePolyline(encodedPolyline) {
     List<LatLng> points = <LatLng>[];
     int index = 0, len = encodedPolyline.length;
     int lat = 0, lng = 0;

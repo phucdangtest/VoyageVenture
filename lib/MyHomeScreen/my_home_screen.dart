@@ -7,29 +7,27 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:voyageventure/components/custom_search_field.dart';
 import 'package:voyageventure/components/route_planning_list_tile.dart';
 import 'package:voyageventure/components/navigation_list_tile.dart';
 import 'package:voyageventure/components/misc_widget.dart';
+import 'package:voyageventure/components/waypoint_list.dart';
 import 'package:voyageventure/constants.dart';
-import 'package:voyageventure/location_sharing.dart';
-import 'package:voyageventure/main.dart';
+import 'package:voyageventure/models/fetch_photo_url.dart';
 import 'package:voyageventure/models/route_calculate_response.dart';
 import 'package:voyageventure/utils.dart';
 import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
-import '../components/bottom_sheet_componient.dart';
+import '../components/bottom_sheet_component.dart';
 import '../components/custom_search_delegate.dart';
 import '../components/fonts.dart';
+import '../components/loading_indicator.dart';
 import '../components/location_list_tile.dart';
 import '../components/route_planning_list.dart';
 import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 import '../models/route_calculate.dart';
-import '../utils.dart';
 
 class MyHomeScreen extends StatefulWidget {
   @override
@@ -52,10 +50,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   //double currentZoomLevel = 15;
 
   //GeoLocation
-  MapData mapData = new MapData();
+  MapData mapData = MapData();
   bool isHaveLastSessionLocation = false;
-
-
+  LatLng centerLocation = LatLng(10.7981542, 106.6614047);
 
   void animateToPosition(LatLng position, {double zoom = 13}) async {
     logWithTag("Animate to position: $position", tag: "MyHomeScreen");
@@ -87,6 +84,33 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   BitmapDescriptor mainMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+
+  List<BitmapDescriptor> waypointMarkers = [
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+    //A
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+    //H
+    BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    //No letter
+  ];
+
+  List<String> waypointMarkersSource = [
+    "assets/icons/waypoints/a.svg",
+    "assets/icons/waypoints/b.svg",
+    "assets/icons/waypoints/c.svg",
+    "assets/icons/waypoints/d.svg",
+    "assets/icons/waypoints/e.svg",
+    "assets/icons/waypoints/f.svg",
+    "assets/icons/waypoints/g.svg",
+    "assets/icons/waypoints/h.svg",
+    "assets/icons/marker_waypoint.svg",
+  ];
   Timer? _debounce;
   bool isShowPlaceHorizontalList = false; // show the location search component
   bool isShowPlaceHorizontalListFromSearch =
@@ -94,8 +118,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   //Route
   List<Route_> routes = [];
-  Future<List<LatLng>?> polylinePoints = Future.value(null);
-  Polyline? polyline;
+
+  // Future<List<LatLng>?> polylinePoints = Future.value(null);
+  List<Polyline> polylines = [];
+  List<LatLng> polylinePointsList = [];
+  List<Color> polylineColors = [
+    Colors.green[700]!,
+    Colors.blue[700]!,
+    Colors.yellow[700]!,
+    Colors.purple[700]!,
+    Colors.orange[700]!,
+    Colors.brown[700]!,
+    Colors.cyan[700]!,
+    Colors.lime[700]!,
+    Colors.teal[700]!,
+    Colors.indigo[700]!,
+  ];
   String travelMode = "DRIVE";
   String routingPreference = "TRAFFIC_AWARE";
   bool isTrafficAware = true;
@@ -105,6 +143,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   bool isAvoidFerries = false;
   List<bool> isChange = [false, false, false, false, false];
   bool isCalcRouteFromCurrentLocation = true;
+  List<LatLng> waypointsLatLgn = [];
+  List<String> waypointNames = [];
 
   //Test
 
@@ -120,6 +160,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     "Route Planning": 3,
     "Navigation": 4,
     "Search Results None": 5,
+    "Loading Can Route": 6,
+    "Add Waypoint": 7,
     "Loading": 10,
   };
   int state = stateMap["Default"]!;
@@ -177,12 +219,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Tùy chọn đường đi'),
+              title: const Text('Tùy chọn đường đi'),
               content: SingleChildScrollView(
                 child: ListBody(
                   children: <Widget>[
                     CheckboxListTile(
-                      title: Text('Ảnh hưởng giao thông'),
+                      title: const Text('Ảnh hưởng giao thông'),
                       value: isTrafficAware,
                       onChanged: (bool? value) {
                         setState(() {
@@ -192,7 +234,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tính đường đi thay thế'),
+                      title: const Text('Tính đường đi thay thế'),
                       value: isComputeAlternativeRoutes,
                       onChanged: (bool? value) {
                         setState(() {
@@ -202,7 +244,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh trạm thi phí'),
+                      title: const Text('Tránh trạm thu phí'),
                       value: isAvoidTolls,
                       onChanged: (bool? value) {
                         setState(() {
@@ -212,7 +254,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh đường cao tốc'),
+                      title: const Text('Tránh đường cao tốc'),
                       value: isAvoidHighways,
                       onChanged: (bool? value) {
                         setState(() {
@@ -222,7 +264,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Tránh phà'),
+                      title: const Text('Tránh phà'),
                       value: isAvoidFerries,
                       onChanged: (bool? value) {
                         setState(() {
@@ -236,7 +278,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Hủy bỏ'),
+                  child: const Text('Hủy bỏ'),
                   onPressed: () {
                     setState(() {
                       updateOptionsBasedOnChanges();
@@ -248,14 +290,14 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                   },
                 ),
                 TextButton(
-                  child: Text('Áp dụng'),
+                  child: const Text('Áp dụng'),
                   onPressed: () {
                     logWithTag(
                         "Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
                         tag: "SearchLocationScreen");
                     calcRoute(
                         from: mapData.departureLocation!,
-                        to: mapData.destinationLocation!);
+                        to: mapData.destinationLocationLatLgn!);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -274,14 +316,17 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
     if (stateString == "Search Results") {
       isShowPlaceHorizontalList = true;
-      polyline = null;
+      polylines.clear();
+      travelMode = "TWO_WHEELER";
+      //Todo remove after test waypoint
+      //waypointsLatLgn = [];
     } else {
       isShowPlaceHorizontalList = false;
     }
 
     if (stateString == "Route Planning") {
       drawRoute();
-    }
+    } else if (stateString == "Add Waypoint") {}
 
     setState(() {
       state = stateMap[stateString]!;
@@ -300,21 +345,32 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             if (searchList != null) {
               placeSearchList = searchList;
               for (int i = 0; i < placeSearchList.length; i++) {
+                if (placeSearchList[i].id != null) {
+                  PlaceSearch_.getPhotoUrls(placeSearchList[i].id!, 500, 500).then((photoUrls) {
+                    setState(() {
+                      placeSearchList[i].photoUrls = photoUrls;
+                      logWithTag("Photo URL: ${photoUrls}",
+                          tag: "Change photourl");
+                    });
+                  });
+                }
+                ;
                 final markerId = MarkerId(placeSearchList[i].id!);
                 Marker marker = Marker(
                   markerId: markerId,
                   icon: (i == 0) ? mainMarker : defaultMarker,
                   position: LatLng(placeSearchList[i].location.latitude,
                       placeSearchList[i].location.longitude),
-                  infoWindow: InfoWindow(
-                    title: placeSearchList[i].displayName?.text,
-                    snippet: placeSearchList[i].formattedAddress,
-                  ),
+                  // infoWindow: InfoWindow(
+                  //   title: placeSearchList[i].displayName?.text,
+                  //   snippet: placeSearchList[i].formattedAddress,
+                  // ),
                 );
                 myMarker.add(marker);
               }
               placeFound = true;
-              placeOnclickFromList(isShowPlaceHorizontalListFromSearch: true, index: 0);
+              placeOnclickFromList(
+                  isShowPlaceHorizontalListFromSearch: true, index: 0);
 
               animateBottomSheet(
                       _dragableController, defaultBottomSheetHeight / 1000)
@@ -383,36 +439,48 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     }
   }
 
-
-
-Future<void> placeClickLatLngFromMap(LatLng position) async {
-  animateToPositionNoZoom(
-    LatLng(position.latitude, position.longitude),
-  );
-  changeState("Loading");
-  mapData.changeDestinationLocation(position);
-  setState(() {
-    myMarker = [];
-    final markerId = MarkerId("0");
-    Marker marker = Marker(
-      markerId: markerId,
-      icon: mainMarker,
-      position: LatLng(position.latitude, position.longitude),
+  Future<void> placeClickLatLngFromMap(LatLng position) async {
+    animateToPositionNoZoom(
+      LatLng(position.latitude, position.longitude),
     );
-    myMarker.add(marker);
-  });
-  try {
-    String placeString = await convertLatLngToAddress(position);
-    var value = await placeSearchSingle(placeString);
-    if (value != null) {
-      markedPlace = value;
-      changeState("Search Results");
-    } else
-      changeState("Search Results None");
-  } catch (e) {
-    print('Failed to mark and search place: $e');
+    isShowPlaceHorizontalList = false;
+    changeState("Loading Can Route");
+    mapData.changeDestinationLocationLatLgn(position);
+    setState(() {
+      myMarker = [];
+      waypointsLatLgn = [];
+      waypointNames = [];
+      final markerId = MarkerId("0");
+      Marker marker = Marker(
+        markerId: markerId,
+        icon: mainMarker,
+        position: LatLng(position.latitude, position.longitude),
+      );
+      myMarker.add(marker);
+    });
+    try {
+      String placeString = await convertLatLngToAddress(position);
+      var value = await placeSearchSingle(placeString);
+      if (value != null) {
+        PlaceSearch_.getPhotoUrls(value.id!, 400, 400).then((photoUrls) {
+          value.photoUrls = photoUrls;
+          setState(() {
+            mapData.changeDestinationImage(photoUrls);
+          });
+        });
+        markedPlace = value;
+        mapData.changeDestinationAddressAndPlaceNameAndImage(value);
+        if (state == stateMap["Loading Can Route"]!)
+          changeState("Search Results");
+      }
+      else if (state == stateMap["Loading Can Route"]!)
+        changeState("Search Results None");
+
+    } catch (e) {
+      logWithTag("Error, place click from map: $e",
+          tag: "SearchLocationScreen");
+    }
   }
-}
 
   Future<LatLng?> placeOnclickFromList(
       {required bool isShowPlaceHorizontalListFromSearch,
@@ -420,12 +488,13 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
     this.isShowPlaceHorizontalListFromSearch =
         isShowPlaceHorizontalListFromSearch;
     changeState("Search Results");
-    polyline = null;
     if (isShowPlaceHorizontalListFromSearch) {
       try {
-        mapData.changeDestinationLocation(
-            LatLng(placeSearchList[index].location.latitude,
-                placeSearchList[index].location.longitude));
+        mapData.changeDestinationLocationLatLgn(LatLng(
+            placeSearchList[index].location.latitude,
+            placeSearchList[index].location.longitude));
+        mapData.changeDestinationAddressAndPlaceNameAndImage(
+            placeSearchList[index]);
         animateToPosition(
             LatLng(placeSearchList[index].location.latitude,
                 placeSearchList[index].location.longitude),
@@ -447,8 +516,9 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
     var value = await placeSearchSingle(
         placeAutoList[index].structuredFormat?.mainText?.text ?? "");
     if (value != null) {
-      mapData.changeDestinationLocation(
-        LatLng(value.location.latitude, value.location.longitude));
+      mapData.changeDestinationLocationLatLgn(
+          LatLng(value.location.latitude, value.location.longitude));
+      mapData.changeDestinationAddressAndPlaceNameAndImage(value);
       animateToPosition(
         LatLng(value.location.latitude, value.location.longitude),
       );
@@ -459,10 +529,10 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
           markerId: markerId,
           icon: mainMarker,
           position: LatLng(value.location.latitude, value.location.longitude),
-          infoWindow: InfoWindow(
-            title: value.displayName?.text,
-            snippet: value.formattedAddress,
-          ),
+          // infoWindow: InfoWindow(
+          //   title: value.displayName?.text,
+          //   snippet: value.formattedAddress,
+          // ),
         );
         myMarker.add(marker);
       });
@@ -475,27 +545,63 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
   void drawRoute() {
     if (routes.isNotEmpty) {
       setState(() {
-        polyline = Polyline(
-          polylineId: const PolylineId("route"),
-          color: Colors.green,
-          width: 8,
-          points: routes[0].legs[0].polyline.decodedPolyline(),
-        );
+        polylines = [];
+        for (int i = 0; i < routes[0].legs.length; i++) {
+          List<LatLng> legPoints = Polyline_.decodePolyline(
+              routes[0].legs[i].polyline.encodedPolyline);
+
+          int width;
+          switch (i % 3) {
+            case 0:
+              width = 8;
+              break;
+            case 1:
+              width = 6;
+              break;
+            case 2:
+              width = 4;
+              break;
+            default:
+              width = 8;
+          }
+
+          polylines.add(
+            Polyline(
+              polylineId: PolylineId(i.toString()),
+              color: polylineColors[i % polylineColors.length],
+              // Use a different color for each leg
+              width: width,
+              // Use different widths for each polyline
+              points: legPoints, // Add all points of the leg to the polyline
+            ),
+          );
+        }
       });
     }
+    //showAllMarkerInfo();
   }
+
+  // Future<void> showAllMarkerInfo() async {
+  //   GoogleMapController controller = await _mapsController.future;
+  //   for (final marker in myMarker) {
+  //     controller.showMarkerInfoWindow(marker.markerId);
+  //   }
+  // }
 
   void clearRoute() {
     setState(() {
-      polyline = null;
+      polylines.clear();
     });
   }
 
   Future<void> calcRouteFromDepToDes() async {
-    if (mapData.departureLocation != null && mapData.destinationLocation != null)
+    //Todo remove after test waypoint
+    //waypointsLatLgn = [];
+    if (mapData.departureLocation != null &&
+        mapData.destinationLocationLatLgn != null)
       calcRoute(
           from: mapData.departureLocation!,
-          to: mapData.destinationLocation!);
+          to: mapData.destinationLocationLatLgn!);
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
@@ -509,11 +615,13 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
         computeAlternativeRoutes: isComputeAlternativeRoutes,
         avoidTolls: isAvoidTolls,
         avoidHighways: isAvoidHighways,
-        avoidFerries: isAvoidFerries))!;
+        avoidFerries: isAvoidFerries,
+        waypoints: waypointsLatLgn))!;
     drawRoute();
     changeState("Route Planning");
     mapData.changeDepartureLocation(from);
-    mapData.changeDestinationLocation(to);
+    mapData.changeDestinationLocationLatLgn(to);
+    // Todo: mapdata
   }
 
   Future<void> placeMarkAndRoute(
@@ -524,7 +632,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
         isShowPlaceHorizontalListFromSearch;
     myMarker.removeWhere((marker) => marker.icon != mainMarker);
     if (isShowPlaceHorizontalListFromSearch) {
-      mapData.destinationLocation = LatLng(
+      mapData.destinationLocationLatLgn = LatLng(
           placeSearchList[index].location.latitude,
           placeSearchList[index].location.longitude);
       try {
@@ -553,10 +661,10 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
           markerId: markerId,
           icon: mainMarker,
           position: LatLng(value.location.latitude, value.location.longitude),
-          infoWindow: InfoWindow(
-            title: value.displayName?.text,
-            snippet: value.formattedAddress,
-          ),
+          // infoWindow: InfoWindow(
+          //   title: value.displayName?.text,
+          //   snippet: value.formattedAddress,
+          // ),
         );
         myMarker.add(marker);
       });
@@ -579,7 +687,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
           markerId: marker.markerId,
           icon: defaultMarker,
           position: marker.position,
-          infoWindow: marker.infoWindow,
+          //infoWindow: marker.infoWindow,
         );
         myMarker[i] = newMarker;
       }
@@ -590,7 +698,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
       markerId: markerAtIndex.markerId,
       icon: mainMarker,
       position: markerAtIndex.position,
-      infoWindow: markerAtIndex.infoWindow,
+      //infoWindow: markerAtIndex.infoWindow,
     );
     setState(() {
       myMarker[index] = newMarkerAtIndex;
@@ -604,6 +712,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
   @override
   void initState() {
     super.initState();
+
     _searchFieldController = TextEditingController();
     _searchFieldFocusNode = FocusNode();
 
@@ -640,6 +749,16 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
         mainMarker = bitmapDescriptor;
       });
     });
+
+    for (int i = 0; i < waypointMarkers.length; i++) {
+      BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+              waypointMarkersSource[i], const Size(45, 45))
+          .then((bitmapDescriptor) {
+        setState(() {
+          waypointMarkers[i] = bitmapDescriptor;
+        });
+      });
+    }
 
     //Todo: Remove after test
     // searchPlaceAndUpdate("Đại học CNTT");
@@ -703,7 +822,10 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
             onMapCreated: (GoogleMapController controller) {
               _mapsController.complete(controller);
             },
-            polylines: {if (polyline != null) polyline!},
+            onCameraMove: (CameraPosition position) {
+              centerLocation = position.target;
+            },
+            polylines: polylines.toSet(),
             zoomControlsEnabled: false,
           ),
 
@@ -712,21 +834,15 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
             duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
             bottom:
-                isShowPlaceHorizontalList // use this to compensate the height of the location show panel when it showed,
+                 // use this to compensate the height of the location show panel when it showed,
                     // do not need to use this of use visibility widget, but that widget does not have animation
-                    ? ((bottomSheetTop == null)
+                     ((bottomSheetTop == null)
                         ? (MediaQuery.of(context).size.height *
                                 defaultBottomSheetHeight /
                                 1000) +
                             10
                         : bottomSheetTop! + 10)
-                    : ((bottomSheetTop == null)
-                        ? (MediaQuery.of(context).size.height *
-                                defaultBottomSheetHeight /
-                                1000) +
-                            10 -
-                            90 // 90 is the height of the location show panel
-                        : bottomSheetTop! + 10 - 90),
+                    ,
             // 90 is the height of the location show panel
 
             right: 0,
@@ -751,112 +867,125 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                 // Location list
                 Container(
                   margin: const EdgeInsets.only(top: 5),
-                  child: AnimatedOpacity(
-                      opacity: isShowPlaceHorizontalList ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 500),
-                      child: SizedBox(
-                        height: 90.0,
-                        width: (MediaQuery.of(context).size.width),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: isShowPlaceHorizontalListFromSearch
-                              ? placeSearchList.length
-                              : placeAutoList.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              margin:
-                                  const EdgeInsets.only(left: 5.0, right: 5),
-                              child: GestureDetector(
-                                onTap: () {
-                                  placeOnclickFromList(
-                                      isShowPlaceHorizontalListFromSearch:
-                                          isShowPlaceHorizontalListFromSearch,
-                                      index: index);
-                                  if (myMarker.length > 1) {
-                                    changeMainMarker(index);
-                                  }
-                                },
-                                onLongPress: () async {
-                                  await placeMarkAndRoute(
-                                      isShowPlaceHorizontalListFromSearch:
-                                          isShowPlaceHorizontalListFromSearch,
-                                      index: index);
-                                  if (routes.isNotEmpty) {
-                                    setState(() {
-                                      polyline = Polyline(
-                                        polylineId: const PolylineId("route"),
-                                        color: Colors.green,
-                                        width: 8,
-                                        points: routes[0]
-                                            .legs[0]
-                                            .polyline
-                                            .decodedPolyline(),
-                                      );
-                                    });
-                                  }
-                                },
-                                child: Container(
-                                  //margin: EdgeInsets.only(
-                                  // left: 10.0, top: 10.0, bottom: 10.0),
-                                  padding: EdgeInsets.all(10.0),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: <Widget>[
-                                      Image.network(
-                                        "https://lh5.googleusercontent.com/p/AF1QipNh59_JnDqMdtWpCIX9EJmG2Lqhcsfx2NJJjVyc=w408-h507-k-no",
-                                        width: 50,
-                                        height: 50,
+                  child:
+                      //List from place autocomplete
+                      Visibility(
+                          visible: isShowPlaceHorizontalList,
+                          child: SizedBox(
+                            height: 90.0,
+                            width: (MediaQuery.of(context).size.width),
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: isShowPlaceHorizontalListFromSearch
+                                  ? placeSearchList.length
+                                  : placeAutoList.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  margin: const EdgeInsets.only(
+                                      left: 5.0, right: 5),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      placeOnclickFromList(
+                                          isShowPlaceHorizontalListFromSearch:
+                                              isShowPlaceHorizontalListFromSearch,
+                                          index: index);
+
+                                      if (myMarker.length > 1) {
+                                        changeMainMarker(index);
+                                      }
+                                    },
+                                    onLongPress: () async {
+                                      await placeMarkAndRoute(
+                                          isShowPlaceHorizontalListFromSearch:
+                                              isShowPlaceHorizontalListFromSearch,
+                                          index: index);
+                                      drawRoute();
+                                    },
+                                    child: Container(
+                                      //margin: EdgeInsets.only(
+                                      // left: 10.0, top: 10.0, bottom: 10.0),
+                                      padding: const EdgeInsets.all(10.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                       ),
-                                      const SizedBox(width: 10.0),
-                                      SizedBox(
-                                        width: 140,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: <Widget>[
-                                            Text(
-                                              getMainText(
-                                                  isShowPlaceHorizontalListFromSearch,
-                                                  index),
-                                              style: const TextStyle(
-                                                fontSize: 16.0,
-                                                fontWeight: FontWeight.bold,
-                                                overflow: TextOverflow.ellipsis,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          if (isShowPlaceHorizontalListFromSearch)
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(5.0),
+                                              child: Image.network(
+                                                placeSearchList[index]
+                                                        .photoUrls ??
+                                                    "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                                width: 60,
+                                                height: 80,
+                                                fit: BoxFit.cover,
                                               ),
                                             ),
-                                            Text(
-                                              getSecondaryText(
-                                                  isShowPlaceHorizontalListFromSearch,
-                                                  index),
-                                              style: const TextStyle(
-                                                  fontSize: 14.0,
-                                                  color: Colors.grey,
-                                                  overflow:
-                                                      TextOverflow.ellipsis),
+                                          const SizedBox(width: 10.0),
+                                          SizedBox(
+                                            width: 140,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: <Widget>[
+                                                Text(
+                                                  getMainText(
+                                                      isShowPlaceHorizontalListFromSearch,
+                                                      index),
+                                                  style: const TextStyle(
+                                                    fontSize: 16.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  getSecondaryText(
+                                                      isShowPlaceHorizontalListFromSearch,
+                                                      index),
+                                                  style: const TextStyle(
+                                                      fontSize: 14.0,
+                                                      color: Colors.grey,
+                                                      overflow: TextOverflow
+                                                          .ellipsis),
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      )),
+                                );
+                              },
+                            ),
+                          )),
                 ),
               ],
             ),
           ),
+          // Center image to add waypoint
+          Visibility(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 27.0, right: 14.0),
+                  child: SizedBox(
+                      width: 35,
+                      height: 35,
+                      child: SvgPicture.asset("assets/icons/waypoint.svg")),
+                ),
+              ),
+              visible: state == stateMap["Add Waypoint"]),
 
           // On top search bar
           Positioned(
@@ -873,10 +1002,11 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
               ),
               child: Visibility(
                   //Top search bar - Departure
-                  visible: true, //state == stateMap["Search"]!,
+                  visible: state != stateMap["Add Waypoint"],
+                  //state == stateMap["Search"]!,
                   child: Column(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         height: 50.0,
                       ),
                       Column(
@@ -884,17 +1014,26 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                           Row(children: [
                             IconButton(
                                 onPressed: () {
-                                  if (state == stateMap["Search Results"]! ||
-                                      state ==
-                                          stateMap["Search Results None"]!) {
-                                    changeState("Default");
-                                  } else if (state ==
-                                      stateMap["Route Planning"]!) {
-                                    changeState("Search Results");
-                                  } else if (state == stateMap["Navigation"]!) {
-                                    changeState("Route Planning");
-                                  } else if (state == stateMap["Loading"]!) {
-                                    changeState("Search Results");
+                                  String currentState = stateFromInt(state);
+
+                                  switch (currentState) {
+                                    case "Search Results":
+                                    case "Search Results None":
+                                      changeState("Default");
+                                      break;
+                                    case "Route Planning":
+                                    case "Loading Can Route":
+                                      changeState("Search Results");
+                                      break;
+                                    case "Navigation":
+                                      changeState("Route Planning");
+                                      break;
+                                    case "Loading":
+                                      changeState("Search Results");
+                                      break;
+                                    default:
+                                      changeState("Default");
+                                      break;
                                   }
                                 },
                                 icon: const Icon(Icons.arrow_back)),
@@ -909,7 +1048,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                     color: Colors.grey.withOpacity(0.5),
                                     spreadRadius: 5,
                                     blurRadius: 7,
-                                    offset: Offset(0, 3),
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
@@ -923,7 +1062,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
 
                                   suffixIcon: _searchFieldFocusNode.hasFocus
                                       ? IconButton(
-                                          icon: Icon(Icons.clear),
+                                          icon: const Icon(Icons.clear),
                                           onPressed: () {
                                             _searchFieldController.clear();
                                             setState(() {
@@ -953,20 +1092,18 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                 },
                               ),
                             ),
-                            (state == stateMap["Place Search"] ||
-                                    state == stateMap["Search Results"] ||
-                                    state == stateMap["Search Results None"]!)
+                            (state == stateMap["Default"]!)
                                 ? Container(
                                     // Profile picture
-                                    margin: EdgeInsets.only(left: 10.0),
-                                    width: 50,
-                                    height: 50,
+                                    margin: const EdgeInsets.only(left: 10.0),
+                                    width: 45,
+                                    height: 45,
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: IconButton(
-                                        padding: EdgeInsets.all(2),
+                                        padding: const EdgeInsets.all(2),
                                         onPressed: () {},
                                         icon: Image.asset(
                                           "assets/profile.png",
@@ -974,7 +1111,6 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                   )
                                 : Container(
                                     // Profile picture
-                                    margin: EdgeInsets.only(left: 10.0),
                                     width: 50,
                                     height: 50,
                                     decoration: BoxDecoration(
@@ -982,7 +1118,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: IconButton(
-                                      icon: Icon(Icons.more_vert),
+                                      icon: const Icon(Icons.more_vert),
                                       onPressed: () {
                                         showOptionsDialog(context);
                                       },
@@ -996,39 +1132,55 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                               width: MediaQuery.of(context).size.width,
                               child: Column(
                                 children: [
-                                  Container(
-                                    width:
-                                        MediaQuery.of(context).size.width - 120,
-                                    height: 45,
-                                    margin:
-                                        EdgeInsets.only(top: 10.0, left: 0.0),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          spreadRadius: 5,
-                                          blurRadius: 7,
-                                          offset: Offset(0, 3),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width:
+                                            MediaQuery.of(context).size.width -
+                                                120,
+                                        height: 45,
+                                        margin: const EdgeInsets.only(
+                                            top: 10.0, right: 10.0, left: 65),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              spreadRadius: 5,
+                                              blurRadius: 7,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    child: TextField(
-                                      decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        prefixIcon: SizedBox(
-                                          width: 10,
-                                          height: 10,
-                                          child: SvgPicture.asset(
-                                              "assets/icons/verified_destination.svg"),
+                                        child: TextField(
+                                          decoration: InputDecoration(
+                                            border: InputBorder.none,
+                                            prefixIcon: SizedBox(
+                                              width: 10,
+                                              height: 10,
+                                              child: SvgPicture.asset(
+                                                  "assets/icons/verified_destination.svg"),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      SizedBox(
+                                          width: 40,
+                                          height: 40,
+                                          child: IconButton(
+                                              onPressed: () {},
+                                              icon: SvgPicture.asset(
+                                                  "assets/icons/swap.svg"))),
+                                    ],
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         IconButton(
                                             onPressed: () {
@@ -1037,6 +1189,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/walk.svg")),
+                                        const SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "DRIVE";
@@ -1044,6 +1197,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/car.svg")),
+                                        const SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "TWO_WHEELER";
@@ -1051,6 +1205,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                             },
                                             icon: SvgPicture.asset(
                                                 "assets/icons/motor.svg")),
+                                        const SizedBox(width: 10),
                                         IconButton(
                                             onPressed: () {
                                               travelMode = "TRANSIT";
@@ -1073,7 +1228,7 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                 _searchFieldFocusNode.hasFocus)
                             ? Container(
                                 //Autocomplete list
-                                margin: EdgeInsets.only(top: 30.0),
+                                margin: const EdgeInsets.only(top: 30.0),
                                 alignment: Alignment.center,
                                 width: MediaQuery.of(context).size.width - 40,
                                 decoration: BoxDecoration(
@@ -1368,19 +1523,66 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                               child: SingleChildScrollView(
                                 primary: false,
                                 controller: scrollController,
-                                child: Column(children: <Widget>[
-                                  const Pill(),
-                                  FilledButton(
-                                    onPressed: () {
-                                      // placeMarkAndRoute(
-                                      //     isShowPlaceHorizontalListFromSearch:
-                                      //         isShowPlaceHorizontalListFromSearch,
-                                      //     index: 0);
-                                      calcRouteFromDepToDes();
-                                    },
-                                    child: const Text("Chỉ đường"),
-                                  )
-                                ]),
+                                child: Container(
+                                  padding: const EdgeInsets.only(
+                                      left: 20.0, right: 20.0),
+                                  child: Column(children: <Widget>[
+                                    const Pill(),
+                                    Row(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(5.0),
+                                          child: Image.network(
+                                            mapData.destinationLocationPhotoUrl ??
+                                                "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                            width: 80,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        SizedBox(width: 20),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                mapData
+                                                    .destinationLocationPlaceName
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  fontFamily: "SF Pro Display",
+                                                  color: Colors.black,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                overflow: TextOverflow.visible,
+                                              ),
+                                              Text(
+                                                mapData
+                                                    .destinationLocationAddress
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  fontFamily: "SF Pro Display",
+                                                  color: Colors.grey,
+                                                  fontSize: 14,
+                                                ),
+                                                overflow: TextOverflow.visible,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    FilledButton(
+                                      onPressed: () {
+                                        calcRouteFromDepToDes();
+                                      },
+                                      child: const Text("Chỉ đường"),
+                                    )
+                                  ]),
+                                ),
                               ),
                             ),
                           );
@@ -1406,16 +1608,79 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                     child: SingleChildScrollView(
                                       primary: false,
                                       controller: scrollController,
-                                      child: Column(children: <Widget>[
-                                        const Pill(),
-                                        const Center(child: Text('Không tên')),
-                                        FilledButton(
-                                          onPressed: () {
-                                            calcRoute(from: mapData.departureLocation!, to: mapData.destinationLocation!);
-                                          },
-                                          child: const Text("Chỉ đường"),
-                                        ),
-                                      ]),
+                                      child: Container(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0, right: 20.0),
+                                        child: Column(children: <Widget>[
+                                          const Pill(),
+                                          Row(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                child: Image.network(
+                                                  "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
+                                                  width: 80,
+                                                  height: 100,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              SizedBox(width: 20),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "Địa điểm không xác định",
+                                                      style: const TextStyle(
+                                                        fontFamily:
+                                                            "SF Pro Display",
+                                                        color: Colors.black,
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.visible,
+                                                    ),
+                                                    Text(
+                                                      mapData.destinationLocationLatLgn!
+                                                              .latitude
+                                                              .toString()
+                                                              .substring(0, 8) +
+                                                          ", " +
+                                                          mapData
+                                                              .destinationLocationLatLgn!
+                                                              .longitude
+                                                              .toString()
+                                                              .substring(0, 8),
+                                                      style: const TextStyle(
+                                                        fontFamily:
+                                                            "SF Pro Display",
+                                                        color: Colors.grey,
+                                                        fontSize: 14,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.visible,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          FilledButton(
+                                            onPressed: () {
+                                              calcRoute(
+                                                  from: mapData
+                                                      .departureLocation!,
+                                                  to: mapData
+                                                      .destinationLocationLatLgn!);
+                                            },
+                                            child: const Text("Chỉ đường"),
+                                          ),
+                                        ]),
+                                      ),
                                     )),
                               );
                             },
@@ -1444,19 +1709,40 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                         child: Column(children: <Widget>[
                                           const Pill(),
                                           Container(
-                                            //   child: ListView.builder(
-                                            // controller: _listviewScrollController,
-                                            // shrinkWrap: true,
-                                            // itemCount: 2,
-                                            // itemBuilder: (context, index) {
-                                            //   // return RoutePlanningListTile(routeResponse: null,);
-                                            //   return Placeholder();
-                                            child: RoutePlanningList(
-                                                routes: routes,
-                                                itemClick: (index) {
-                                                  changeState("Navigation");
-                                                }),
+                                            child: ElevatedButton.icon(
+                                              onPressed: () {
+                                                changeState("Add Waypoint");
+                                              },
+                                              icon: SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: SvgPicture.asset(
+                                                      "assets/icons/add_waypoint.svg")),
+                                              label: Text('Thêm điểm dừng'),
+                                            ),
+                                          ),
+                                          RoutePlanningListTile(
+                                            route: routes[0],
+                                            travelMode: travelMode,
+                                            isAvoidTolls: isAvoidTolls,
+                                            isAvoidHighways: isAvoidHighways,
+                                            isAvoidFerries: isAvoidFerries,
+                                            waypointsLatLgn: waypointsLatLgn,
+                                            destinationLatLgn: mapData
+                                                .destinationLocationLatLgn!,
                                           )
+                                          // RoutePlanningList(
+                                          //     routes: routes,
+                                          //     travelMode: travelMode,
+                                          //     isAvoidTolls: isAvoidTolls,
+                                          //     isAvoidHighways: isAvoidHighways,
+                                          //     isAvoidFerries: isAvoidFerries,
+                                          //     waypointsLatLgn: waypointsLatLgn,
+                                          //     destinationLatLgn:
+                                          //         mapData.destinationLocation!,
+                                          //     itemClick: (index) {
+                                          //       //changeState("Navigation");
+                                          //     })
                                         ]),
                                       ),
                                     ),
@@ -1508,9 +1794,9 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                       );
                                     },
                                   )
-                                : (state == stateMap["Loading"]!)
+                                : (state == stateMap["Loading Can Route"]!)
                                     ?
-                                    // Bottom sheet loading
+                                    // Bottom sheet loading can route
                                     DraggableScrollableSheet(
                                         controller: _dragableController,
                                         initialChildSize:
@@ -1533,11 +1819,29 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                                 child:
                                                     Column(children: <Widget>[
                                                   const Pill(),
-                                                  // SizedBox(
-                                                  //   height: 100,
-                                                  // ),
-                                                  CircularProgressIndicator(
-                                                    color: Colors.green,
+                                                  const SizedBox(
+                                                    height: 30,
+                                                  ),
+                                                  Column(
+                                                    children: [
+                                                      const CircularProgressIndicator(
+                                                        color: Colors.green,
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 34,
+                                                      ),
+                                                      FilledButton(
+                                                        onPressed: () {
+                                                          calcRoute(
+                                                              from: mapData
+                                                                  .departureLocation!,
+                                                              to: mapData
+                                                                  .destinationLocationLatLgn!);
+                                                        },
+                                                        child: const Text(
+                                                            "Chỉ đường"),
+                                                      ),
+                                                    ],
                                                   )
                                                 ]),
                                               ),
@@ -1545,10 +1849,170 @@ Future<void> placeClickLatLngFromMap(LatLng position) async {
                                           );
                                         },
                                       )
-                                    :
+                                    : (state == stateMap["Add Waypoint"]!)
+                                        ?
+                                        // Bottom sheet add waypoint
+                                        DraggableScrollableSheet(
+                                            controller: _dragableController,
+                                            initialChildSize:
+                                                defaultBottomSheetHeight / 1000,
+                                            minChildSize: 0.15,
+                                            maxChildSize: 1,
+                                            builder: (BuildContext context,
+                                                ScrollController
+                                                    scrollController) {
+                                              return ClipRRect(
+                                                borderRadius:
+                                                    const BorderRadius.only(
+                                                  topLeft:
+                                                      Radius.circular(24.0),
+                                                  topRight:
+                                                      Radius.circular(24.0),
+                                                ),
+                                                child: Container(
+                                                  color: Colors.white,
+                                                  child: SingleChildScrollView(
+                                                      primary: false,
+                                                      controller:
+                                                          scrollController,
+                                                      child: Column(
+                                                          children: <Widget>[
+                                                            const Pill(),
+                                                            Column(
+                                                              children: [
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    SizedBox(
+                                                                      width: 80,
+                                                                      height:
+                                                                          40,
+                                                                      child: IconButton(
+                                                                          onPressed: () {
+                                                                            setState(() {
+                                                                              waypointsLatLgn.removeLast();
+                                                                              waypointNames.removeLast();
+                                                                              myMarker.removeLast();
+                                                                            });
+                                                                          },
+                                                                          icon: SvgPicture.asset("assets/icons/remove.svg")),
+                                                                    ),
+                                                                    ElevatedButton(
+                                                                        onPressed:
+                                                                            () {
+                                                                          calcRouteFromDepToDes();
+                                                                        },
+                                                                        child: Text(
+                                                                            "Áp dụng")),
+                                                                    SizedBox(
+                                                                        width:
+                                                                            80,
+                                                                        height:
+                                                                            40,
+                                                                        child: IconButton(
+                                                                            onPressed: () {
+                                                                              setState(() {
+                                                                                waypointsLatLgn.add(centerLocation);
+                                                                                convertLatLngToAddress(centerLocation, isCutoff: true).then((value) {
+                                                                                  setState(() {
+                                                                                    waypointNames.add(value);
+                                                                                  });
+                                                                                });
+                                                                                myMarker.add(Marker(
+                                                                                  markerId: MarkerId(centerLocation.toString()),
+                                                                                  icon: (myMarker.length < waypointMarkers.length) ? waypointMarkers[(myMarker.length - 1)] : waypointMarkers[waypointMarkers.length - 1],
+                                                                                  position: centerLocation,
+                                                                                ));
+                                                                              });
+                                                                            },
+                                                                            icon: SvgPicture.asset("assets/icons/add.svg")))
+                                                                  ],
+                                                                ),
+                                                                TextButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      setState(
+                                                                          () {
+                                                                        waypointsLatLgn
+                                                                            .clear();
+                                                                        myMarker.removeWhere((marker) =>
+                                                                            marker.icon !=
+                                                                            mainMarker);
+                                                                      });
+                                                                    },
+                                                                    child: Text(
+                                                                        "Xóa tất cả")),
+                                                                WaypointList(
+                                                                  waypoints:
+                                                                      waypointsLatLgn,
+                                                                  waypointsName:
+                                                                      waypointNames,
+                                                                  controller:
+                                                                      _listviewScrollController,
+                                                                  markerList:
+                                                                      myMarker,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ])),
+                                                ),
+                                              );
+                                            },
+                                          )
+                                        : (state == stateMap["Loading"]!)
+                                            ?
+                                            // Bottom sheet loading
+                                            DraggableScrollableSheet(
+                                                controller: _dragableController,
+                                                initialChildSize:
+                                                    defaultBottomSheetHeight /
+                                                        1000,
+                                                minChildSize: 0.15,
+                                                maxChildSize: 1,
+                                                builder: (BuildContext context,
+                                                    ScrollController
+                                                        scrollController) {
+                                                  return ClipRRect(
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(24.0),
+                                                      topRight:
+                                                          Radius.circular(24.0),
+                                                    ),
+                                                    child: Container(
+                                                      color: Colors.white,
+                                                      child:
+                                                          SingleChildScrollView(
+                                                        primary: false,
+                                                        controller:
+                                                            scrollController,
+                                                        child: Column(
+                                                            children: <Widget>[
+                                                              const Pill(),
+                                                              SizedBox(
+                                                                height: 40,
+                                                              ),
+                                                              LoadingIndicator(
+                                                                color: Colors
+                                                                    .green,
+                                                                onPressed: () {
+                                                                  changeState(
+                                                                      "Search Results");
+                                                                },
+                                                              ),
+                                                            ]),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            :
 
-                                    // Bottom sheet none
-                                    const SizedBox.shrink(),
+                                            // Bottom sheet none
+                                            const SizedBox.shrink(),
           )
         ],
       ),
@@ -1560,35 +2024,41 @@ class MapData {
   LatLng? currentLocation;
   LatLng? departureLocation;
   String departureLocationName;
-  LatLng? destinationLocation;
-  String? destinationLocationName;
+  LatLng? destinationLocationLatLgn;
+  String? destinationLocationAddress;
+  String? destinationLocationPlaceName;
+  String? destinationLocationPhotoUrl;
 
-  MapData(
-      {this.currentLocation,
-      this.departureLocation,
-      this.destinationLocation,
-      this.departureLocationName = "Vị trí của bạn",
-      this.destinationLocationName,
-      });
+  MapData({
+    this.currentLocation,
+    this.departureLocation,
+    this.destinationLocationLatLgn,
+    this.departureLocationName = "Vị trí của bạn",
+    this.destinationLocationAddress,
+    this.destinationLocationPlaceName,
+    this.destinationLocationPhotoUrl,
+  });
 
-  void changeDestinationLocation(LatLng latLng) {
-    destinationLocation = latLng;
+  void changeDestinationLocationLatLgn(LatLng latLng) {
+    destinationLocationLatLgn = latLng;
     logWithTag("Destination location changed to: $latLng", tag: "MapData");
-    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
+        tag: "MapData");
     // Future<String?> placeString = convertLatLngToAddress(latLng);
     // placeString.then((value) {
     //   destinationLocationName = value ?? "Không có chi tiết";
     //   logWithTag("Destination location changed to: $value + $latLng",
     //       tag: "MapData");
     // });
-
-
   }
 
   void changeDepartureLocation(LatLng from) {
     departureLocation = from;
     logWithTag("Departure location changed to: $from", tag: "MapData");
-    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
+        tag: "MapData");
 
     // Future<String?> placeString = convertLatLngToAddress(from);
     // placeString.then((value) {
@@ -1601,7 +2071,36 @@ class MapData {
   void changeCurrentLocation(LatLng value) {
     currentLocation = value;
     logWithTag("Current location changed to: $value", tag: "MapData");
-    logWithTag("All data: $currentLocation, $departureLocation, $destinationLocation", tag: "MapData");
+    logWithTag(
+        "All data: $currentLocation, $departureLocation, $destinationLocationLatLgn",
+        tag: "MapData");
+  }
 
+  void changeDestinationLocationAddress(String value) {
+    destinationLocationAddress = value;
+    logWithTag("Destination location name changed to: $value", tag: "MapData");
+  }
+
+  void changeDestinationLocationPlaceName(String value) {
+    destinationLocationPlaceName = value;
+    logWithTag("Destination location name changed to: $value", tag: "MapData");
+  }
+
+  void changeDestinationAddressAndPlaceNameAndImage(PlaceSearch_ place) {
+    destinationLocationAddress = place.formattedAddress;
+    destinationLocationPlaceName = place.displayName?.text;
+    destinationLocationPhotoUrl = place.photoUrls;
+    logWithTag(place.toString(), tag: "MapData info");
+    logWithTag(
+        "Destination location name changed to: $destinationLocationPlaceName",
+        tag: "MapData");
+    logWithTag(
+        "Destination location address changed to: $destinationLocationAddress",
+        tag: "MapData");
+  }
+
+  void changeDestinationImage(String value) {
+    destinationLocationPhotoUrl = value;
+    logWithTag("Destination location image changed to: $value", tag: "MapData");
   }
 }

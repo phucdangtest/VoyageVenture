@@ -71,7 +71,7 @@ Future<List<LatLng>?> computeRoutes({
     RouteResponse_ routeResponse = RouteResponse_.fromJson(parsed);
     Route_ route = routeResponse.routes[0];
     List<LatLng> polylinePoints =
-        route.legs[0].polyline.decodedPolyline();
+        Polyline_.decodePolyline(route.legs[0].polyline.encodedPolyline);
     //logWithTag(route.toString(), tag: 'computeRoutes');
     logWithTag("route.toString()", tag: 'computeRoutes');
     return polylinePoints;
@@ -91,11 +91,21 @@ Future<List<Route_>?> computeRoutesReturnRoute_({
   String travelMode = "DRIVE",
   String routingPreference = "TRAFFIC_AWARE",
   String languageCode = "VI",
-  String units = "Metric",
+  String units = "Metric", required List<LatLng> waypoints,
 }) async {
   logWithTag('computeRoutes', tag: 'computeRoutes');
 
   departureTime ??= DateTime.now().add(const Duration(minutes: 5)).toUtc().toIso8601String();
+
+  List<Map<String, dynamic>> intermediates = waypoints.map((waypoint) => {
+    'location': {
+      'latLng': {
+        'latitude': waypoint.latitude,
+        'longitude': waypoint.longitude,
+      },
+    },
+  }).toList();
+
   Map<String, dynamic> requestBody = {
   'origin': {
     'location': {
@@ -113,6 +123,7 @@ Future<List<Route_>?> computeRoutesReturnRoute_({
       },
     },
   },
+  'intermediates': intermediates,
   'travelMode': travelMode,
   'departureTime': departureTime,
   'computeAlternativeRoutes': computeAlternativeRoutes,
@@ -128,6 +139,8 @@ Future<List<Route_>?> computeRoutesReturnRoute_({
 if (travelMode != "WALK" && travelMode != "TRANSIT") {
   requestBody['routingPreference'] = routingPreference;
 }
+
+logWithTag(jsonEncode(requestBody), tag: 'Request body');
 
 final response = await http.post(
   Uri.parse('https://routes.googleapis.com/directions/v2:computeRoutes'),
@@ -152,6 +165,7 @@ final response = await http.post(
   print("Error: ${response.body}");
   return null;
 }
+
 
 // Future<RouteResponse_?> computeRoutesReturnRouteResponse_({
 //   required LatLng from,
