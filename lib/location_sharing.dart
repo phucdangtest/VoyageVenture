@@ -249,10 +249,12 @@ class _LocationSharingState extends State<LocationSharing> {
               zoomControlsEnabled: false,
             ),
             StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
+              stream: FirebaseAuth.instance.currentUser != null
+                  ? FirebaseFirestore.instance
                   .collection('users')
                   .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .snapshots(),
+                  .snapshots()
+                  : null,
               builder:
                   (BuildContext context,
                   AsyncSnapshot<DocumentSnapshot> snapshot) {
