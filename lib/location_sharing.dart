@@ -42,6 +42,7 @@ class _LocationSharingState extends State<LocationSharing> {
   List<Marker> myMarker = [];
   GoogleMapController? _controller;
   bool _showWhiteBox = false; // State variable to control box visibility
+  bool isFetchImage = false;
   LatLng? _selectedLocation;
   final Completer<GoogleMapController> _mapsController = Completer();
   Polyline? route;
@@ -52,7 +53,7 @@ class _LocationSharingState extends State<LocationSharing> {
   List<String> friendID = [];
   List<String> friendImage = [];
   List<Uint8List> friendImageBytes = [];
-
+  BitmapDescriptor defaultMarker = BitmapDescriptor.defaultMarker;
   FirebaseFirestore get firestore => FirebaseFirestore
       .instance; // Function to add a user to the Firestore database
   Future<void> addUser(String userId, String name, GeoPoint location) async {
@@ -139,6 +140,14 @@ class _LocationSharingState extends State<LocationSharing> {
     setInitialLocation();
     updateFriendLocations();
 
+    BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+        "assets/icons/default_friends_marker.svg", const Size(100, 100))
+        .then((bitmapDescriptor) {
+      setState(() {
+        defaultMarker = bitmapDescriptor;
+      });
+    });
+
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // firestore.collection('user').get().then((QuerySnapshot querySnapshot) {
@@ -176,11 +185,19 @@ class _LocationSharingState extends State<LocationSharing> {
         //   position: location,
         // ));
         //createMarkerWithNetworkImage( location, friendImage[friendLocations.indexOf(location)]).then((marker) {
-        Marker marker = Marker(
+        Marker marker;
+        if (isFetchImage)
+        marker = Marker(
           markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          icon: BitmapDescriptor.fromBytes(friendImageBytes[friendLocations.indexOf(location)]),
           position: location,
         );
+        else
+        marker = Marker(
+            markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+            icon: defaultMarker,
+            position: location,
+          );
         setState(() {
         myMarker.add(marker);
         });
@@ -226,8 +243,20 @@ class _LocationSharingState extends State<LocationSharing> {
         setState(() {
           friendLocations = newFriendLocations;
           friendID = newFriendID;
-          friendImage = newFriendImage;
-          addFriendMarkers();
+          if (!isFetchImage) {
+            friendImage = newFriendImage;
+            for (int i = 0; i < friendLocations.length; i++) {
+              fetchImageBytes(friendImage[i]).then((imageBytes) {
+                friendImageBytes.add(imageBytes);
+                if (friendImageBytes.length == friendLocations.length) {
+                  isFetchImage = true;
+                  addFriendMarkers();
+                  // Update image after fetch all image
+                }
+              });
+            }
+          }
+        addFriendMarkers();
         });
 
     }
