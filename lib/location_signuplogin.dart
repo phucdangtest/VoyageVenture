@@ -88,17 +88,21 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
           password: password,
         );
         final User user = authResult.user!;
+        GeoPoint location = await getCurrentLocation();
+        await createUserProfile(
+            user.uid, user.displayName ?? '', user.email ?? '', location);
 
-        // Send email verification
-        await user.sendEmailVerification();
+        await auth.signInWithEmailAndPassword(email: email, password: password);
 
-        // Show a message to the user
+        // Show a success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Email xác thực đã được gửi. Vui lòng kiểm tra hòm thư của bạn và xác thực để hoàn tất đăng ký.'),
+            content: Text('Đăng ký thành công!'),
+            backgroundColor: Colors.green,
           ),
         );
+
+        Navigator.pop(context);
       } else {
         // Login existing user
         UserCredential authResult = await auth.signInWithEmailAndPassword(

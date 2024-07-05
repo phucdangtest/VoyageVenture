@@ -54,6 +54,7 @@ class _LocationSharingState extends State<LocationSharing> {
   List<String> friendImage = [];
   List<Uint8List> friendImageBytes = [];
   BitmapDescriptor defaultMarker = BitmapDescriptor.defaultMarker;
+
   FirebaseFirestore get firestore => FirebaseFirestore
       .instance; // Function to add a user to the Firestore database
   Future<void> addUser(String userId, String name, GeoPoint location) async {
@@ -82,9 +83,9 @@ class _LocationSharingState extends State<LocationSharing> {
   }
 
   Future<Marker> createMarkerWithNetworkImage(
-      LatLng position,
-      String imageUrl,
-      ) async {
+    LatLng position,
+    String imageUrl,
+  ) async {
     final imageBytes = await fetchImageBytes(imageUrl);
     final bitmapDescriptor = BitmapDescriptor.fromBytes(imageBytes);
     return Marker(
@@ -93,8 +94,6 @@ class _LocationSharingState extends State<LocationSharing> {
       icon: bitmapDescriptor,
     );
   }
-
-
 
   // Future<void> updateUserProfile(String userId, GeoPoint newLocation) async {
   //   // Get a reference to the document with the user ID
@@ -141,7 +140,7 @@ class _LocationSharingState extends State<LocationSharing> {
     updateFriendLocations();
 
     BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
-        "assets/icons/default_friends_marker.svg", const Size(100, 100))
+            "assets/icons/default_friends_marker.svg", const Size(100, 100))
         .then((bitmapDescriptor) {
       setState(() {
         defaultMarker = bitmapDescriptor;
@@ -177,39 +176,40 @@ class _LocationSharingState extends State<LocationSharing> {
   }
 
   void addFriendMarkers() {
-      myMarker.clear();
-      for (final location in friendLocations) {
-        // myMarker.add(Marker(
-        //   markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-        //   icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        //   position: location,
-        // ));
-        //createMarkerWithNetworkImage( location, friendImage[friendLocations.indexOf(location)]).then((marker) {
-        Marker marker;
-        if (isFetchImage)
+    myMarker.clear();
+    for (final location in friendLocations) {
+      // myMarker.add(Marker(
+      //   markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+      //   icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      //   position: location,
+      // ));
+      //createMarkerWithNetworkImage( location, friendImage[friendLocations.indexOf(location)]).then((marker) {
+      Marker marker;
+      if (isFetchImage)
         marker = Marker(
           markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-          icon: BitmapDescriptor.fromBytes(friendImageBytes[friendLocations.indexOf(location)]),
+          icon: BitmapDescriptor.fromBytes(
+              friendImageBytes[friendLocations.indexOf(location)]),
           position: location,
         );
-        else
+      else
         marker = Marker(
-            markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-            icon: defaultMarker,
-            position: location,
-          );
-        setState(() {
+          markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
+          icon: defaultMarker,
+          position: location,
+        );
+      setState(() {
         myMarker.add(marker);
-        });
-      }
-      //   logWithTag("Add friend marker ${location.toString()}", tag: "LocationSharing");
-      // }
-      // for (int i = 0; i < friendLocations.length; i++) {
-      //   fetchImageBytes(friendImage[i]).then((imageBytes) {
-      //     myMarker.add(createMarkerWithNetworkImage(
-      //         friendID[i], friendLocations[i], imageBytes));
-      //   });
-      // }
+      });
+    }
+    //   logWithTag("Add friend marker ${location.toString()}", tag: "LocationSharing");
+    // }
+    // for (int i = 0; i < friendLocations.length; i++) {
+    //   fetchImageBytes(friendImage[i]).then((imageBytes) {
+    //     myMarker.add(createMarkerWithNetworkImage(
+    //         friendID[i], friendLocations[i], imageBytes));
+    //   });
+    // }
   }
 
   Future<void> updateFriendLocations() async {
@@ -239,26 +239,25 @@ class _LocationSharingState extends State<LocationSharing> {
 
       // Compare new list with current list
 
-        friendLocations.clear();
-        setState(() {
-          friendLocations = newFriendLocations;
-          friendID = newFriendID;
-          if (!isFetchImage) {
-            friendImage = newFriendImage;
-            for (int i = 0; i < friendLocations.length; i++) {
-              fetchImageBytes(friendImage[i]).then((imageBytes) {
-                friendImageBytes.add(imageBytes);
-                if (friendImageBytes.length == friendLocations.length) {
-                  isFetchImage = true;
-                  addFriendMarkers();
-                  // Update image after fetch all image
-                }
-              });
-            }
+      friendLocations.clear();
+      setState(() {
+        friendLocations = newFriendLocations;
+        friendID = newFriendID;
+        if (!isFetchImage) {
+          friendImage = newFriendImage;
+          for (int i = 0; i < friendLocations.length; i++) {
+            fetchImageBytes(friendImage[i]).then((imageBytes) {
+              friendImageBytes.add(imageBytes);
+              if (friendImageBytes.length == friendLocations.length) {
+                isFetchImage = true;
+                addFriendMarkers();
+                // Update image after fetch all image
+              }
+            });
           }
+        }
         addFriendMarkers();
-        });
-
+      });
     }
   }
 
@@ -337,9 +336,7 @@ class _LocationSharingState extends State<LocationSharing> {
       ),
       StreamBuilder<QuerySnapshot>(
         stream: FirebaseAuth.instance.currentUser != null
-            ? FirebaseFirestore.instance
-                .collection('users')
-                .snapshots()
+            ? FirebaseFirestore.instance.collection('users').snapshots()
             : null,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
@@ -351,8 +348,8 @@ class _LocationSharingState extends State<LocationSharing> {
           }
 
           return Positioned(
-            top: 20.0,
-            right: 20.0,
+            bottom: 100,
+            left: 10,
             child: FloatingActionButton(
               onPressed: () async {
                 if (isLoggedIn) {
@@ -435,20 +432,24 @@ class _LocationSharingState extends State<LocationSharing> {
           ),
         ),
       ),
-      FloatingActionButton(
-        onPressed: () async {
-          Position position = await getCurrentLocation();
-          final GoogleMapController controller = await _mapsController.future;
-          final double currentZoomLevel = await controller.getZoomLevel();
-          controller.animateCamera(CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: LatLng(position.latitude, position.longitude),
-              zoom: currentZoomLevel,
-            ),
-          ));
-        },
-        child: const Icon(Icons.center_focus_strong),
-      ),
+      Positioned(
+        left: 10,
+        bottom: 40,
+        child: FloatingActionButton(
+          onPressed: () async {
+            Position position = await getCurrentLocation();
+            final GoogleMapController controller = await _mapsController.future;
+            final double currentZoomLevel = await controller.getZoomLevel();
+            controller.animateCamera(CameraUpdate.newCameraPosition(
+              CameraPosition(
+                target: LatLng(position.latitude, position.longitude),
+                zoom: currentZoomLevel,
+              ),
+            ));
+          },
+          child: const Icon(Icons.center_focus_strong),
+        ),
+      )
     ]));
   }
 }
