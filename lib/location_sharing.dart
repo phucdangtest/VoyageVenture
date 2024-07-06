@@ -126,12 +126,6 @@ class _LocationSharingState extends State<LocationSharing> {
   void addFriendMarkers() {
     myMarker.clear();
     for (final location in friendLocations) {
-      // myMarker.add(Marker(
-      //   markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-      //   icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-      //   position: location,
-      // ));
-      //createMarkerWithNetworkImage( location, friendImage[friendLocations.indexOf(location)]).then((marker) {
       Marker marker;
       if (isFetchImage)
         marker = Marker(
@@ -150,14 +144,6 @@ class _LocationSharingState extends State<LocationSharing> {
         myMarker.add(marker);
       });
     }
-    //   logWithTag("Add friend marker ${location.toString()}", tag: "LocationSharing");
-    // }
-    // for (int i = 0; i < friendLocations.length; i++) {
-    //   fetchImageBytes(friendImage[i]).then((imageBytes) {
-    //     myMarker.add(createMarkerWithNetworkImage(
-    //         friendID[i], friendLocations[i], imageBytes));
-    //   });
-    // }
   }
 
   Future<void> updateFriendLocations() async {
@@ -243,6 +229,20 @@ class _LocationSharingState extends State<LocationSharing> {
     }
   }
 
+  Future<Map<String, dynamic>> fetchUserDataAndAddress(String userId) async {
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    final data = doc.data() as Map<String, dynamic>;
+    final address = await convertLatLngToAddress2(
+      LatLng(data['location'].latitude, data['location'].longitude),
+      isCutoff: true,
+    );
+    return {
+      ...data,
+      'address': address,
+    };
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -258,173 +258,152 @@ class _LocationSharingState extends State<LocationSharing> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Stack(children: <Widget>[
-      GoogleMap(
-        initialCameraPosition: _initialLocation,
-        mapType: MapType.normal,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: false,
-        markers: myMarker.toSet(),
-        onMapCreated: (GoogleMapController controller) {
-          _mapsController.complete(controller);
-        },
-        onTap: (LatLng position) {
-          for (final friendLocation in friendLocations) {
-            if (distanceBetween(position, friendLocation)) {
-              setState(() {
-                _showWhiteBox = !_showWhiteBox;
-                if (_showWhiteBox) {
-                  _selectedLocation = position;
-                  _selectedFriendId =
-                      friendID[friendLocations.indexOf(friendLocation)];
-                    } else {
-                      _selectedFriendId = null;
-                    }
-                  });
-                }
+      body: Stack(children: <Widget>[
+        GoogleMap(
+          initialCameraPosition: _initialLocation,
+          mapType: MapType.normal,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          markers: myMarker.toSet(),
+          onMapCreated: (GoogleMapController controller) {
+            _mapsController.complete(controller);
+          },
+          onTap: (LatLng position) {
+            for (final friendLocation in friendLocations) {
+              if (distanceBetween(position, friendLocation)) {
+                setState(() {
+                  _showWhiteBox = !_showWhiteBox;
+                  if (_showWhiteBox) {
+                    _selectedLocation = position;
+                    _selectedFriendId =
+                        friendID[friendLocations.indexOf(friendLocation)];
+                  } else {
+                    _selectedFriendId = null;
+                  }
+                });
               }
-            },
-            polylines: {if (route != null) route!},
-            zoomControlsEnabled: false,
-          ),
+            }
+          },
+          polylines: {if (route != null) route!},
+          zoomControlsEnabled: false,
+        ),
+        FloatingActionButton(
+            child: const Icon(Icons.arrow_back_rounded),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyHomeScreen()),
+              );
+            }),
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseAuth.instance.currentUser != null
+              ? FirebaseFirestore.instance.collection('users').snapshots()
+              : null,
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Text('Something went wrong');
+            }
 
-          FloatingActionButton(
-              child: const Icon(Icons.arrow_back_rounded),
-              onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => MyHomeScreen()),
-            );
-          }),
+            if (isLoggedIn) {
+              updateFriendLocations();
+            }
 
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseAuth.instance.currentUser != null
-                ? FirebaseFirestore.instance.collection('users').snapshots()
-                : null,
-            builder: (BuildContext context,
-                AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return Text('Something went wrong');
-              }
+            return Positioned(
+              bottom: 100,
+              left: 10,
+              child: FloatingActionButton(
+                onPressed: () async {
+                  if (isLoggedIn) {
+                    updateFriendLocations();
 
-          if (isLoggedIn) {
-            updateFriendLocations();
-          }
-
-          return Positioned(
-            bottom: 100,
-            left: 10,
-            child: FloatingActionButton(
-              onPressed: () async {
-                if (isLoggedIn) {
-                  updateFriendLocations();
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => UserProfilePage()),
-                  );
-                } else {
-                  isLoggedIn = true;
-                  Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => LoginSignupPage()));
-                  updateFriendLocations();
-                }
-              },
-              child: const Icon(Icons.login),
-            ),
-          );
-        },
-      ),
-      Positioned(
-        top: 100,
-        left: 20,
-        right: 20,
-        child: Visibility(
-          visible: _showWhiteBox,
-          child: Container(
-            height: 120,
-            width: MediaQuery.of(context).size.width,
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: _selectedFriendId != null
-                ? FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(_selectedFriendId)
-                        .get(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<DocumentSnapshot> snapshot) {
-                      if (snapshot.hasError) {
-                        return Text("Something went wrong");
-                      }
+                          builder: (context) => UserProfilePage()),
+                    );
+                  } else {
+                    isLoggedIn = true;
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => LoginSignupPage()));
+                    updateFriendLocations();
+                  }
+                },
+                child: const Icon(Icons.login),
+              ),
+            );
+          },
+        ),
+        Positioned(
+            top: 100,
+            left: 20,
+            right: 20,
+            child: Visibility(
+              visible: _showWhiteBox,
+              child: Container(
+                height: 120,
+                width: MediaQuery.of(context).size.width,
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: _selectedFriendId != null
+                    ? FutureBuilder<Map<String, dynamic>>(
+                        future: fetchUserDataAndAddress(_selectedFriendId!),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                          if (snapshot.hasError) {
+                            return Text("Something went wrong");
+                          }
 
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        Map<String, dynamic> data =
-                            snapshot.data!.data() as Map<String, dynamic>;
-                        return Column(
-                          children: [
-                            Container(
-                              child: Text('${data['email']}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.0,
-                                  )), // Bold and 18px font size
-                            ),
-                            SizedBox(height: 20.0),
-                            Expanded(
-                              child: FutureBuilder<String>(
-                                future: convertLatLngToAddress2(
-                                  LatLng(data['location'].latitude,
-                                      data['location'].longitude),
-                                  isCutoff: true,
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            Map<String, dynamic> data = snapshot.data!;
+                            return Column(
+                              children: [
+                                Container(
+                                  child: Text('${data['email']}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.0,
+                                      )), // Bold and 18px font size
                                 ),
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<String> snapshot) {
-                                  if (snapshot.hasError) {
-                                    return Text("Something went wrong");
-                                  }
-
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.done) {
-                                    return Text(snapshot.data!);
-                                  }
-                                  return SizedBox.shrink();
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                      return SizedBox.shrink();
-                    },
-                  )
-                : Container(),
+                                SizedBox(height: 20.0),
+                                Expanded(
+                                  child: Text(data['address']),
+                                ),
+                              ],
+                            );
+                          }
+                          return SizedBox.shrink();
+                        },
+                      )
+                    : Container(),
+              ),
+            )),
+        Positioned(
+          left: 10,
+          bottom: 40,
+          child: FloatingActionButton(
+            onPressed: () async {
+              Position position = await getCurrentLocation();
+              final GoogleMapController controller =
+                  await _mapsController.future;
+              final double currentZoomLevel = await controller.getZoomLevel();
+              controller.animateCamera(CameraUpdate.newCameraPosition(
+                CameraPosition(
+                  target: LatLng(position.latitude, position.longitude),
+                  zoom: currentZoomLevel,
+                ),
+              ));
+            },
+            child: const Icon(Icons.center_focus_strong),
           ),
         ),
-      ),
-      Positioned(
-        left: 10,
-        bottom: 40,
-        child: FloatingActionButton(
-          onPressed: () async {
-            Position position = await getCurrentLocation();
-            final GoogleMapController controller = await _mapsController.future;
-            final double currentZoomLevel = await controller.getZoomLevel();
-            controller.animateCamera(CameraUpdate.newCameraPosition(
-              CameraPosition(
-                target: LatLng(position.latitude, position.longitude),
-                zoom: currentZoomLevel,
-              ),
-            ));
-          },
-          child: const Icon(Icons.center_focus_strong),
-        ),
-      )
-    ]));
+      ]),
+    );
   }
-}
+} //
