@@ -44,6 +44,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   DraggableScrollableController _dragableController =
       DraggableScrollableController();
   double? bottomSheetTop;
+  String textFieldTopText = "Tìm kiếm";
+  String textFieldBottomText = "";
 
   //Animation
   late AnimationController _animationController;
@@ -178,8 +180,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   }
 
   //Search Field
-  late TextEditingController _searchFieldController;
-  late FocusNode _searchFieldFocusNode;
+  late TextEditingController _searchFieldControllerTop;
+  late TextEditingController _searchFieldControllerBottom;
+  late FocusNode _searchFieldFocusNodeTop;
+  late FocusNode _searchFieldFocusNodeBottom;
 
 /*
  * This region contains functions.
@@ -343,6 +347,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
       deleteEndLocationsFromMarkers();
     } else
       addEndLocationsToMarkers();
+    if (stateString == "Default") {
+      isShowPlaceHorizontalList = false;
+      polylines.clear();
+      travelMode = "DRIVE";
+      mapData.departureLocation = mapData.currentLocation;
+      mapData.departureLocationName = "Vị trí hiện tại";
+    }
 
     if (stateString == "Search Results") {
       isShowPlaceHorizontalList = true;
@@ -627,10 +638,23 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     //Todo remove after test waypoint
     //waypointsLatLgn = [];
     if (mapData.departureLocation != null &&
-        mapData.destinationLocationLatLgn != null)
+        mapData.destinationLocationLatLgn != null) {
+      setState(() {
+        myMarker.clear();
+        Marker marker = Marker(
+          markerId: MarkerId("0"),
+          icon: mainMarker,
+          position: mapData.destinationLocationLatLgn!,
+        );
+        myMarker.add(marker);
+      });
       calcRoute(
           from: mapData.departureLocation!,
           to: mapData.destinationLocationLatLgn!);
+      _searchFieldControllerTop.text = mapData.departureLocationName;
+      _searchFieldControllerBottom.text = mapData.destinationLocationPlaceName;
+
+    }
   }
 
   Future<void> calcRoute({required LatLng from, required LatLng to}) async {
@@ -782,8 +806,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   void initState() {
     super.initState();
 
-    _searchFieldController = TextEditingController();
-    _searchFieldFocusNode = FocusNode();
+    _searchFieldControllerBottom = TextEditingController();
+    _searchFieldControllerTop = TextEditingController();
+    _searchFieldFocusNodeTop = FocusNode();
+    _searchFieldFocusNodeBottom = FocusNode();
 
     getCurrentLocationLatLng().then((value) {
       mapData.changeCurrentLocation(value);
@@ -848,8 +874,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   @override
   void dispose() {
     _animationController.dispose();
-    _searchFieldController.dispose();
-    _searchFieldFocusNode.dispose();
+    _searchFieldControllerTop.dispose();
+    _searchFieldControllerBottom.dispose();
+    _searchFieldFocusNodeTop.dispose();
+    _searchFieldFocusNodeBottom.dispose();
     super.dispose();
   }
 
@@ -1149,11 +1177,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   prefixIcon: SvgPicture.asset(
                                       "assets/icons/search.svg"),
 
-                                  suffixIcon: _searchFieldFocusNode.hasFocus
+                                  suffixIcon: _searchFieldFocusNodeTop.hasFocus
                                       ? IconButton(
                                           icon: const Icon(Icons.clear),
                                           onPressed: () {
-                                            _searchFieldController.clear();
+                                            _searchFieldControllerTop.clear();
                                             setState(() {
                                               placeAutoList.clear();
                                               placeFound = true;
@@ -1165,13 +1193,29 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                           icon: SvgPicture.asset(
                                               "assets/icons/nearby_search.svg")), // End icon
                                 ),
-                                controller: _searchFieldController,
-                                focusNode: _searchFieldFocusNode,
+                                controller: _searchFieldControllerTop,
+                                focusNode: _searchFieldFocusNodeTop,
                                 onSubmitted: (text) {
-                                  searchPlaceAndUpdate(text);
-                                  _searchFieldFocusNode.unfocus();
+                                  if (state == stateMap["Route Planning"]!) {
+                                    changeState("Loading");
+                                    placeSearch(text).then((value) {
+                                      if (value != null) {
+                                        mapData.changeDepartureLocation(LatLng(
+                                            value[0].location.latitude,
+                                            value[0].location.longitude));
+                                        calcRouteFromDepToDes();
+                                        _searchFieldControllerTop.text =
+                                            value[0].displayName?.text ?? "";
+                                      }
+                                    });
+                                  } else
+                                    searchPlaceAndUpdate(text);
+                                  _searchFieldFocusNodeTop.unfocus();
                                 },
                                 onChanged: (text) {
+                                  if (state == stateMap["Route Planning"]!)
+                                    return;
+
                                   if (text.isEmpty) {
                                     placeFound = true;
                                     placeAutoList.clear();
@@ -1245,6 +1289,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                           ],
                                         ),
                                         child: TextField(
+                                          controller:
+                                              _searchFieldControllerBottom,
                                           decoration: InputDecoration(
                                             border: InputBorder.none,
                                             prefixIcon: SizedBox(
@@ -1254,6 +1300,30 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                   "assets/icons/verified_destination.svg"),
                                             ),
                                           ),
+                                          onSubmitted: (text) {
+                                            changeState("Loading");
+                                            placeSearch(text).then((value) {
+                                              if (value != null) {
+                                                mapData
+                                                    .changeDestinationLocationLatLgn(
+                                                        LatLng(
+                                                            value[0]
+                                                                .location
+                                                                .latitude,
+                                                            value[0]
+                                                                .location
+                                                                .longitude));
+                                                calcRouteFromDepToDes();
+                                                _searchFieldControllerBottom
+                                                    .text = value[0]
+                                                        .displayName
+                                                        ?.text ??
+                                                    "";
+                                              }
+                                            });
+                                            _searchFieldFocusNodeBottom
+                                                .unfocus();
+                                          },
                                         ),
                                       ),
                                       SizedBox(
@@ -1314,7 +1384,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
                         child: (placeAutoList.isNotEmpty &&
-                                _searchFieldFocusNode.hasFocus)
+                                _searchFieldFocusNodeTop.hasFocus)
                             ? Container(
                                 //Autocomplete list
                                 margin: const EdgeInsets.only(top: 30.0),
@@ -1330,7 +1400,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                   itemBuilder: (context, index) {
                                     return LocationListTile_(
                                       press: () async {
-                                        _searchFieldFocusNode.unfocus();
+                                        _searchFieldFocusNodeTop.unfocus();
                                         logWithTag(
                                             "Location clicked: ${placeAutoList[index].toString()}",
                                             tag: "SearchLocationScreen");
@@ -1880,12 +1950,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                   child:
                                                       Column(children: <Widget>[
                                                     const Pill(),
-                                                        EndLocationList(
-                                                          onLongPress: (LatLng latlng) {
-                                                            animateToPosition(latlng, zoom: 17);
-                                                          },
-                                                          legs: routes[0].legs,
-                                                          controller:
+                                                    EndLocationList(
+                                                      onLongPress:
+                                                          (LatLng latlng) {
+                                                        animateToPosition(
+                                                            latlng,
+                                                            zoom: 17);
+                                                      },
+                                                      legs: routes[0].legs,
+                                                      controller:
                                                           _listviewScrollController,
                                                     )
                                                   ]))));
@@ -1930,7 +2003,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                         onPressed: () {
                                                           calcRoute(
                                                               from: mapData
-                                                                  .departureLocation?? mapData.currentLocation!,
+                                                                      .departureLocation ??
+                                                                  mapData
+                                                                      .currentLocation!,
                                                               to: mapData
                                                                   .destinationLocationLatLgn!);
                                                         },
@@ -2130,7 +2205,7 @@ class MapData {
     this.currentLocation,
     this.departureLocation,
     this.destinationLocationLatLgn,
-    this.departureLocationName = "Vị trí của bạn",
+    this.departureLocationName = "Vị trí hiện tại",
     this.destinationLocationAddress = "",
     this.destinationLocationPlaceName = "",
     this.destinationLocationPhotoUrl = "",
