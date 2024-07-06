@@ -116,6 +116,7 @@ flutter:
     - assets/icons/default_friends_marker.svg
     - assets/location_sharing.png
     - assets/setting.jpg
+    - assets/icons/end_location.svg
   
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

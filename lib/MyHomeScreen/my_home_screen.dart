@@ -81,7 +81,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   late PlaceSearch_ markedPlace;
   bool placeFound = true;
   List<Marker> myMarker = [];
-  List<Marker> endLocationMarkers = [];
   BitmapDescriptor defaultMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   BitmapDescriptor mainMarker =
@@ -146,7 +145,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   bool isAvoidTolls = false;
   bool isAvoidHighways = false;
   bool isAvoidFerries = false;
-  List<bool> isChange = [false, false, false, false, false];
+  bool isFullScreen = false;
+  List<bool> isChange = [false, false, false, false, false, false];
   bool isCalcRouteFromCurrentLocation = true;
   List<LatLng> waypointsLatLgn = [];
   List<String> waypointNames = [];
@@ -209,6 +209,9 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             break;
           case 4:
             isAvoidFerries = !isAvoidFerries;
+            break;
+          case 5:
+            isFullScreen = !isFullScreen;
             break;
         }
         // Reset the change flag for this option
@@ -278,6 +281,16 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                         });
                       },
                     ),
+                    CheckboxListTile(
+                      title: const Text('Toàn màn hình'),
+                      value: isFullScreen,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isFullScreen = value!;
+                          isChange[5] = true;
+                        });
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -297,6 +310,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 TextButton(
                   child: const Text('Áp dụng'),
                   onPressed: () {
+                    if (isFullScreen) {
+                      Navigator.of(context).pop();
+                      changeState("Navigation");
+                      return;
+                    }
+
                     logWithTag(
                         "Options: $isTrafficAware, $isComputeAlternativeRoutes, $isAvoidTolls, $isAvoidHighways, $isAvoidFerries",
                         tag: "SearchLocationScreen");
@@ -318,6 +337,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     if (!stateMap.containsKey(stateString)) {
       throw Exception('Invalid state: $stateString');
     }
+
+    if (stateString != "Navigation") {
+      isFullScreen = false;
+      deleteEndLocationsFromMarkers();
+    } else
+      addEndLocationsToMarkers();
 
     if (stateString == "Search Results") {
       isShowPlaceHorizontalList = true;
@@ -623,7 +648,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         waypoints: waypointsLatLgn,
         steps: steps
     ))!;
-
+    updateEndLocationAddress();
     drawRoute();
     changeState("Route Planning");
     mapData.changeDepartureLocation(from);
@@ -644,22 +669,30 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   void addEndLocationsToMarkers() {
     logWithTag("addEndLocationsToMarkers", tag: "MyHomeScreen");
   setState(() {
-    endLocationMarkers.clear();
     if (routes.isEmpty) return;
     for (Step_ step in routes[0].legs[0].steps!) {
       logWithTag("End location: ${step.endLocation.latLng}", tag: "End location");
-      final markerId = MarkerId(step.endLocation.latLng.toString());
+      final markerId = MarkerId("End: ${step.endLocation.latLng}");
       Marker marker = Marker(
         markerId: markerId,
-        icon: defaultMarker,
+        icon: endLocationMarker,
         position: step.endLocation.latLng,
         infoWindow: InfoWindow(
           title: step.endLocationAddress,
         ),
       );
-      endLocationMarkers.add(marker);
+      myMarker.add(marker);
     }
   });
+}
+
+void deleteEndLocationsFromMarkers() {
+    for (int i = 0; i < myMarker.length; i++) {
+      Marker marker = myMarker[i];
+      if (marker.icon == endLocationMarker) {
+        myMarker.removeAt(i);
+      }
+    }
 }
 
   Future<void> placeMarkAndRoute(
@@ -789,7 +822,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     });
 
     BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
-            "assets/icons/marker_blue.svg", const Size(50, 50))
+            "assets/icons/end_location.svg", const Size(40, 40))
         .then((bitmapDescriptor) {
       setState(() {
         endLocationMarker = bitmapDescriptor;
@@ -863,6 +896,10 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             myLocationButtonEnabled: false,
             markers: myMarker.toSet(),
             onTap: (LatLng position) {
+              if (state != stateMap["Route Planning"])
+                placeClickLatLngFromMap(position);
+            },
+            onLongPress: (LatLng position) {
               placeClickLatLngFromMap(position);
             },
             onMapCreated: (GoogleMapController controller) {
@@ -901,7 +938,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                     elevation: 5,
                     onPressed: () {
                       //setState(() {});
-                      addEndLocationsToMarkers();
+                      //addEndLocationsToMarkers();
                       locationButtonOnclick();
                     },
                     //Map from state to statemap
