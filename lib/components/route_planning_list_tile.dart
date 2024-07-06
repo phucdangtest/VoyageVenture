@@ -182,10 +182,19 @@ class _RoutePlanningListTileState extends State<RoutePlanningListTile> {
     for (int i = 0; i < stepList!.length; i++) {
       if (stepList[i].distanceMeters > longestDistance) {
         String instruction = stepList[i].navigationInstruction.instructions;
-        if (instruction.contains("Đ."))
-          longestRoute = instruction.substring(instruction.indexOf("Đ."));
-        else if (instruction.contains("Đường"))
-          longestRoute = instruction.substring(instruction.indexOf("Đường"));
+        if (instruction.contains("Đ.")) {
+          String s = instruction.substring(instruction.indexOf("Đ."));
+          if (s.contains("Đi qua"))
+            longestRoute = s.substring(0, s.indexOf("Đi qua") - 1);
+          else
+            longestRoute = instruction.substring(instruction.indexOf("Đ."));
+        } else if (instruction.contains("Đường") && !instruction.contains("Đường bị giới hạn")) {
+          String s = instruction.substring(instruction.indexOf("Đường"));
+          if (s.contains("Đi qua"))
+            longestRoute = s.substring(0, s.indexOf("Đi qua") - 1);
+          else
+            longestRoute = instruction.substring(instruction.indexOf("Đường"));
+        }
         longestDistance = stepList[i].distanceMeters;
         longestIndex = i;
       }
@@ -203,59 +212,60 @@ class _RoutePlanningListTileState extends State<RoutePlanningListTile> {
         ),
         child: Row(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.route.getCombinedStaticDurationFormat(),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(width: 5),
-                widget.route.getCombinedDifferenceDuration().startsWith("0")
-                    ? Text(
-                        "Giao thông thưa thớt ",
-                        style: TextStyle(fontSize: 12, color: Colors.green),
-                      )
-                    : Text(
-                        "Chậm hơn ${widget.route.getCombinedDifferenceDuration()} so với bình thường",
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.route.getCombinedStaticDurationFormat(),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(width: 5),
+                  widget.route.getCombinedDifferenceDuration().startsWith("0")
+                      ? Text(
+                          "Giao thông thưa thớt ",
+                          style: TextStyle(fontSize: 12, color: Colors.green),
+                        )
+                      : Text(
+                          "Chậm hơn ${widget.route.getCombinedDifferenceDuration()} so với bình thường",
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold),
+                        ),
+                  Text("Đi qua ${longestRoute}",
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: Colors.black)),
+                  Row(
+                    children: [
+                      widget.travelMode == "DRIVE"
+                          ? SvgPicture.asset(
+                              "assets/icons/car.svg",
+                            )
+                          : widget.travelMode == "WALK"
+                              ? SvgPicture.asset(
+                                  "assets/icons/walk.svg",
+                                )
+                              : widget.travelMode == "TWO_WHEELER"
+                                  ? SvgPicture.asset(
+                                      "assets/icons/motor.svg",
+                                    )
+                                  : SvgPicture.asset(
+                                      "assets/icons/public_transport.svg",
+                                    ),
+                      SizedBox(width: 5),
+                      Text(
+                        widget.route.getCombinedDistanceMetersInKm(),
                         style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.red,
+                            fontSize: 14,
+                            color: Colors.grey,
                             fontWeight: FontWeight.bold),
                       ),
-                Text("Đi qua ${longestRoute}",
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: Colors.black)),
-                Row(
-                  children: [
-                    widget.travelMode == "DRIVE"
-                        ? SvgPicture.asset(
-                            "assets/icons/car.svg",
-                          )
-                        : widget.travelMode == "WALK"
-                            ? SvgPicture.asset(
-                                "assets/icons/walk.svg",
-                              )
-                            : widget.travelMode == "TWO_WHEELER"
-                                ? SvgPicture.asset(
-                                    "assets/icons/motor.svg",
-                                  )
-                                : SvgPicture.asset(
-                                    "assets/icons/public_transport.svg",
-                                  ),
-                    SizedBox(width: 5),
-                    Text(
-                      widget.route.getCombinedDistanceMetersInKm(),
-                      style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-            Spacer(),
             IconButton(
                 onPressed: () async {
                   String travelModeParameter = '';
