@@ -11,8 +11,13 @@ class RouteResponse_ {
   RouteResponse_({required this.routes});
 
   factory RouteResponse_.fromJson(Map<String, dynamic> json){
+    var routesJson = json['routes'];
+    if (routesJson == null) {
+      throw ArgumentError('json["routes"] cannot be null');
+    }
+
     return RouteResponse_(
-      routes: (json['routes'] as List)
+      routes: (routesJson as List)
           .map((item) => Route_.fromJson(item))
           .toList(),
     );
@@ -119,10 +124,10 @@ class Leg_ {
       polyline: Polyline_.fromJson(json['polyline']),
       startLocation: Location_.fromJson(json['startLocation']),
       endLocation: Location_.fromJson(json['endLocation']),
-      steps: null,
-      // steps: (json['steps'] as List)
-      //     .map((item) => Step_.fromJson(item))
-      //     .toList(),
+     // steps: null,
+      steps: (json['steps'] as List)
+          .map((item) => Step_.fromJson(item))
+          .toList(),
     );
   }
 
@@ -255,17 +260,19 @@ class Step_ {
   Step_(
       {required this.distanceMeters, required this.staticDuration, required this.polyline, required this.startLocation, required this.endLocation, required this.navigationInstruction, required this.localizedValues, required this.travelMode});
   factory Step_.fromJson(Map<String, dynamic> json) {
-    return Step_(
-      distanceMeters: json['distanceMeters'],
-      staticDuration: json['staticDuration'],
-      polyline: Polyline_.fromJson(json['polyline']),
-      startLocation: Location_.fromJson(json['startLocation']),
-      endLocation: Location_.fromJson(json['endLocation']),
-      navigationInstruction: NavigationInstruction_.fromJson(json['navigationInstruction']),
-      localizedValues: LocalizedValues_.fromJson(json['localizedValues']),
-      travelMode: json['travelMode'],
-    );
-  }
+  return Step_(
+    distanceMeters: json['distanceMeters'],
+    staticDuration: json['staticDuration'],
+    polyline: Polyline_.fromJson(json['polyline']),
+    startLocation: Location_.fromJson(json['startLocation']),
+    endLocation: Location_.fromJson(json['endLocation']),
+    navigationInstruction: json['navigationInstruction'] != null
+        ? NavigationInstruction_.fromJson(json['navigationInstruction'])
+        : NavigationInstruction_(maneuver: '', instructions: ''),
+    localizedValues: LocalizedValues_.fromJson(json['localizedValues']),
+    travelMode: json['travelMode'],
+  );
+}
 
   @override
   String toString() {

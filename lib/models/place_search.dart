@@ -23,8 +23,7 @@ class PlaceSearch_ {
 
 static Future<String> getPhotoUrls(String id, int width, int height) async {
   var value = await fetchPhotoUrls(id);
-  if (value.first == "")
-  {
+  if (value.isEmpty) {
     return "";
   }
   String photoID = value.first;

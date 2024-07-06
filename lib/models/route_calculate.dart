@@ -91,7 +91,9 @@ Future<List<Route_>?> computeRoutesReturnRoute_({
   String travelMode = "DRIVE",
   String routingPreference = "TRAFFIC_AWARE",
   String languageCode = "VI",
-  String units = "Metric", required List<LatLng> waypoints,
+  String units = "Metric",
+  required List<LatLng> waypoints,
+  required List<Step_>? steps,
 }) async {
   logWithTag('computeRoutes', tag: 'computeRoutes');
 
@@ -159,6 +161,8 @@ final response = await http.post(
     //String encodedPolyline = values['routes'][0]['polyline']['encodedPolyline'];
     final parsed = json.decode(response.body).cast<String, dynamic>();
     RouteResponse_ routeResponse = RouteResponse_.fromJson(parsed);
+
+    decodeSteps(response.body, steps);
     logWithTag(routeResponse.toString(), tag: 'computeRoutesToRoute_');
     return routeResponse.routes;
   }
@@ -166,6 +170,11 @@ final response = await http.post(
   return null;
 }
 
+Future<void> decodeSteps(String responseBody, List<Step_>? steps) async {
+  logWithTag("decodeSteps", tag: 'decodeSteps');
+  steps = json.decode(responseBody)['routes'][0]['legs'][0]['steps'].map<Step_>((step) => Step_.fromJson(step)).toList();
+  logWithTag(steps.toString(), tag: 'decodeSteps');
+}
 
 // Future<RouteResponse_?> computeRoutesReturnRouteResponse_({
 //   required LatLng from,

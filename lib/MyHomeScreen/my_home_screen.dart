@@ -119,6 +119,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   //Route
   List<Route_> routes = [];
+  List<Step_> steps = [];
 
   // Future<List<LatLng>?> polylinePoints = Future.value(null);
   List<Polyline> polylines = [];
@@ -616,13 +617,32 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         avoidTolls: isAvoidTolls,
         avoidHighways: isAvoidHighways,
         avoidFerries: isAvoidFerries,
-        waypoints: waypointsLatLgn))!;
+        waypoints: waypointsLatLgn,
+        steps: steps
+    ))!;
+
     drawRoute();
     changeState("Route Planning");
     mapData.changeDepartureLocation(from);
     mapData.changeDestinationLocationLatLgn(to);
     // Todo: mapdata
   }
+
+  void addEndLocationsToMarkers() {
+    logWithTag("addEndLocationsToMarkers", tag: "MyHomeScreen");
+  setState(() {
+    for (Step_ step in steps) {
+      logWithTag("End location: ${step.endLocation.latLng}", tag: "End location");
+      final markerId = MarkerId(step.endLocation.latLng.toString());
+      Marker marker = Marker(
+        markerId: markerId,
+        icon: defaultMarker,
+        position: step.endLocation.latLng,
+      );
+      myMarker.add(marker);
+    }
+  });
+}
 
   Future<void> placeMarkAndRoute(
       {required bool isShowPlaceHorizontalListFromSearch,
@@ -855,6 +875,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                     elevation: 5,
                     onPressed: () {
                       //setState(() {});
+                      addEndLocationsToMarkers();
                       locationButtonOnclick();
                     },
                     //Map from state to statemap
@@ -1551,7 +1572,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                               BorderRadius.circular(5.0),
                                           child: (mapData
                                                       .destinationLocationPhotoUrl !=
-                                                  null)
+                                                  "")
                                               ? Image.network(
                                                   mapData
                                                       .destinationLocationPhotoUrl!,
@@ -2052,7 +2073,7 @@ class MapData {
   LatLng? destinationLocationLatLgn;
   String destinationLocationAddress;
   String destinationLocationPlaceName;
-  String? destinationLocationPhotoUrl;
+  String destinationLocationPhotoUrl;
 
   MapData({
     this.currentLocation,
@@ -2061,7 +2082,7 @@ class MapData {
     this.departureLocationName = "Vị trí của bạn",
     this.destinationLocationAddress = "",
     this.destinationLocationPlaceName = "",
-    this.destinationLocationPhotoUrl,
+    this.destinationLocationPhotoUrl = "",
   });
 
 
@@ -2116,7 +2137,8 @@ class MapData {
   void changeDestinationAddressAndPlaceNameAndImage(PlaceSearch_ place) {
     destinationLocationAddress = place.formattedAddress!;
     destinationLocationPlaceName = place.displayName?.text ?? "";
-    destinationLocationPhotoUrl = place.photoUrls;
+    if (place.photoUrls != null)
+    destinationLocationPhotoUrl = place.photoUrls!;
     logWithTag(place.toString(), tag: "MapData info");
     logWithTag(
         "Destination location name changed to: $destinationLocationPlaceName",
