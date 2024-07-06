@@ -123,77 +123,75 @@ class _LocationSharingState extends State<LocationSharing> {
   }
 
   void addFriendMarkers() {
-    myMarker.clear();
-    for (final location in friendLocations) {
-      Marker marker;
-      if (isFetchImage)
-        marker = Marker(
-          markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-          icon: BitmapDescriptor.fromBytes(
-              friendImageBytes[friendLocations.indexOf(location)]),
-          position: location,
-        );
-      else
-        marker = Marker(
-          markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-          icon: defaultMarker,
-          position: location,
-        );
-      setState(() {
-        myMarker.add(marker);
-      });
-    }
+  myMarker.clear();
+  for (final location in friendLocations) {
+    Marker marker;
+    int index = friendLocations.indexOf(location);
+    if (isFetchImage && index < friendImageBytes.length)
+      marker = Marker(
+        markerId: MarkerId('friend_$index'),
+        icon: BitmapDescriptor.fromBytes(friendImageBytes[index]),
+        position: location,
+      );
+    else
+      marker = Marker(
+        markerId: MarkerId('friend_$index'),
+        icon: defaultMarker,
+        position: location,
+      );
+    setState(() {
+      myMarker.add(marker);
+    });
   }
+}
 
-  Future<void> updateFriendLocations() async {
-    if (FirebaseAuth.instance.currentUser != null) {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-      final userRef = firestore.collection('users').doc(userId);
-      final userDoc = await userRef.get();
-      final friends = (userDoc.get('friends') as List<dynamic>)
-          .map((item) => item.toString())
-          .toList();
+Future<void> updateFriendLocations() async {
+  if (FirebaseAuth.instance.currentUser != null) {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final userRef = firestore.collection('users').doc(userId);
+    final userDoc = await userRef.get();
+    final friends = (userDoc.get('friends') as List<dynamic>)
+        .map((item) => item.toString())
+        .toList();
 
-      List<LatLng> newFriendLocations = [];
-      List<String> newFriendID = [];
-      List<String> newFriendImage = [];
+    List<LatLng> newFriendLocations = [];
+    List<String> newFriendID = [];
+    List<String> newFriendImage = [];
 
-      for (final friendId in friends) {
-        final friendRef = firestore.collection('users').doc(friendId);
-        final friendDoc = await friendRef.get();
-        final friendLocation = friendDoc.get('location') as GeoPoint;
-        String friendImage = friendDoc.get('ImageUrl').toString();
-        newFriendID.add(friendId);
+    for (final friendId in friends) {
+      final friendRef = firestore.collection('users').doc(friendId);
+      final friendDoc = await friendRef.get();
+      final friendLocation = friendDoc.get('location') as GeoPoint;
+      String friendImage = friendDoc.get('ImageUrl').toString();
+      newFriendID.add(friendId);
 
-        newFriendLocations
-            .add(LatLng(friendLocation.latitude, friendLocation.longitude));
-        newFriendImage.add(friendImage);
-      }
+      newFriendLocations
+          .add(LatLng(friendLocation.latitude, friendLocation.longitude));
+      newFriendImage.add(friendImage);
+    }
 
-      // Compare new list with current list
+    // Compare new list with current list
 
-      friendLocations.clear();
-      setState(() {
-        friendLocations = newFriendLocations;
-        friendID = newFriendID;
-        if (!isFetchImage) {
-          friendImage = newFriendImage;
-          for (int i = 0; i < friendLocations.length; i++) {
-            fetchImageBytes(friendImage[i]).then((imageBytes) {
-              friendImageBytes.add(imageBytes);
-              if (friendImageBytes.length == friendLocations.length) {
-                isFetchImage = true;
-                addFriendMarkers();
-                // Update image after fetch all image
-              }
-            });
+    friendLocations.clear();
+    friendImageBytes.clear();
+    setState(() {
+      friendLocations = newFriendLocations;
+      friendID = newFriendID;
+      if (!isFetchImage) {
+        friendImage = newFriendImage;
+        Future.wait(friendImage.map((image) => fetchImageBytes(image))).then((imageBytesList) {
+          friendImageBytes.addAll(imageBytesList);
+          if (friendImageBytes.length == friendLocations.length) {
+            isFetchImage = true;
+            addFriendMarkers();
+            // Update image after fetch all image
           }
-        }
-        addFriendMarkers();
-      });
-    }
+        });
+      }
+      addFriendMarkers();
+    });
   }
-
+}
   void trackLocation() {
     if (FirebaseAuth.instance.currentUser != null) {
       final geolocator = GeolocatorPlatform.instance;
