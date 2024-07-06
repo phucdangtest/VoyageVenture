@@ -254,6 +254,7 @@ class _LocationSharingState extends State<LocationSharing> {
 
   bool isLoggedIn = false;
   String? _selectedFriendId;
+  Map<String, dynamic>? userData;
 
   @override
   Widget build(BuildContext context) {
@@ -277,6 +278,11 @@ class _LocationSharingState extends State<LocationSharing> {
                     _selectedLocation = position;
                     _selectedFriendId =
                         friendID[friendLocations.indexOf(friendLocation)];
+                    fetchUserDataAndAddress(_selectedFriendId!).then((data) {
+                      setState(() {
+                        userData = data;
+                      });
+                    });
                   } else {
                     _selectedFriendId = null;
                   }
@@ -350,36 +356,21 @@ class _LocationSharingState extends State<LocationSharing> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                child: _selectedFriendId != null
-                    ? FutureBuilder<Map<String, dynamic>>(
-                        future: fetchUserDataAndAddress(_selectedFriendId!),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<Map<String, dynamic>> snapshot) {
-                          if (snapshot.hasError) {
-                            return Text("Something went wrong");
-                          }
-
-                          if (snapshot.connectionState ==
-                              ConnectionState.done) {
-                            Map<String, dynamic> data = snapshot.data!;
-                            return Column(
-                              children: [
-                                Container(
-                                  child: Text('${data['email']}',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18.0,
-                                      )), // Bold and 18px font size
-                                ),
-                                SizedBox(height: 20.0),
-                                Expanded(
-                                  child: Text(data['address']),
-                                ),
-                              ],
-                            );
-                          }
-                          return SizedBox.shrink();
-                        },
+                child: _showWhiteBox && userData != null
+                    ? Column(
+                        children: [
+                          Container(
+                            child: Text('${userData!['email']}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18.0,
+                                )), // Bold and 18px font size
+                          ),
+                          SizedBox(height: 20.0),
+                          Expanded(
+                            child: Text(userData!['address']),
+                          ),
+                        ],
                       )
                     : Container(),
               ),
