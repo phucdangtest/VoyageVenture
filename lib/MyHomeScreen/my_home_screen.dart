@@ -287,7 +287,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                       },
                     ),
                     CheckboxListTile(
-                      title: const Text('Toàn màn hình'),
+                      title: const Text('Hiện các điểm rẽ'),
                       value: isFullScreen,
                       onChanged: (bool? value) {
                         setState(() {
@@ -640,10 +640,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     //waypointsLatLgn = [];
     if (mapData.departureLocation != null &&
         mapData.destinationLocationLatLgn != null) {
+      List<Marker> tempList = List<Marker>.from(myMarker);
+
       setState(() {
-        for(Marker marker in myMarker){
+        for(Marker marker in tempList){
           if(marker.icon == mainMarker){
-            myMarker.remove(marker);
+            myMarker.removeAt(tempList.indexOf(marker));
           }
         }
 
