@@ -21,6 +21,7 @@ import 'package:voyageventure/features/current_location.dart';
 import '../MyLocationSearch/my_location_search.dart';
 import '../components/bottom_sheet_component.dart';
 import '../components/custom_search_delegate.dart';
+import '../components/end_location_list.dart';
 import '../components/fonts.dart';
 import '../components/loading_indicator.dart';
 import '../components/location_list_tile.dart';
@@ -121,7 +122,6 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   //Route
   List<Route_> routes = [];
-  List<Step_> steps = [];
 
   // Future<List<LatLng>?> polylinePoints = Future.value(null);
   List<Polyline> polylines = [];
@@ -645,9 +645,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         avoidTolls: isAvoidTolls,
         avoidHighways: isAvoidHighways,
         avoidFerries: isAvoidFerries,
-        waypoints: waypointsLatLgn,
-        steps: steps
-    ))!;
+        waypoints: waypointsLatLgn))!;
     updateEndLocationAddress();
     drawRoute();
     changeState("Route Planning");
@@ -660,7 +658,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     if (routes.isEmpty) return;
     for (Step_ step in routes[0].legs[0].steps!) {
       if (step.endLocationAddress == null) {
-        String placeString = await convertLatLngToAddress(step.endLocation.latLng);
+        String placeString =
+            await convertLatLngToAddress(step.endLocation.latLng);
         step.endLocationAddress = placeString;
       }
     }
@@ -668,32 +667,31 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   void addEndLocationsToMarkers() {
     logWithTag("addEndLocationsToMarkers", tag: "MyHomeScreen");
-  setState(() {
-    if (routes.isEmpty) return;
-    for (Step_ step in routes[0].legs[0].steps!) {
-      logWithTag("End location: ${step.endLocation.latLng}", tag: "End location");
-      final markerId = MarkerId("End: ${step.endLocation.latLng}");
-      Marker marker = Marker(
-        markerId: markerId,
-        icon: endLocationMarker,
-        position: step.endLocation.latLng,
-        infoWindow: InfoWindow(
-          title: step.endLocationAddress,
-        ),
-      );
-      myMarker.add(marker);
-    }
-  });
-}
+    setState(() {
+      if (routes.isEmpty) return;
+      for (Step_ step in routes[0].legs[0].steps!) {
+        final markerId = MarkerId("End: ${step.endLocation.latLng}");
+        Marker marker = Marker(
+          markerId: markerId,
+          icon: endLocationMarker,
+          position: step.endLocation.latLng,
+          infoWindow: InfoWindow(
+            title: step.endLocationAddress,
+          ),
+        );
+        myMarker.add(marker);
+      }
+    });
+  }
 
-void deleteEndLocationsFromMarkers() {
+  void deleteEndLocationsFromMarkers() {
     for (int i = 0; i < myMarker.length; i++) {
       Marker marker = myMarker[i];
       if (marker.icon == endLocationMarker) {
         myMarker.removeAt(i);
       }
     }
-}
+  }
 
   Future<void> placeMarkAndRoute(
       {required bool isShowPlaceHorizontalListFromSearch,
@@ -1017,8 +1015,8 @@ void deleteEndLocationsFromMarkers() {
                                                       "assets/icons/marker_big.svg",
                                                       width: 60,
                                                       height: 80,
-                                                  fit: BoxFit.scaleDown,
-                                              ),
+                                                      fit: BoxFit.scaleDown,
+                                                    ),
                                             ),
                                           const SizedBox(width: 10.0),
                                           SizedBox(
@@ -1633,23 +1631,22 @@ void deleteEndLocationsFromMarkers() {
                                         ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(5.0),
-                                          child: (mapData
-                                                      .destinationLocationPhotoUrl !=
-                                                  "")
-                                              ? Image.network(
-                                                  mapData
-                                                      .destinationLocationPhotoUrl!,
-                                                  width: 80,
-                                                  height: 100,
-                                                  fit: BoxFit.cover,
-                                                )
-                                              : SvgPicture.asset(
-                                                  "assets/icons/marker_big.svg",
-                                                  width: 80,
-                                                  height: 100,
-                                            fit: BoxFit.scaleDown,
-
-                                          ),
+                                          child:
+                                              (mapData.destinationLocationPhotoUrl !=
+                                                      "")
+                                                  ? Image.network(
+                                                      mapData
+                                                          .destinationLocationPhotoUrl!,
+                                                      width: 80,
+                                                      height: 100,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : SvgPicture.asset(
+                                                      "assets/icons/marker_big.svg",
+                                                      width: 80,
+                                                      height: 100,
+                                                      fit: BoxFit.scaleDown,
+                                                    ),
                                         ),
                                         SizedBox(width: 20),
                                         Expanded(
@@ -1670,7 +1667,8 @@ void deleteEndLocationsFromMarkers() {
                                                 overflow: TextOverflow.visible,
                                               ),
                                               Text(
-                                                mapData.destinationLocationAddress
+                                                mapData
+                                                    .destinationLocationAddress
                                                     .toString(),
                                                 style: const TextStyle(
                                                   fontFamily: "SF Pro Display",
@@ -1728,9 +1726,9 @@ void deleteEndLocationsFromMarkers() {
                                                 borderRadius:
                                                     BorderRadius.circular(5.0),
                                                 child: SvgPicture.asset(
-                                                    "assets/icons/marker_big.svg",
-                                                    width: 80,
-                                                    height: 100,
+                                                  "assets/icons/marker_big.svg",
+                                                  width: 80,
+                                                  height: 100,
                                                   fit: BoxFit.scaleDown,
                                                 ),
                                               ),
@@ -1870,39 +1868,28 @@ void deleteEndLocationsFromMarkers() {
                                     builder: (BuildContext context,
                                         ScrollController scrollController) {
                                       return ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(24.0),
-                                          topRight: Radius.circular(24.0),
-                                        ),
-                                        child: Container(
-                                          color: Colors.white,
-                                          child: SingleChildScrollView(
-                                            primary: false,
-                                            controller: scrollController,
-                                            child: Column(children: <Widget>[
-                                              const Pill(),
-                                              // FilledButton(
-                                              //   onPressed: () {
-                                              //     changeState("Default");
-                                              //   },
-                                              //   child: const Text("Kết thúc"),
-                                              // )
-                                              Container(
-                                                  child: ListView.builder(
-                                                controller:
-                                                    _listviewScrollController,
-                                                shrinkWrap: true,
-                                                itemCount: 2,
-                                                itemBuilder: (context, index) {
-                                                  return NavigationListTile();
-                                                },
-                                              ))
-                                            ]),
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(24.0),
+                                            topRight: Radius.circular(24.0),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                  )
+                                          child: Container(
+                                              color: Colors.white,
+                                              child: SingleChildScrollView(
+                                                  primary: false,
+                                                  controller: scrollController,
+                                                  child:
+                                                      Column(children: <Widget>[
+                                                    const Pill(),
+                                                        EndLocationList(
+                                                          onLongPress: (LatLng latlng) {
+                                                            animateToPosition(latlng, zoom: 17);
+                                                          },
+                                                          legs: routes[0].legs,
+                                                          controller:
+                                                          _listviewScrollController,
+                                                    )
+                                                  ]))));
+                                    })
                                 : (state == stateMap["Loading Can Route"]!)
                                     ?
                                     // Bottom sheet loading can route
@@ -1943,7 +1930,7 @@ void deleteEndLocationsFromMarkers() {
                                                         onPressed: () {
                                                           calcRoute(
                                                               from: mapData
-                                                                  .departureLocation!,
+                                                                  .departureLocation?? mapData.currentLocation!,
                                                               to: mapData
                                                                   .destinationLocationLatLgn!);
                                                         },
@@ -2027,6 +2014,7 @@ void deleteEndLocationsFromMarkers() {
                                                                                 convertLatLngToAddress(centerLocation, isCutoff: true).then((value) {
                                                                                   setState(() {
                                                                                     waypointNames.add(value);
+                                                                                    logWithTag("Waypoint Name: $value", tag: "Add Waypoint");
                                                                                   });
                                                                                 });
                                                                                 myMarker.add(Marker(
@@ -2148,8 +2136,6 @@ class MapData {
     this.destinationLocationPhotoUrl = "",
   });
 
-
-
   void changeDestinationLocationLatLgn(LatLng latLng) {
     destinationLocationLatLgn = latLng;
     logWithTag("Destination location changed to: $latLng", tag: "MapData");
@@ -2200,8 +2186,7 @@ class MapData {
   void changeDestinationAddressAndPlaceNameAndImage(PlaceSearch_ place) {
     destinationLocationAddress = place.formattedAddress!;
     destinationLocationPlaceName = place.displayName?.text ?? "";
-    if (place.photoUrls != null)
-    destinationLocationPhotoUrl = place.photoUrls!;
+    if (place.photoUrls != null) destinationLocationPhotoUrl = place.photoUrls!;
     logWithTag(place.toString(), tag: "MapData info");
     logWithTag(
         "Destination location name changed to: $destinationLocationPlaceName",

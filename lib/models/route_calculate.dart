@@ -93,7 +93,6 @@ Future<List<Route_>?> computeRoutesReturnRoute_({
   String languageCode = "VI",
   String units = "Metric",
   required List<LatLng> waypoints,
-  required List<Step_>? steps,
 }) async {
   logWithTag('computeRoutes', tag: 'computeRoutes');
 
@@ -162,7 +161,6 @@ final response = await http.post(
     final parsed = json.decode(response.body).cast<String, dynamic>();
     RouteResponse_ routeResponse = RouteResponse_.fromJson(parsed);
 
-    decodeSteps(response.body, steps);
     logWithTag(routeResponse.toString(), tag: 'computeRoutesToRoute_');
     return routeResponse.routes;
   }

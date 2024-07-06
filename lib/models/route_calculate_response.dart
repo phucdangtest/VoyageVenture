@@ -143,6 +143,9 @@ class Leg_ {
     return duration;
   }
 
+  List<Step_> getSteps() {
+    return steps!;
+  }
   String getDurationFormat() {
     return convertDurationToMinutesOrHoursAndMinutes(duration);
   }
@@ -180,9 +183,6 @@ class Leg_ {
   }
   Location_ getEndLocation() {
     return endLocation;
-  }
-  List<Step_>? getSteps() {
-    return steps;
   }
 
   @override
@@ -275,6 +275,17 @@ class Step_ {
   );
 }
 
+  int GetRoundedDistanceMeters() {
+    if (distanceMeters % 10 < 5) {
+      return distanceMeters - distanceMeters % 10;
+    }
+    else if (distanceMeters % 10 > 5) {
+      return distanceMeters + (10 - distanceMeters % 10);
+    }
+
+    return distanceMeters;
+  }
+
   @override
   String toString() {
     return 'Step_ { distanceMeters: $distanceMeters, staticDuration: $staticDuration, polyline: ${polyline.encodedPolyline}, startLocation: ${startLocation.latLng}, endLocation: ${endLocation.latLng}, navigationInstruction: ${navigationInstruction.instructions}, ${navigationInstruction.maneuver}, localizedValues: ${localizedValues.distance}, ${localizedValues.staticDuration}, travelMode: $travelMode }';
@@ -293,6 +304,7 @@ class NavigationInstruction_ {
       instructions: json['instructions'],
     );
   }
+
 }
 
 class LocalizedValues_ {
