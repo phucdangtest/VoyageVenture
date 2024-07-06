@@ -363,11 +363,27 @@ class _LocationSharingState extends State<LocationSharing> {
                                     fontSize: 18.0,
                                   )), // Bold and 18px font size
                             ),
-                            Spacer(),
                             SizedBox(height: 20.0),
                             Expanded(
-                              child: Text(
-                                  '${data['location'].latitude}, ${data['location'].longitude}'),
+                              child: FutureBuilder<String>(
+                                future: convertLatLngToAddress2(
+                                  LatLng(data['location'].latitude,
+                                      data['location'].longitude),
+                                  isCutoff: true,
+                                ),
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<String> snapshot) {
+                                  if (snapshot.hasError) {
+                                    return Text("Something went wrong");
+                                  }
+
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    return Text(snapshot.data!);
+                                  }
+                                  return SizedBox.shrink();
+                                },
+                              ),
                             ),
                           ],
                         );

@@ -145,7 +145,36 @@ Future<String> convertLatLngToAddress(LatLng latlng, {bool isCutoff = false}) as
     return '';
   }
 }
+Future<String> convertLatLngToAddress2(LatLng latlng, {bool isCutoff = false}) async {
+  double lat = latlng.latitude;
+  double lng = latlng.longitude;
+  try {
+    List<Placemark> placeMarks = await placemarkFromCoordinates(lat, lng);
+    placeMarks.sort((a, b) => countValidFields(b).compareTo(countValidFields(a)));
 
+    var addressParts = [
+      placeMarks[0].street,
+      placeMarks[0].subLocality,
+      placeMarks[0].locality,
+      placeMarks[0].subAdministrativeArea,
+      placeMarks[0].administrativeArea,
+      placeMarks[0].country
+    ].where((s) => s?.isNotEmpty ?? false).join(', ');
+
+
+    if (isCutoff) {
+      String displayText = addressParts.length > 50 ? addressParts.substring(0, 30) + '...' : addressParts;
+      logWithTag('Address: $displayText', tag: 'convertLatLngToAddress');
+      return displayText;
+    } else {
+      logWithTag('Address: $addressParts', tag: 'convertLatLngToAddress');
+      return addressParts;
+    }
+  } catch (e) {
+    print('Failed to convert LatLng to address: $e');
+    return '';
+  }
+}
   Future<String> convertAddressToLatLng(String address) async {
     try {
       List<geo_location.Location> locations = await locationFromAddress(address);
