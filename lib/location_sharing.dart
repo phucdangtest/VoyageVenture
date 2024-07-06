@@ -39,7 +39,7 @@ bool distanceBetween(LatLng position1, LatLng position2) {
 
 class _LocationSharingState extends State<LocationSharing> {
   CameraPosition _initialLocation =
-      const CameraPosition(target: LatLng(0.0, 0.0));
+  const CameraPosition(target: LatLng(0.0, 0.0));
   List<Marker> myMarker = [];
   GoogleMapController? _controller;
   bool _showWhiteBox = false; // State variable to control box visibility
@@ -56,8 +56,9 @@ class _LocationSharingState extends State<LocationSharing> {
   List<Uint8List> friendImageBytes = [];
   BitmapDescriptor defaultMarker = BitmapDescriptor.defaultMarker;
 
-  FirebaseFirestore get firestore => FirebaseFirestore
-      .instance; // Function to add a user to the Firestore database
+  FirebaseFirestore get firestore =>
+      FirebaseFirestore
+          .instance; // Function to add a user to the Firestore database
   Future<void> addUser(String userId, String name, GeoPoint location) async {
     // Create a new document with the user ID
     final userRef = firestore.collection('users').doc(userId);
@@ -83,10 +84,8 @@ class _LocationSharingState extends State<LocationSharing> {
     }
   }
 
-  Future<Marker> createMarkerWithNetworkImage(
-    LatLng position,
-    String imageUrl,
-  ) async {
+  Future<Marker> createMarkerWithNetworkImage(LatLng position,
+      String imageUrl,) async {
     final imageBytes = await fetchImageBytes(imageUrl);
     final bitmapDescriptor = BitmapDescriptor.fromBytes(imageBytes);
     return Marker(
@@ -103,7 +102,7 @@ class _LocationSharingState extends State<LocationSharing> {
     updateFriendLocations();
 
     BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
-            "assets/icons/default_friends_marker.svg", const Size(100, 100))
+        "assets/icons/default_friends_marker.svg", const Size(100, 100))
         .then((bitmapDescriptor) {
       setState(() {
         defaultMarker = bitmapDescriptor;
@@ -202,10 +201,10 @@ class _LocationSharingState extends State<LocationSharing> {
       final userRef = firestore.collection('users').doc(userId);
 
       _positionStream = geolocator.getPositionStream().listen(
-        (Position position) async {
+            (Position position) async {
           final GoogleMapController controller = await _mapsController.future;
           final double currentZoomLevel =
-              await controller.getZoomLevel(); // Get current zoom level
+          await controller.getZoomLevel(); // Get current zoom level
           controller.animateCamera(CameraUpdate.newCameraPosition(
             CameraPosition(
               target: LatLng(position.latitude, position.longitude),
@@ -231,7 +230,7 @@ class _LocationSharingState extends State<LocationSharing> {
 
   Future<Map<String, dynamic>> fetchUserDataAndAddress(String userId) async {
     final doc =
-        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    await FirebaseFirestore.instance.collection('users').doc(userId).get();
     final data = doc.data() as Map<String, dynamic>;
     final address = await convertLatLngToAddress2(
       LatLng(data['location'].latitude, data['location'].longitude),
@@ -277,7 +276,7 @@ class _LocationSharingState extends State<LocationSharing> {
                   if (_showWhiteBox) {
                     _selectedLocation = position;
                     _selectedFriendId =
-                        friendID[friendLocations.indexOf(friendLocation)];
+                    friendID[friendLocations.indexOf(friendLocation)];
                     fetchUserDataAndAddress(_selectedFriendId!).then((data) {
                       setState(() {
                         userData = data;
@@ -293,14 +292,23 @@ class _LocationSharingState extends State<LocationSharing> {
           polylines: {if (route != null) route!},
           zoomControlsEnabled: false,
         ),
-        FloatingActionButton(
-            child: const Icon(Icons.arrow_back_rounded),
+        Positioned(
+          top: 20, // Adjust as needed
+          left: 5, // Adjust as needed
+          child: FloatingActionButton(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            // Remove shadow
+            child: const Icon(Icons.arrow_back_rounded, color: Colors.black),
+            // Set icon color as needed
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => MyHomeScreen()),
               );
-            }),
+            },
+          ),
+        ),
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseAuth.instance.currentUser != null
               ? FirebaseFirestore.instance.collection('users').snapshots()
@@ -350,7 +358,10 @@ class _LocationSharingState extends State<LocationSharing> {
               visible: _showWhiteBox,
               child: Container(
                 height: 120,
-                width: MediaQuery.of(context).size.width,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width,
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -358,20 +369,20 @@ class _LocationSharingState extends State<LocationSharing> {
                 ),
                 child: _showWhiteBox && userData != null
                     ? Column(
-                        children: [
-                          Container(
-                            child: Text('${userData!['email']}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18.0,
-                                )), // Bold and 18px font size
-                          ),
-                          SizedBox(height: 20.0),
-                          Expanded(
-                            child: Text(userData!['address']),
-                          ),
-                        ],
-                      )
+                  children: [
+                    Container(
+                      child: Text('${userData!['email']}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.0,
+                          )), // Bold and 18px font size
+                    ),
+                    SizedBox(height: 20.0),
+                    Expanded(
+                      child: Text(userData!['address']),
+                    ),
+                  ],
+                )
                     : Container(),
               ),
             )),
@@ -382,7 +393,7 @@ class _LocationSharingState extends State<LocationSharing> {
             onPressed: () async {
               Position position = await getCurrentLocation();
               final GoogleMapController controller =
-                  await _mapsController.future;
+              await _mapsController.future;
               final double currentZoomLevel = await controller.getZoomLevel();
               controller.animateCamera(CameraUpdate.newCameraPosition(
                 CameraPosition(
