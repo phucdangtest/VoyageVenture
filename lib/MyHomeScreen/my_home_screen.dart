@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:voyageventure/components/custom_search_field.dart';
 import 'package:voyageventure/components/route_planning_list_tile.dart';
 import 'package:voyageventure/components/navigation_list_tile.dart';
@@ -1754,11 +1755,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         ),
                                       ],
                                     ),
-                                    FilledButton(
-                                      onPressed: () {
-                                        calcRouteFromDepToDes();
-                                      },
-                                      child: const Text("Chỉ đường"),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(onPressed: () async {
+                                          await Clipboard.setData(ClipboardData(text: "https://maps.app.goo.gl/"+mapData.destinationID));
+                                        }, icon: Icon(Icons.share_rounded)),
+                                        FilledButton(
+                                          onPressed: () {
+                                            calcRouteFromDepToDes();
+                                          },
+                                          child: const Text("Chỉ đường"),
+                                        ),
+                                        IconButton(onPressed: () async {
+                                          await Clipboard.setData(ClipboardData(text: "https://maps.app.goo.gl/"+mapData.destinationID));
+                                        }, icon: Icon(Icons.bookmark)),
+                                      ],
                                     )
                                   ]),
                                 ),
@@ -2202,6 +2214,7 @@ class MapData {
   String destinationLocationAddress;
   String destinationLocationPlaceName;
   String destinationLocationPhotoUrl;
+  String destinationID = "";
 
   MapData({
     this.currentLocation,
@@ -2261,6 +2274,7 @@ class MapData {
   }
 
   void changeDestinationAddressAndPlaceNameAndImage(PlaceSearch_ place) {
+    destinationID = place.id!;
     destinationLocationAddress = place.formattedAddress!;
     destinationLocationPlaceName = place.displayName?.text ?? "";
     if (place.photoUrls != null) destinationLocationPhotoUrl = place.photoUrls!;
