@@ -2,13 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:voyageventure/components/mock_list.dart';
+import 'package:voyageventure/utils.dart';
 
 import 'fonts.dart';
 
 class BottomSheetComponient_ extends StatefulWidget {
   ScrollController controller;
+  VoidCallback shareLocationPressed;
 
-  BottomSheetComponient_({Key? key, required this.controller})
+  BottomSheetComponient_({Key? key, required this.controller, required this.shareLocationPressed})
       : super(key: key);
 
   @override
@@ -27,16 +29,80 @@ class _BottomSheetComponient_State extends State<BottomSheetComponient_> {
         padding: const EdgeInsets.all(20),
         width: double.infinity,
         decoration: const BoxDecoration(
-          color: Color(0xFFF0F0F0),
+          color: Colors.white,
           borderRadius: BorderRadius.all(Radius.circular(20.0)),
         ),
         child: Column(
           //BST, BDNT
           children: [
             DecoratedBox(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                border: Border.all(color: Color(0xFFF0F0F0), width: 2.0),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.only(left: 8),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        'CHIA SẺ VỊ TRÍ',
+                        style: leagueSpartanTitle,
+                      ),
+                    ),
+                    Container(
+                      //padding: const EdgeInsets.only(left: 200),
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isNullCollection = false;
+                              });
+                            },
+                            child: Image(
+                              image: AssetImage('assets/location_sharing.png'),
+                              width:
+                              MediaQuery.of(context).size.width * 0.3,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              'Chia sẻ vị trí với bạn bè theo thời gian thực.',
+                              style: leagueSpartanParagraph,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        widget.shareLocationPressed();
+                        logWithTag('Share location pressed', tag: 'BottomSheetComponient_');
+                      },
+                      icon: SvgPicture.asset('assets/icons/location.svg'),
+                      label: Text('Chia sẻ vị trí', style: leagueSpartanBlue,),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          elevation: 0,
+                          fixedSize: const Size(double.infinity, 40)
+                      ),)
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                border: Border.all(color: Color(0xFFF0F0F0), width: 2.0),
               ),
               child: Container(
                 padding: const EdgeInsets.all(8.0),
@@ -93,9 +159,11 @@ class _BottomSheetComponient_State extends State<BottomSheetComponient_> {
             ),
             const SizedBox(height: 20),
             DecoratedBox(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                border: Border.all(color: Color(0xFFF0F0F0), width: 2.0),
+
               ),
               child: Container(
                 padding: const EdgeInsets.all(8.0),
@@ -122,14 +190,14 @@ class _BottomSheetComponient_State extends State<BottomSheetComponient_> {
                                     });
                                   },
                                   child: Image(
-                                    image: AssetImage('assets/collection.jpg'),
+                                    image: AssetImage('assets/setting.jpg'),
                                     width:
                                         MediaQuery.of(context).size.width * 0.3,
                                   ),
                                 ),
                                 Expanded(
                                   child: Text(
-                                    'Lưu những địa điểm bạn thích và mang chúng theo khắp mọi nơi.',
+                                    'Tùy chỉnh theo ý bạn.',
                                     style: leagueSpartanParagraph,
                                   ),
                                 ),

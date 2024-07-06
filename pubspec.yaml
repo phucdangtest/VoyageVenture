@@ -112,6 +112,9 @@ flutter:
     - assets/icons/waypoints/g.svg
     - assets/icons/waypoints/h.svg
     - assets/icons/default_friends_marker.svg
+    - assets/location_sharing.png
+    - assets/setting.jpg
+  
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

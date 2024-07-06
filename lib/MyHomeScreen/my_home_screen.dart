@@ -25,6 +25,7 @@ import '../components/fonts.dart';
 import '../components/loading_indicator.dart';
 import '../components/location_list_tile.dart';
 import '../components/route_planning_list.dart';
+import '../location_sharing.dart';
 import '../models/place_autocomplete.dart';
 import '../models/place_search.dart';
 import '../models/route_calculate.dart';
@@ -1496,7 +1497,14 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               //   ],
                               // ),
                               BottomSheetComponient_(
-                                  controller: _listviewScrollController),
+                                  controller: _listviewScrollController,
+                                  shareLocationPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => LocationSharing()),
+                                    );
+                                  },
+                              ),
                             ]),
                           ),
                         ),
