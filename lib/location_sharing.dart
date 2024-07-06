@@ -30,7 +30,7 @@ bool distanceBetween(LatLng position1, LatLng position2) {
   one = one.abs();
   double two = position1.longitude - position2.longitude;
   two = two.abs();
-  if (one <= 0.0003 && two <= 0.0002) {
+  if (one <= 0.0004 && two <= 0.0004) {
     return true;
   }
   return false;
@@ -89,49 +89,11 @@ class _LocationSharingState extends State<LocationSharing> {
     final imageBytes = await fetchImageBytes(imageUrl);
     final bitmapDescriptor = BitmapDescriptor.fromBytes(imageBytes);
     return Marker(
-      markerId: MarkerId(imageUrl), // Unique ID for each marker
+      markerId: MarkerId(imageUrl),
       position: position,
       icon: bitmapDescriptor,
     );
   }
-
-  // Future<void> updateUserProfile(String userId, GeoPoint newLocation) async {
-  //   // Get a reference to the document with the user ID
-  //   final userRef = firestore.collection('users').doc(userId);
-  //
-  //   // Get the current document
-  //   final doc = await userRef.get();
-  //
-  //   // Get the current location
-  //   final GeoPoint currentLocation = doc.get('location');
-  //
-  //   // Update user data
-  //   await userRef.update({
-  //     'lastLocation': currentLocation,
-  //     'location': newLocation,
-  //     'lastup': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
-  //   });
-  // }
-
-// Function to retrieve a user's friends (consider implementing pagination for large friend lists)
-//   Future<void> getFriends(String userId1, String userId2) async {
-//     // Get a reference to the user documents
-//     final userRef1 = firestore.collection('users').doc(userId1);
-//     final userRef2 = firestore.collection('users').doc(userId2);
-//
-//     // Get the current documents
-//     final doc1 = await userRef1.get();
-//     final doc2 = await userRef2.get();
-//
-//     // Get the current locations
-//     final GeoPoint currentLocation1 = doc1.get('location');
-//     final GeoPoint currentLocation2 = doc2.get('location');
-//
-//     // Update user data
-//     await userRef1.update({});
-//
-//     await userRef2.update({});
-//   }
 
   @override
   void initState() {
@@ -148,16 +110,6 @@ class _LocationSharingState extends State<LocationSharing> {
     });
 
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-    // firestore.collection('user').get().then((QuerySnapshot querySnapshot) {
-    //   logWithTag("Get data from firestore", tag: "LocationSharing");
-    //   DocumentSnapshot documentSnapshot = querySnapshot.docs.first;
-    //   String Email = documentSnapshot.get('Email');
-    //   logWithTag("Data: ${Email}", tag: "LocationSharing");
-    // });
-
-    //addFriendMarkers(); // Add markers for friend locations
-    //trackLocation();
   }
 
   Future<void> setInitialLocation() async {
@@ -166,11 +118,6 @@ class _LocationSharingState extends State<LocationSharing> {
       target: LatLng(position.latitude, position.longitude),
       zoom: 13,
     );
-    //Khong can marker cua minh
-    // myMarker.add(Marker(
-    //   markerId: const MarkerId('myMarker'),
-    //   position: LatLng(position.latitude, position.longitude),
-    // ));
 
     setState(() {}); // Update UI
   }
@@ -305,6 +252,7 @@ class _LocationSharingState extends State<LocationSharing> {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   bool isLoggedIn = false;
+  String? _selectedFriendId;
 
   @override
   Widget build(BuildContext context) {
@@ -326,6 +274,10 @@ class _LocationSharingState extends State<LocationSharing> {
                 _showWhiteBox = !_showWhiteBox;
                 if (_showWhiteBox) {
                   _selectedLocation = position;
+                  _selectedFriendId =
+                      friendID[friendLocations.indexOf(friendLocation)];
+                } else {
+                  _selectedFriendId = null;
                 }
               });
             }
@@ -354,28 +306,7 @@ class _LocationSharingState extends State<LocationSharing> {
               onPressed: () async {
                 if (isLoggedIn) {
                   updateFriendLocations();
-                  // final userId = FirebaseAuth.instance.currentUser!.uid;
-                  // final userRef = firestore.collection('users').doc(
-                  //     userId);
-                  // final userDoc = await userRef.get();
-                  // final friends = (userDoc.get('friends') as List<
-                  //     dynamic>)
-                  //     .map((item) => item.toString())
-                  //     .toList();
-                  // for (final friendId in friends) {
-                  //   final friendRef =
-                  //   firestore.collection('users').doc(friendId);
-                  //   final friendDoc = await friendRef.get();
-                  //   final friendLocation =
-                  //   friendDoc.get('location') as GeoPoint;
-                  //
-                  //   setState(() {
-                  //     friendLocations.add(LatLng(
-                  //         friendLocation.latitude,
-                  //         friendLocation.longitude));
-                  //     addFriendMarkers();
-                  //   });
-                  //}
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => UserProfilePage()),
@@ -395,7 +326,7 @@ class _LocationSharingState extends State<LocationSharing> {
         },
       ),
       Positioned(
-        bottom: 20,
+        top: 100,
         left: 20,
         right: 20,
         child: Visibility(
@@ -408,27 +339,43 @@ class _LocationSharingState extends State<LocationSharing> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(10.0),
             ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      child: Text('MAI HÂN',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
-                          )), // Bold and 18px font size
-                    ),
-                    Spacer(),
-                  ],
-                ),
-                SizedBox(height: 20.0),
-                const Expanded(
-                  child: Text(
-                      '255 Biscayne Blvd Way, Miami, FL 33131, United States'),
-                ),
-              ],
-            ),
+            child: _selectedFriendId != null
+                ? FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(_selectedFriendId)
+                        .get(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<DocumentSnapshot> snapshot) {
+                      if (snapshot.hasError) {
+                        return Text("Something went wrong");
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        Map<String, dynamic> data =
+                            snapshot.data!.data() as Map<String, dynamic>;
+                        return Column(
+                          children: [
+                            Container(
+                              child: Text('${data['email']}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.0,
+                                  )), // Bold and 18px font size
+                            ),
+                            Spacer(),
+                            SizedBox(height: 20.0),
+                            Expanded(
+                              child: Text(
+                                  '${data['location'].latitude}, ${data['location'].longitude}'),
+                            ),
+                          ],
+                        );
+                      }
+                      return SizedBox.shrink();
+                    },
+                  )
+                : Container(),
           ),
         ),
       ),
