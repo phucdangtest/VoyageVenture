@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:math'; // Import math library for acos function
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -39,7 +40,7 @@ bool distanceBetween(LatLng position1, LatLng position2) {
 
 class _LocationSharingState extends State<LocationSharing> {
   CameraPosition _initialLocation =
-  const CameraPosition(target: LatLng(0.0, 0.0));
+  const CameraPosition(target: LatLng(10.878618,106.8078733), zoom: 15);
   List<Marker> myMarker = [];
   GoogleMapController? _controller;
   bool _showWhiteBox = false; // State variable to control box visibility
@@ -129,7 +130,9 @@ class _LocationSharingState extends State<LocationSharing> {
       if (isFetchImage)
         marker = Marker(
           markerId: MarkerId('friend_${friendLocations.indexOf(location)}'),
-          icon: BitmapDescriptor.fromBytes(
+          icon:(friendLocations.indexOf(location) > friendImageBytes.length - 1)?
+              defaultMarker
+          :BitmapDescriptor.fromBytes(
               friendImageBytes[friendLocations.indexOf(location)]),
           position: location,
         );
