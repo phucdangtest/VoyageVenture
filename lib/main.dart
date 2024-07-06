@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 188,235,240)),
         useMaterial3: true,
       ),
-      home: LocationSharing(),
+      home: MyHomeScreen(),
 
 
     );

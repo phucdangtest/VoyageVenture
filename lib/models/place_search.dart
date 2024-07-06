@@ -23,7 +23,15 @@ class PlaceSearch_ {
 
 static Future<String> getPhotoUrls(String id, int width, int height) async {
   var value = await fetchPhotoUrls(id);
-  String photoID = value.first.split("/").last;
+  if (value.first == "")
+  {
+    return "";
+  }
+  String photoID = value.first;
+  if (photoID.contains("/"))
+  {
+    photoID =   photoID.split("/").last;
+  }
   final response = await http.get(Uri.parse("https://places.googleapis.com/v1/places/${id}/photos/${photoID}/media?maxHeightPx=${height}&maxWidthPx=${width}&key=${dotenv.env['MAPS_API_KEY1']}&skipHttpRedirect=true"));
   if (response.statusCode == 200) {
     var jsonResponse = jsonDecode(response.body);

@@ -347,7 +347,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
               placeSearchList = searchList;
               for (int i = 0; i < placeSearchList.length; i++) {
                 if (placeSearchList[i].id != null) {
-                  PlaceSearch_.getPhotoUrls(placeSearchList[i].id!, 500, 500).then((photoUrls) {
+                  PlaceSearch_.getPhotoUrls(placeSearchList[i].id!, 500, 500)
+                      .then((photoUrls) {
                     setState(() {
                       placeSearchList[i].photoUrls = photoUrls;
                       logWithTag("Photo URL: ${photoUrls}",
@@ -473,10 +474,8 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         mapData.changeDestinationAddressAndPlaceNameAndImage(value);
         if (state == stateMap["Loading Can Route"]!)
           changeState("Search Results");
-      }
-      else if (state == stateMap["Loading Can Route"]!)
+      } else if (state == stateMap["Loading Can Route"]!)
         changeState("Search Results None");
-
     } catch (e) {
       logWithTag("Error, place click from map: $e",
           tag: "SearchLocationScreen");
@@ -835,15 +834,14 @@ class _MyHomeScreenState extends State<MyHomeScreen>
             duration: const Duration(milliseconds: 500),
             curve: Curves.fastOutSlowIn,
             bottom:
-                 // use this to compensate the height of the location show panel when it showed,
-                    // do not need to use this of use visibility widget, but that widget does not have animation
-                     ((bottomSheetTop == null)
-                        ? (MediaQuery.of(context).size.height *
-                                defaultBottomSheetHeight /
-                                1000) +
-                            10
-                        : bottomSheetTop! + 10)
-                    ,
+                // use this to compensate the height of the location show panel when it showed,
+                // do not need to use this of use visibility widget, but that widget does not have animation
+                ((bottomSheetTop == null)
+                    ? (MediaQuery.of(context).size.height *
+                            defaultBottomSheetHeight /
+                            1000) +
+                        10
+                    : bottomSheetTop! + 10),
             // 90 is the height of the location show panel
 
             right: 0,
@@ -921,13 +919,21 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                             ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(5.0),
-                                              child: Image.network(
-                                                placeSearchList[index]
-                                                        .photoUrls ??
-                                                    "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
-                                                width: 60,
-                                                height: 80,
-                                                fit: BoxFit.cover,
+                                              child: (placeSearchList[index]
+                                                          .photoUrls !=
+                                                      null)
+                                                  ? Image.network(
+                                                      placeSearchList[index]
+                                                          .photoUrls!,
+                                                      width: 60,
+                                                      height: 80,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : SvgPicture.asset(
+                                                      "assets/icons/marker_big.svg",
+                                                      width: 60,
+                                                      height: 80,
+                                                  fit: BoxFit.scaleDown,
                                               ),
                                             ),
                                           const SizedBox(width: 10.0),
@@ -1497,13 +1503,15 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                               //   ],
                               // ),
                               BottomSheetComponient_(
-                                  controller: _listviewScrollController,
-                                  shareLocationPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => LocationSharing()),
-                                    );
-                                  },
+                                controller: _listviewScrollController,
+                                shareLocationPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            LocationSharing()),
+                                  );
+                                },
                               ),
                             ]),
                           ),
@@ -1541,12 +1549,22 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                         ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(5.0),
-                                          child: Image.network(
-                                            mapData.destinationLocationPhotoUrl ??
-                                                "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
-                                            width: 80,
-                                            height: 100,
-                                            fit: BoxFit.cover,
+                                          child: (mapData
+                                                      .destinationLocationPhotoUrl !=
+                                                  null)
+                                              ? Image.network(
+                                                  mapData
+                                                      .destinationLocationPhotoUrl!,
+                                                  width: 80,
+                                                  height: 100,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : SvgPicture.asset(
+                                                  "assets/icons/marker_big.svg",
+                                                  width: 80,
+                                                  height: 100,
+                                            fit: BoxFit.scaleDown,
+
                                           ),
                                         ),
                                         SizedBox(width: 20),
@@ -1568,8 +1586,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                                 overflow: TextOverflow.visible,
                                               ),
                                               Text(
-                                                mapData
-                                                    .destinationLocationAddress
+                                                mapData.destinationLocationAddress
                                                     .toString(),
                                                 style: const TextStyle(
                                                   fontFamily: "SF Pro Display",
@@ -1626,11 +1643,11 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                                               ClipRRect(
                                                 borderRadius:
                                                     BorderRadius.circular(5.0),
-                                                child: Image.network(
-                                                  "https://firebasestorage.googleapis.com/v0/b/truyenchu-89dd1.appspot.com/o/image.jpg?alt=media&token=eabfc38e-3c7b-4471-9bed-dbe474f951f0",
-                                                  width: 80,
-                                                  height: 100,
-                                                  fit: BoxFit.cover,
+                                                child: SvgPicture.asset(
+                                                    "assets/icons/marker_big.svg",
+                                                    width: 80,
+                                                    height: 100,
+                                                  fit: BoxFit.scaleDown,
                                                 ),
                                               ),
                                               SizedBox(width: 20),
@@ -2033,8 +2050,8 @@ class MapData {
   LatLng? departureLocation;
   String departureLocationName;
   LatLng? destinationLocationLatLgn;
-  String? destinationLocationAddress;
-  String? destinationLocationPlaceName;
+  String destinationLocationAddress;
+  String destinationLocationPlaceName;
   String? destinationLocationPhotoUrl;
 
   MapData({
@@ -2042,10 +2059,12 @@ class MapData {
     this.departureLocation,
     this.destinationLocationLatLgn,
     this.departureLocationName = "Vị trí của bạn",
-    this.destinationLocationAddress,
-    this.destinationLocationPlaceName,
+    this.destinationLocationAddress = "",
+    this.destinationLocationPlaceName = "",
     this.destinationLocationPhotoUrl,
   });
+
+
 
   void changeDestinationLocationLatLgn(LatLng latLng) {
     destinationLocationLatLgn = latLng;
@@ -2095,8 +2114,8 @@ class MapData {
   }
 
   void changeDestinationAddressAndPlaceNameAndImage(PlaceSearch_ place) {
-    destinationLocationAddress = place.formattedAddress;
-    destinationLocationPlaceName = place.displayName?.text;
+    destinationLocationAddress = place.formattedAddress!;
+    destinationLocationPlaceName = place.displayName?.text ?? "";
     destinationLocationPhotoUrl = place.photoUrls;
     logWithTag(place.toString(), tag: "MapData info");
     logWithTag(
