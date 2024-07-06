@@ -81,10 +81,13 @@ class _MyHomeScreenState extends State<MyHomeScreen>
   late PlaceSearch_ markedPlace;
   bool placeFound = true;
   List<Marker> myMarker = [];
+  List<Marker> endLocationMarkers = [];
   BitmapDescriptor defaultMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   BitmapDescriptor mainMarker =
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+  BitmapDescriptor endLocationMarker =
+      BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
 
   List<BitmapDescriptor> waypointMarkers = [
     BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
@@ -628,18 +631,33 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     // Todo: mapdata
   }
 
+  Future<void> updateEndLocationAddress() async {
+    if (routes.isEmpty) return;
+    for (Step_ step in routes[0].legs[0].steps!) {
+      if (step.endLocationAddress == null) {
+        String placeString = await convertLatLngToAddress(step.endLocation.latLng);
+        step.endLocationAddress = placeString;
+      }
+    }
+  }
+
   void addEndLocationsToMarkers() {
     logWithTag("addEndLocationsToMarkers", tag: "MyHomeScreen");
   setState(() {
-    for (Step_ step in steps) {
+    endLocationMarkers.clear();
+    if (routes.isEmpty) return;
+    for (Step_ step in routes[0].legs[0].steps!) {
       logWithTag("End location: ${step.endLocation.latLng}", tag: "End location");
       final markerId = MarkerId(step.endLocation.latLng.toString());
       Marker marker = Marker(
         markerId: markerId,
         icon: defaultMarker,
         position: step.endLocation.latLng,
+        infoWindow: InfoWindow(
+          title: step.endLocationAddress,
+        ),
       );
-      myMarker.add(marker);
+      endLocationMarkers.add(marker);
     }
   });
 }
@@ -767,6 +785,14 @@ class _MyHomeScreenState extends State<MyHomeScreen>
         .then((bitmapDescriptor) {
       setState(() {
         mainMarker = bitmapDescriptor;
+      });
+    });
+
+    BitmapDescriptorHelper.getBitmapDescriptorFromSvgAsset(
+            "assets/icons/marker_blue.svg", const Size(50, 50))
+        .then((bitmapDescriptor) {
+      setState(() {
+        endLocationMarker = bitmapDescriptor;
       });
     });
 

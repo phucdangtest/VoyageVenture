@@ -253,6 +253,7 @@ class Step_ {
   Polyline_ polyline;
   Location_ startLocation;
   Location_ endLocation;
+  String? endLocationAddress;
   NavigationInstruction_ navigationInstruction;
   LocalizedValues_ localizedValues;
   String travelMode;
