@@ -170,6 +170,29 @@ class RoutePlanningListTile extends StatefulWidget {
 }
 
 class _RoutePlanningListTileState extends State<RoutePlanningListTile> {
+
+  String longestRoute = '';
+  int longestDistance = 0;
+  int longestIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    List<Step_>? stepList = widget.route.legs[0].steps;
+    for (int i = 0; i < stepList!.length; i++) {
+      if (stepList[i].distanceMeters > longestDistance) {
+        String instruction = stepList[i].navigationInstruction.instructions;
+        if (instruction.contains("Đ."))
+          longestRoute = instruction.substring(instruction.indexOf("Đ."));
+        else if (instruction.contains("Đường"))
+          longestRoute = instruction.substring(instruction.indexOf("Đường"));
+        longestDistance = stepList[i].distanceMeters;
+        longestIndex = i;
+      }
+    }
+    if (longestRoute == '') longestRoute = stepList[longestIndex].navigationInstruction.instructions;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListTile(
@@ -200,7 +223,8 @@ class _RoutePlanningListTileState extends State<RoutePlanningListTile> {
                             color: Colors.red,
                             fontWeight: FontWeight.bold),
                       ),
-                Text("Đi qua Xa lộ Hà Nội",
+                Text("Đi qua ${longestRoute}",
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 12, color: Colors.black)),
                 Row(
                   children: [

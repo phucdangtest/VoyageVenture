@@ -961,15 +961,17 @@ class _MyHomeScreenState extends State<MyHomeScreen>
                 Container(
                   margin: const EdgeInsets.only(right: 10.0),
                   child: FloatingActionButton(
+                    backgroundColor: Colors.white,
                     elevation: 5,
                     onPressed: () {
                       //setState(() {});
                       //addEndLocationsToMarkers();
                       locationButtonOnclick();
                     },
-                    //Map from state to statemap
-                    child: Text(stateFromInt(state) ?? "Error"),
-                    //const Icon(Icons.my_location_rounded),
+                    child: const Icon(
+                      Icons.my_location,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
 
