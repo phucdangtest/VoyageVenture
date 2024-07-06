@@ -403,7 +403,7 @@ class _LocationSharingState extends State<LocationSharing> {
                 ),
               ));
             },
-            child: const Icon(Icons.center_focus_strong),
+            child: const Icon(Icons.my_location_rounded),
           ),
         ),
       ]),
