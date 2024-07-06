@@ -293,8 +293,7 @@ class _LocationSharingState extends State<LocationSharing> {
           zoomControlsEnabled: false,
         ),
         Positioned(
-          top: 20, // Adjust as needed
-          left: 5, // Adjust as needed
+          top: 40, // Adjust as needed
           child: FloatingActionButton(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -324,9 +323,10 @@ class _LocationSharingState extends State<LocationSharing> {
             }
 
             return Positioned(
-              bottom: 100,
-              left: 10,
+              top: 40,
+              right: 10,
               child: FloatingActionButton(
+                backgroundColor: Colors.white,
                 onPressed: () async {
                   if (isLoggedIn) {
                     updateFriendLocations();
@@ -345,7 +345,7 @@ class _LocationSharingState extends State<LocationSharing> {
                     updateFriendLocations();
                   }
                 },
-                child: const Icon(Icons.login),
+                child: const Icon(Icons.home),
               ),
             );
           },
@@ -387,9 +387,10 @@ class _LocationSharingState extends State<LocationSharing> {
               ),
             )),
         Positioned(
-          left: 10,
+          right: 10,
           bottom: 40,
           child: FloatingActionButton(
+            backgroundColor: Colors.white,
             onPressed: () async {
               Position position = await getCurrentLocation();
               final GoogleMapController controller =
