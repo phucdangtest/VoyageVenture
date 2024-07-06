@@ -22,6 +22,7 @@ class _EndLocationListState extends State<EndLocationList> {
   List<String> endLocationsName = [];
   List<String> distance = [];
   List<String> navigation = [];
+  int selectedEndLocation = -1;
 
   // Function to convert an index to a letter
   String indexToLetter(int index) {
@@ -73,44 +74,53 @@ void updateAllLists() {
             decoration: BoxDecoration(
               border: Border.all(color: Colors.white38, width: 2),
             ),
-            padding: EdgeInsets.only(left: 20, right: 20),
+            padding: EdgeInsets.all(8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Expanded(
-
-                  child: GestureDetector(
-                    onLongPress: () {
-                      widget.onLongPress(endLocations[index]);
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text((index + 1).toString() + " - " + navigation[index] + " - " + distance[index],
-                          style: const TextStyle(
-                            fontFamily: "SF Pro Display",
-                            color: Colors.green,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),), // Use the function here
-                        if (endLocationsName.length == endLocations.length) Text(endLocationsName[index],
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: (selectedEndLocation == index)? Color.fromARGB(100, 187, 187, 187): Colors.white,
+                    ),
+                    child: GestureDetector(
+                      onLongPress: () {
+                        widget.onLongPress(endLocations[index]);
+                        setState(() {
+                          selectedEndLocation = index;
+                        });
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text((index + 1).toString() + " - " + navigation[index] + " - " + distance[index],
                             style: const TextStyle(
                               fontFamily: "SF Pro Display",
-                              color: Colors.black,
-                              fontSize: 15,
+                              color: Colors.green,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
-                            ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(LatLngToString(endLocations[index]),
-                            style: const TextStyle(
-                              fontFamily: "SF Pro Display",
-                              color: Colors.grey,
-                              fontSize: 10,
-                              fontWeight: FontWeight.normal,
-                            ),
-                        ),
-                      ],
+                            ),), // Use the function here
+                          if (endLocationsName.length == endLocations.length) Text(endLocationsName[index],
+                              style: const TextStyle(
+                                fontFamily: "SF Pro Display",
+                                color: Colors.black,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(LatLngToString(endLocations[index]),
+                              style: const TextStyle(
+                                fontFamily: "SF Pro Display",
+                                color: Colors.grey,
+                                fontSize: 10,
+                                fontWeight: FontWeight.normal,
+                              ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
