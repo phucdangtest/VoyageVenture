@@ -641,7 +641,12 @@ class _MyHomeScreenState extends State<MyHomeScreen>
     if (mapData.departureLocation != null &&
         mapData.destinationLocationLatLgn != null) {
       setState(() {
-        myMarker.clear();
+        for(Marker marker in myMarker){
+          if(marker.icon == mainMarker){
+            myMarker.remove(marker);
+          }
+        }
+
         Marker marker = Marker(
           markerId: MarkerId("0"),
           icon: mainMarker,
