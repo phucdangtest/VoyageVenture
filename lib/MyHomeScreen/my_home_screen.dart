@@ -742,6 +742,7 @@ class _MyHomeScreenState extends State<MyHomeScreen>
 
   Future<void> updateEndLocationAddress() async {
     if (routes.isEmpty) return;
+    if (routes[0].legs[0].steps == null) return;
     for (Step_ step in routes[0].legs[0].steps!) {
       if (step.endLocationAddress == null) {
         String placeString =

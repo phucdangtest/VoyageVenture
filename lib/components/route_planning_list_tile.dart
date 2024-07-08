@@ -179,7 +179,8 @@ class _RoutePlanningListTileState extends State<RoutePlanningListTile> {
   void initState() {
     super.initState();
     List<Step_>? stepList = widget.route.legs[0].steps;
-    for (int i = 0; i < stepList!.length; i++) {
+    if (stepList == null) return;
+    for (int i = 0; i < stepList.length; i++) {
       if (stepList[i].distanceMeters > longestDistance) {
         String instruction = stepList[i].navigationInstruction.instructions;
         if (instruction.contains("Đ.")) {
