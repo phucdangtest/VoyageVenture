@@ -87,7 +87,7 @@ void updateAllLists() {
                     ),
                     child: GestureDetector(
                       onLongPress: () {
-                        widget.onLongPress(endLocations[index]);
+                        widget.onLongPress(endLocations[index + 1]);
                         setState(() {
                           selectedEndLocation = index;
                         });
@@ -95,7 +95,7 @@ void updateAllLists() {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text((index + 1).toString() + " - " + navigation[index] + " - " + distance[index],
+                          Text((index + 1).toString() + " - After " + distance[index] + ", " + navigation[index] + " at ",
                             style: const TextStyle(
                               fontFamily: "SF Pro Display",
                               color: Colors.green,

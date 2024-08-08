@@ -49,12 +49,17 @@ dependencies:
   url_launcher: ^6.1.5
   path_provider: ^2.1.2
   share_plus: ^9.0.0
+  welltested_annotation: ^1.0.1
 
 dev_dependencies:
   firebase_auth: ^4.3.1
   firebase_database: ^10.5.3
   google_sign_in: ^5.2.1
   cloud_firestore: ^4.0.0
+  mockito: ^5.0.16
+  build_runner: ^2.1.7
+  http: ^1.0.0
+  get: ^4.6.5
 
   flutter_test:
     sdk: flutter

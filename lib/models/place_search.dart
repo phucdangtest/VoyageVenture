@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:voyageventure/utils.dart';
 
 class PlaceSearch_ {
+  http.Client client = http.Client();
   final String? id;
   final String? formattedAddress;
   final Location location;
@@ -22,7 +23,8 @@ class PlaceSearch_ {
   });
 
 static Future<String> getPhotoUrls(String id, int width, int height) async {
-  var value = await fetchPhotoUrls(id);
+  http.Client client = http.Client();
+  var value = await fetchPhotoUrls(id, client, dotenv.env['MAPS_API_KEY1']!);
   if (value.isEmpty) {
     return "";
   }

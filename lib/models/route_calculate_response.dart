@@ -124,10 +124,10 @@ class Leg_ {
       polyline: Polyline_.fromJson(json['polyline']),
       startLocation: Location_.fromJson(json['startLocation']),
       endLocation: Location_.fromJson(json['endLocation']),
-     steps: null,
-     //  steps: (json['steps'] as List)
-     //      .map((item) => Step_.fromJson(item))
-     //      .toList(),
+     //steps: null,
+      steps: (json['steps'] as List)
+          .map((item) => Step_.fromJson(item))
+          .toList(),
     );
   }
 
